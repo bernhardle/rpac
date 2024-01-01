@@ -31,13 +31,11 @@ void loggerSetup (void) {
   //
   buttonPressedTime = 0 ;
   //
-  if (verbose || debug) {
-    //
-    Serial.print ("You may enter 'n' or press button within ") ;
-    Serial.print (String (waitForCmd / 1000, DEC)) ;
-    Serial.println (" sec. to disable logging.") ;
-    //
-  }
+#ifdef __DEBUG__RPAC__
+  Serial.print ("You may enter 'n' or press button within ") ;
+  Serial.print (String (waitForCmd / 1000, DEC)) ;
+  Serial.println (" sec. to disable logging.") ;
+#endif
   //
   for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (200)) {
     //
@@ -45,11 +43,9 @@ void loggerSetup (void) {
     //
     if (buttonPressedTime > 0) {
       //
-      if (verbose || debug) {
-        //
-        Serial.println ("Button has been pressed ...") ;
-        //
-      }
+#ifdef __DEBUG__RPAC__
+      Serial.println ("Button has been pressed ...") ;
+#endif
       //
       loggerCmd = false ;
       //
@@ -110,15 +106,21 @@ void loggerSetup (void) {
       //
       loggerEnabled = true ;
       //
-      if (verbose || debug) Serial.println ("Data logging is enabled.") ;
+#ifdef __DEBUG__RPAC__
+      Serial.println ("Data logging is enabled.") ;
+#endif
       //
     } else {
       //
-      if (verbose || debug) Serial.println ("Enabling of data logging failed: " + msg) ;
+#ifdef __DEBUG__RPAC__
+      Serial.println ("Enabling of data logging failed: " + msg) ;
+#endif
       //
       digitalWrite (loggerPin, LOW) ;
       //
-      if (verbose || debug) Serial.println ("Data logging is disabled.") ;
+#ifdef __DEBUG__RPAC__
+      Serial.println ("Data logging is disabled.") ;
+#endif
       //
       Serial1.end () ;
       //
@@ -126,7 +128,9 @@ void loggerSetup (void) {
     //
   } else {
     //
-    if (verbose || debug) Serial.println ("Data logging is disabled.") ;
+#ifdef __DEBUG__RPAC__
+    Serial.println ("Data logging is disabled.") ;
+#endif
     //
   }
   //
@@ -142,7 +146,9 @@ void loggerLoop (const sensorData_t & data, String && message) {
     //
     if (myTime < loggerLastWrite + loggerInterval) {
       //
-      if (verbose || debug) Serial.println ("[WARNING] Logging frequency limit exceeded: Sample skipped.") ;
+#ifdef __DEBUG__RPAC__
+      Serial.println ("[WARNING] Logging frequency limit exceeded: Sample skipped.") ;
+#endif
       //
       return ;
       //
@@ -165,7 +171,9 @@ void loggerLoop (const sensorData_t & data, String && message) {
     //
     digitalWrite (loggerPin, LOW) ;
     //
-    if (verbose || debug) Serial.println ("Data logging is disabled.") ;
+#ifdef __DEBUG__RPAC__
+    Serial.println ("Data logging is disabled.") ;
+#endif
     //
     Serial1.end () ;
     //

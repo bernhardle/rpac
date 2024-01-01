@@ -5,11 +5,10 @@
 //
 const int pulserPin = 10 ;
 //
-extern volatile unsigned long pulserChangeTime ;
-// extern volatile bool pulserEnabled ;
-extern unsigned int pulserMode, pulserProgressCount ;
+extern unsigned long pulserChangeTime ;
+extern unsigned int pulserProgressCount ;
 //
-extern void pulserSetup (volatile unsigned long &) ;
-extern void pulserLoop (volatile unsigned long &, unsigned int &) ;
+extern void pulserSetup (void) ;
+extern bool pulserLoop (unsigned long &, unsigned int &, bool) ;
 //
 #endif

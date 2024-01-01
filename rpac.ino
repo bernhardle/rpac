@@ -1,42 +1,27 @@
 #include <EEPROM.h>
 //
 #include "global.h"
+#include "button.h"
 #include "pulser.h"
 #include "sensor.h"
 #include "logger.h"
+#include "signal.h"
 //
-const int buttonPin = 16 ;
 const unsigned long loopMaxDura = 12 ;
 //
-volatile unsigned long buttonPressedTime = 0 ;
 sensorData_t sensorData ;
 //
-//  Handles the falling edge interrupt caused by switch closing contacts
-//
-void handler () {
-  //
-  buttonPressedTime = millis () ;
-  //
-}
+bool lastButtonState = false ;
 //
 // the setup function runs once when you press reset or power the board
 //
 void setup() {
   //
-  pinMode (LED_BUILTIN, OUTPUT) ;
-  pinMode (buttonPin, INPUT_PULLUP) ;
-  //
-  digitalWrite (LED_BUILTIN, HIGH) ;
-  //
-  delay (1500) ;
-  //
-  digitalWrite (LED_BUILTIN, LOW) ;
-  //
   Serial.begin (115200) ;
   //
-  attachInterrupt(digitalPinToInterrupt(buttonPin), handler, FALLING) ;
+  signalSetup () ;
   //
-  delay (500) ;
+  buttonSetup () ;
   //
   sensorSetup (sensorData) ;
   //
@@ -51,18 +36,17 @@ void setup() {
 void loop() {
   //
   unsigned long loopBegin = millis () ;
+  bool pulseState, buttonState ;
   //
-  if (buttonPressedTime) {
+  buttonState = buttonLoop () ;
+  //
+  if (buttonState != lastButtonState) {
     //
-    noInterrupts () ;
+    lastButtonState = buttonState ;
     //
-    Serial.print ("Button was pressed @ ") ;
-    Serial.print (String (buttonPressedTime)) ;
-    Serial.println (" ms from start.") ;
-    //
-    buttonPressedTime = 0 ;
-    //
-    interrupts () ;
+  #ifdef __DEBUG__RPAC__
+      Serial.println (String ("[INFO] Button was ") + String (buttonState ? "pressed @" : "released @") + String (millis(), DEC) + " ms.") ;
+  #endif
     //
   }
   //
@@ -70,9 +54,13 @@ void loop() {
   //
   loggerLoop (sensorData, "") ;
   //
-  pulserLoop (pulserChangeTime, pulserProgressCount) ;
+  pulseState = pulserLoop (pulserChangeTime, pulserProgressCount, buttonState) ;
   //
-  if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Maximum outer loop duration of " + String (loopMaxDura) + " exceeded.") ;
+  signalLoop (pulseState) ;
+  //
+#ifdef __DEBUG__RPAC__
+  if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
+#endif
   //
 }
 //
