@@ -11,7 +11,7 @@ const unsigned long logRes = 4 ;
 //
 // extern volatile bool loggerEnabled ;
 //
-extern void loggerSetup (DateTime &&) ;
+extern void loggerSetup (String &&) ;
 extern void loggerLoop (const sensorData_t &, bool, String &&) ;
 //
 #endif

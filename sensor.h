@@ -16,7 +16,7 @@ typedef class sensorData {
   //
 } sensorData_t ;
 //
-extern void sensorSetup (void) ;
+extern void sensorSetup (sensorData_t &) ;
 extern void sensorLoop (sensorData_t &) ;
 //
 #endif

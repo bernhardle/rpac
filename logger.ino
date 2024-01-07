@@ -24,7 +24,7 @@ static inline float digit2hcPa (int dgs) {
   //
 }
 //
-void loggerSetup (DateTime && now) {
+void loggerSetup (String && stamp) {
   //
   bool loggerCmd = true ;
   //
@@ -109,23 +109,6 @@ void loggerSetup (DateTime && now) {
     if (msg.indexOf ("2<") != -1) {
       //
       loggerEnabled = true ;
-      //
-      String stamp (now.year(), DEC) ;
-      stamp.concat ('-') ;
-      stamp.concat (now.month () > 9 ? "" :"0") ;
-      stamp.concat (String (now.month(), DEC)) ;
-      stamp.concat ('-') ;
-      stamp.concat (now.day () > 9 ? "" :"0") ;
-      stamp.concat (String (now.day(), DEC)) ;
-      stamp.concat (" ") ;
-      stamp.concat (now.hour () > 9 ? "" :"0") ;
-      stamp.concat (String (now.hour(), DEC)) ;
-      stamp.concat (':');
-      stamp.concat (now.minute () > 9 ? "" :"0") ;
-      stamp.concat (String (now.minute(), DEC)) ;
-      stamp.concat (':') ;
-      stamp.concat (now.second () > 9 ? "" :"0") ;
-      stamp.concat (String (now.second(), DEC)) ;
       //
       Serial1.println (stamp) ;
       Serial1.flush () ;
