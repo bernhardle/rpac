@@ -1,6 +1,6 @@
 #include "signal.h"
 //
-static bool lastLEDState = false ;
+static bool signalLastState = false ;
 //
 void signalSetup (void) {
   //
@@ -14,11 +14,11 @@ void signalSetup (void) {
   //
   delay (500) ;
   //
-  lastLEDState = false ;
+  signalLastState = false ;
 }
 //
 void signalLoop (bool state) {
   //
-  if (state != lastLEDState) digitalWrite (signalPin, (lastLEDState = state) ? HIGH : LOW) ;
+  if (state != signalLastState) digitalWrite (signalPin, (signalLastState = state) ? HIGH : LOW) ;
   //
 }

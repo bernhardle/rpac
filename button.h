@@ -5,8 +5,6 @@
 //
 const int buttonPin = 16 ;
 //
-extern bool buttonPressed ;
-//
 extern void buttonSetup (void) ;
 extern bool buttonLoop (void) ;
 //

@@ -11,7 +11,6 @@ void sensorSetup (sensorData_t & data) {
   data.sample = 0 ;
   data.time = millis () ;
   data.pressure = 0 ;
-  data.pulseOn = digitalRead (pulserPin) ;
   //
   nextSampleTime = sampleInterval ;
   //
@@ -31,7 +30,6 @@ void sensorLoop (sensorData_t & data) {
   data.sample ++ ;
   data.time = millis () ;
   data.pressure = analogRead(sensorPin) ;
-  data.pulseOn = digitalRead (pulserPin) ;
   //
   nextSampleTime += sampleInterval ;
   //

@@ -1,3 +1,5 @@
+#include <RTClib.h>
+//
 #include "global.h"
 #include "sensor.h"
 #include "logger.h"
@@ -5,7 +7,7 @@
 const unsigned long waitForCmd = 5000, loggerFadeOut = 60000, loggerInterval = 50 ;
 //
 unsigned long loggerLastWrite = 0 ;
-unsigned int lastSampleLogged = 0 ;
+unsigned int loggerLastSample = 0 ;
 bool loggerEnabled = false ;
 //
 static inline float digit2hcPa (int dgs) {
@@ -22,7 +24,7 @@ static inline float digit2hcPa (int dgs) {
   //
 }
 //
-void loggerSetup (void) {
+void loggerSetup (DateTime && now) {
   //
   bool loggerCmd = true ;
   //
@@ -80,9 +82,11 @@ void loggerSetup (void) {
     //
     delay (200) ;
     //
-    digitalWrite (LED_BUILTIN, LOW) ;
-    //
   }
+  //
+  digitalWrite (LED_BUILTIN, LOW) ;
+  //
+  delay (300) ;
   //
   if (loggerCmd && loggerFlag) {
     //
@@ -102,12 +106,32 @@ void loggerSetup (void) {
     //
     msg.trim () ;
     //
-    if (msg.compareTo ("12<") == 0) {
+    if (msg.indexOf ("2<") != -1) {
       //
       loggerEnabled = true ;
       //
+      String stamp (now.year(), DEC) ;
+      stamp.concat ('-') ;
+      stamp.concat (now.month () > 9 ? "" :"0") ;
+      stamp.concat (String (now.month(), DEC)) ;
+      stamp.concat ('-') ;
+      stamp.concat (now.day () > 9 ? "" :"0") ;
+      stamp.concat (String (now.day(), DEC)) ;
+      stamp.concat (" ") ;
+      stamp.concat (now.hour () > 9 ? "" :"0") ;
+      stamp.concat (String (now.hour(), DEC)) ;
+      stamp.concat (':');
+      stamp.concat (now.minute () > 9 ? "" :"0") ;
+      stamp.concat (String (now.minute(), DEC)) ;
+      stamp.concat (':') ;
+      stamp.concat (now.second () > 9 ? "" :"0") ;
+      stamp.concat (String (now.second(), DEC)) ;
+      //
+      Serial1.println (stamp) ;
+      Serial1.flush () ;
+      //
 #ifdef __DEBUG__RPAC__
-      Serial.println ("Data logging is enabled.") ;
+      Serial.println ("Data logging is enabled per " + stamp) ;
 #endif
       //
     } else {
@@ -136,13 +160,13 @@ void loggerSetup (void) {
   //
 }
 //
-void loggerLoop (const sensorData_t & data, String && message) {
+void loggerLoop (const sensorData_t & data, bool pulserState, String && message) {
   //
   unsigned long myTime = millis () ;
   //
   if (! loggerEnabled) return ;
   //
-  if (data.sample > lastSampleLogged) {
+  if (data.sample > loggerLastSample) {
     //
     if (myTime < loggerLastWrite + loggerInterval) {
       //
@@ -158,14 +182,14 @@ void loggerLoop (const sensorData_t & data, String && message) {
     Serial1.print (";") ;
     Serial1.print (String(data.time, DEC)) ;
     Serial1.print (";") ;
-    Serial1.print (data.pulseOn) ;
+    Serial1.print (pulserState) ;
     Serial1.print (";") ;
     Serial1.print (String (digit2hcPa (data.pressure), 2)) ;
     Serial1.print (";") ;
     Serial1.println (message) ;
     //
     loggerLastWrite = myTime ;
-    lastSampleLogged = data.sample ;
+    loggerLastSample = data.sample ;
     //
   } else if (myTime > data.time + loggerFadeOut) {
     //

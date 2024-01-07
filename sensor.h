@@ -11,9 +11,8 @@ typedef class sensorData {
   public :
     unsigned long time ;
     unsigned short sample, pressure ;
-    bool pulseOn ;
   public :
-    sensorData () : time (0), sample (0), pressure (0), pulseOn (false) {}
+    sensorData () : time (0), sample (0), pressure (0) {}
   //
 } sensorData_t ;
 //

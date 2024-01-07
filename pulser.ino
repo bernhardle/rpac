@@ -45,7 +45,7 @@ void pulserSetup (unsigned long & lastChange) {
 #endif
 }
 //
-bool pulserLoop (unsigned long & lastChange, unsigned int & lastCount, bool trigger) {
+bool pulserLoop (unsigned long & lastChange, unsigned int & lastCount, bool pulserTrigger) {
   //
   if (pulserEnabled) {
     //
@@ -108,10 +108,13 @@ bool pulserLoop (unsigned long & lastChange, unsigned int & lastCount, bool trig
     //
   } else {
     //
-    if (trigger != lastPulseState) {
+    if (pulserTrigger != lastPulseState) {
       //
-      digitalWrite (pulserPin, (lastPulseState = trigger) ? HIGH : LOW) ;
+      digitalWrite (pulserPin, (lastPulseState = pulserTrigger) ? HIGH : LOW) ;
       //
+#ifdef __DEBUG__RPAC__
+      Serial.println (pulserTrigger ? "[INFO] Pulse manually started." : "[INFO] Pulse manually stopped.") ;
+#endif
       lastChange = millis () ;
       //
     }
