@@ -30,6 +30,7 @@ void setup() {
   //
   pulserSetup (pulserChangeTime) ;
   //
+  relaisSetup () ;
 }
 //
 // the loop function runs over and over again forever
@@ -52,6 +53,8 @@ void loop() {
 #ifdef __DEBUG__RPAC__
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
 #endif
+  //
+  relaisLoop (pulseState) ;
   //
 }
 //

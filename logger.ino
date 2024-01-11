@@ -10,6 +10,18 @@ unsigned long loggerLastWrite = 0 ;
 unsigned int loggerLastSample = 0 ;
 bool loggerEnabled = false ;
 //
+static void loggerBlinkFast (void) {
+  //
+  for (int i = 0; i < 20; i++) {
+    //
+    digitalWrite (LED_BUILTIN, HIGH);
+    delay (10) ;
+    digitalWrite (LED_BUILTIN, LOW);
+    delay (50) ;
+    //
+  }
+}
+//
 static inline float digit2hcPa (int dgs) {
   //  
   //  Voltage divider is 100 k / 147 k
@@ -49,6 +61,8 @@ void loggerSetup (String && stamp) {
       Serial.println ("Button has been pressed ...") ;
 #endif
       //
+      loggerBlinkFast () ;
+      //
       loggerCmd = false ;
       //
       buttonPressedTime = 0 ;
@@ -63,14 +77,7 @@ void loggerSetup (String && stamp) {
       //
       if (msg == 'n') {
         //
-        for (int i = 0; i < 20; i++) {
-          //
-          digitalWrite (LED_BUILTIN, HIGH);
-          delay (10) ;
-          digitalWrite (LED_BUILTIN, LOW);
-          delay (50) ;
-          //
-        }
+        loggerBlinkFast () ;
         //
         loggerCmd = false ;
         //
@@ -80,13 +87,13 @@ void loggerSetup (String && stamp) {
       //
     }
     //
-    delay (200) ;
+    delay (150) ;
+    //
+    digitalWrite (LED_BUILTIN, LOW) ;
+    //
+    delay (450) ;
     //
   }
-  //
-  digitalWrite (LED_BUILTIN, LOW) ;
-  //
-  delay (300) ;
   //
   if (loggerCmd && loggerFlag) {
     //

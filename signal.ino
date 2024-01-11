@@ -17,7 +17,7 @@ void signalSetup (void) {
   signalLastState = false ;
 }
 //
-void signalLoop (bool state) {
+void signalLoop (bool state, const signalSequence_t & prio) {
   //
   if (state != signalLastState) digitalWrite (signalPin, (signalLastState = state) ? HIGH : LOW) ;
   //
