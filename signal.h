@@ -1,6 +1,8 @@
 #ifndef __signal_h_included__
 #define __signal_h_included__
 //
+#include "global.h"
+//
 typedef struct signalSequence {
   //
   short unsigned rep = 0 ;

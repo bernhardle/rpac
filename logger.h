@@ -1,7 +1,7 @@
 #ifndef __logger_h_included__
 #define __logger_h_included__
 //
-#include "sensor.h"
+#include "pressure.h"
 //
 class DateTime ;
 //
@@ -12,6 +12,6 @@ const unsigned long logRes = 4 ;
 // extern volatile bool loggerEnabled ;
 //
 extern void loggerSetup (String &&) ;
-extern void loggerLoop (const sensorData_t &, bool, String &&) ;
+extern void loggerLoop (const pressureData_t &, bool, bool, String &&) ;
 //
 #endif

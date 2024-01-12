@@ -1,7 +1,7 @@
 #include <RTClib.h>
 //
 #include "global.h"
-#include "sensor.h"
+#include "pressure.h"
 #include "logger.h"
 //
 const unsigned long waitForCmd = 5000, loggerFadeOut = 60000, loggerInterval = 50 ;
@@ -26,7 +26,7 @@ static inline float digit2hcPa (int dgs) {
   //  
   //  Voltage divider is 100 k / 147 k
   //  in order to scale max. out < 3.3V
-  //  Sensor zero offset is ~ 33 digits raw
+  //  pressure zero offset is ~ 33 digits raw
   //  MXP555 sensitvity is 9.0 mV / kPa
   //  ADC conversion rate is 5 / 1.024 mV / digit 
   //
@@ -45,10 +45,10 @@ void loggerSetup (String && stamp) {
   //
   buttonPressedTime = 0 ;
   //
-#ifdef __DEBUG__RPAC__
-  Serial.print ("You may enter 'n' or press button within ") ;
+#ifdef __DEBUG__LOGGER__
+  Serial.print ("[INTERACTIVE] To disable logging enter 'n' or press button within ") ;
   Serial.print (String (waitForCmd / 1000, DEC)) ;
-  Serial.println (" sec. to disable logging.") ;
+  Serial.println (" sec.") ;
 #endif
   //
   for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (200)) {
@@ -57,7 +57,7 @@ void loggerSetup (String && stamp) {
     //
     if (buttonPressedTime > 0) {
       //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__LOGGER__
       Serial.println ("Button has been pressed ...") ;
 #endif
       //
@@ -120,19 +120,19 @@ void loggerSetup (String && stamp) {
       Serial1.println (stamp) ;
       Serial1.flush () ;
       //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__LOGGER__
       Serial.println ("Data logging is enabled per " + stamp) ;
 #endif
       //
     } else {
       //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__LOGGER__
       Serial.println ("Enabling of data logging failed: " + msg) ;
 #endif
       //
       digitalWrite (loggerPin, LOW) ;
       //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__LOGGER__
       Serial.println ("Data logging is disabled.") ;
 #endif
       //
@@ -142,7 +142,7 @@ void loggerSetup (String && stamp) {
     //
   } else {
     //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__LOGGER__
     Serial.println ("Data logging is disabled.") ;
 #endif
     //
@@ -150,7 +150,7 @@ void loggerSetup (String && stamp) {
   //
 }
 //
-void loggerLoop (const sensorData_t & data, bool pulserState, String && message) {
+void loggerLoop (const pressureData_t & data, bool pulserState, bool flowState, String && message) {
   //
   unsigned long myTime = millis () ;
   //
@@ -160,7 +160,7 @@ void loggerLoop (const sensorData_t & data, bool pulserState, String && message)
     //
     if (myTime < loggerLastWrite + loggerInterval) {
       //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__LOGGER__
       Serial.println ("[WARNING] Logging frequency limit exceeded: Sample skipped.") ;
 #endif
       //
@@ -174,6 +174,8 @@ void loggerLoop (const sensorData_t & data, bool pulserState, String && message)
     Serial1.print (";") ;
     Serial1.print (pulserState) ;
     Serial1.print (";") ;
+    Serial1.print (flowState) ;
+    Serial1.print (";") ;
     Serial1.print (String (digit2hcPa (data.pressure), 2)) ;
     Serial1.print (";") ;
     Serial1.println (message) ;
@@ -185,7 +187,7 @@ void loggerLoop (const sensorData_t & data, bool pulserState, String && message)
     //
     digitalWrite (loggerPin, LOW) ;
     //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__LOGGER__
     Serial.println ("Data logging is disabled.") ;
 #endif
     //

@@ -5,13 +5,13 @@
 static volatile unsigned long buttonPressedTime = 0 ;
 static signed short buttonPressedCount = 0 ;
 //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__BUTTON__
 static bool buttonLastState = false ;
 #endif
 //
 //  Handles the falling edge interrupt caused by switch closing contacts
 //
-static void handler () {
+static void buttonIntHandler () {
   //
   buttonPressedTime = millis () ;
   //
@@ -21,7 +21,7 @@ void buttonSetup (void) {
   //
   pinMode (buttonPin, INPUT_PULLUP) ;
   //
-  attachInterrupt(digitalPinToInterrupt(buttonPin), handler, FALLING) ;
+  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonIntHandler, FALLING) ;
   //
 }
 //
@@ -35,7 +35,7 @@ bool buttonLoop (void) {
     //
   } 
   //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__BUTTON__
   //
   if (BUTTONSTATE(buttonPressedCount) != buttonLastState) {
     //

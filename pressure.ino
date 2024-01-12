@@ -1,12 +1,10 @@
-#include "global.h"
-#include "pulser.h"
-#include "sensor.h"
+#include "pressure.h"
 //
 unsigned long nextSampleTime = 0, sampleAdjust = 5 ;
 //
-void sensorSetup (sensorData_t & data) {
+void pressureSetup (pressureData_t & data) {
   //
-  pinMode (sensorPin, INPUT) ;
+  pinMode (pressurePin, INPUT) ;
   //
   data.sample = 0 ;
   data.time = millis () ;
@@ -17,7 +15,7 @@ void sensorSetup (sensorData_t & data) {
   return ;
 }
 //
-void sensorLoop (sensorData_t & data) {
+void pressureLoop (pressureData_t & data) {
   //
   unsigned long myTime = millis (), pause = 0 ;
   //
@@ -29,7 +27,7 @@ void sensorLoop (sensorData_t & data) {
   //
   data.sample ++ ;
   data.time = millis () ;
-  data.pressure = analogRead(sensorPin) ;
+  data.pressure = analogRead(pressurePin) ;
   //
   nextSampleTime += sampleInterval ;
   //

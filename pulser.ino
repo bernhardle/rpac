@@ -1,32 +1,33 @@
 #include "global.h"
 #include "pulser.h"
 //
+#if 0
 const int pulserVars = 1 ;
 const unsigned long pulserOnDura [pulserVars] = {0} ;
 const unsigned long pulserOffDura [pulserVars] = {10000} ;
 const unsigned int pulserProgress [pulserVars] = {1} ;
-/*
-const int pulserVars = 1 ;
+#else
+const int pulserVars = 6 ;
 const unsigned long pulserOnDura [pulserVars] = {0, 500, 1000, 2000, 3000, 4500} ;
 const unsigned long pulserOffDura [pulserVars] = {10000, 9500, 6000, 4000, 3000, 2000} ;
 const unsigned int pulserProgress [pulserVars] = {1, 12, 12, 17, 21, 53} ;
-*/
+#endif
 //
-unsigned long pulserChangeTime = 0 ;
-unsigned int pulserMode = 0, pulserProgressCount = 0 ;
+static unsigned long pulserChangeTime = 0 ;
+static unsigned int pulserMode = 0, pulserProgressCount = 0 ;
 static bool pulserEnabled = true, lastPulseState = false ;
 //
-void pulserSetup (unsigned long & lastChange) {
+void pulserSetup (void) {
   //
   pinMode (pulserPin, OUTPUT) ;
   digitalWrite (pulserPin, LOW) ;
   //
   pulserMode = 0 ;
   pulserProgressCount = 0 ;
-  lastChange = millis () ;
+  pulserChangeTime = millis () ;
   lastPulseState = false ;
   //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__PULSER__
   Serial.println ("INFO] Pulse pattern variants:") ;
   //
   for (int i = 0 ; i < pulserVars ; i++) {
@@ -45,7 +46,7 @@ void pulserSetup (unsigned long & lastChange) {
 #endif
 }
 //
-bool pulserLoop (unsigned long & lastChange, unsigned int & lastCount, bool pulserTrigger) {
+bool pulserLoop (bool pulserTrigger) {
   //
   if (pulserEnabled) {
     //
@@ -53,21 +54,21 @@ bool pulserLoop (unsigned long & lastChange, unsigned int & lastCount, bool puls
     //
     if (digitalRead (pulserPin)) {
       //
-      if (myTime > lastChange + pulserOnDura [pulserMode]) {
+      if (myTime > pulserChangeTime + pulserOnDura [pulserMode]) {
         //
         digitalWrite (pulserPin, LOW) ;
         //
-        lastChange = myTime ;
+        pulserChangeTime = myTime ;
         lastPulseState = false ;
         //
-        if (++ lastCount > pulserProgress [pulserMode]) {
+        if (++ pulserProgressCount > pulserProgress [pulserMode]) {
           //
           if (pulserMode < pulserVars - 1) {
             //
             pulserMode ++ ;
-            lastCount = 0 ;
+            pulserProgressCount = 0 ;
             //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__PULSER__
             Serial.print ("[INFO] Switching auto pulse to mode ") ;
             Serial.print (String(pulserMode, DEC)) ;
             Serial.print ("/") ;
@@ -83,7 +84,7 @@ bool pulserLoop (unsigned long & lastChange, unsigned int & lastCount, bool puls
             //
             pulserEnabled = false ;
             //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__PULSER__
             Serial.print ("[INFO] Disabeling auto pulse.") ;
 #endif
             //
@@ -95,11 +96,11 @@ bool pulserLoop (unsigned long & lastChange, unsigned int & lastCount, bool puls
       //
     } else {
       //
-      if (myTime > lastChange + pulserOffDura [pulserMode]) {
+      if (myTime > pulserChangeTime + pulserOffDura [pulserMode]) {
         //
         digitalWrite (pulserPin, HIGH) ;
         //
-        lastChange = myTime ;
+        pulserChangeTime = myTime ;
         lastPulseState = true ;
         //
       }
@@ -112,10 +113,10 @@ bool pulserLoop (unsigned long & lastChange, unsigned int & lastCount, bool puls
       //
       digitalWrite (pulserPin, (lastPulseState = pulserTrigger) ? HIGH : LOW) ;
       //
-#ifdef __DEBUG__RPAC__
+#ifdef __DEBUG__PULSER__
       Serial.println (pulserTrigger ? "[INFO] Pulse manually started." : "[INFO] Pulse manually stopped.") ;
 #endif
-      lastChange = millis () ;
+      pulserChangeTime = millis () ;
       //
     }
     //
