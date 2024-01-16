@@ -10,7 +10,7 @@ static void flowIntHandler (void) {
   //
   flowCounts ++ ;
   //
-  if (flowCounts == flowCountsPerLitre) {
+  if (flowCounts == flowCountsPerUnit) {
     //
     flowCounts = 0 ;
     //
@@ -38,12 +38,20 @@ bool flowLoop (void) {
     //
     flowTrigger = false ;
     //
+#ifdef __DEBUG__FLOW__
+    Serial.println ("[INFO] Flow meter pulsed.") ;
+#endif
+    //
     return true ;
     //
   }
   //
 #ifdef __DEBUG__FLOW__
-  Serial.print ("[WARNING] Flow counter error flag set.") ;
+  if (flowTriggerError) {
+    //
+    Serial.println ("[WARNING] Flow trigger error flag set.") ;
+    //
+  }
 #endif
   //
   return false ;

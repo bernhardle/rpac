@@ -1,7 +1,7 @@
 #include "global.h"
 #include "pulser.h"
 //
-#if 0
+#if 1
 const int pulserVars = 1 ;
 const unsigned long pulserOnDura [pulserVars] = {0} ;
 const unsigned long pulserOffDura [pulserVars] = {10000} ;

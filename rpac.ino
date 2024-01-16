@@ -31,6 +31,8 @@ void setup() {
   pulserSetup () ;
   //
   relaisSetup () ;
+  //
+  flowSetup () ;
 }
 //
 // the loop function runs over and over again forever
@@ -56,7 +58,7 @@ void loop() {
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
 #endif
   //
-  relaisLoop (buttonState) ;
+  relaisLoop (flowState) ;
   //
 }
 //
