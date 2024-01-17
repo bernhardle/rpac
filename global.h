@@ -14,4 +14,6 @@
 #define __DEBUG__SIGNAL__
 #endif
 //
+typedef class loggerCBs loggerCBs_t ;
+//
 #endif

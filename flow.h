@@ -5,7 +5,7 @@
 //
 const int flowPin = 7, flowCountsPerUnit = 12 ;
 //
-extern void flowSetup (void) ;
+extern void flowSetup (loggerCBs_t &) ;
 extern bool flowLoop (void) ;
 //
 #endif

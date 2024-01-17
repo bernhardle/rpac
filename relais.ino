@@ -2,18 +2,25 @@
 //
 typedef decltype (HIGH) relaisState_t ;
 //
-const unsigned int relaisHoldDura = 200 ;
+const unsigned int relaisHoldDura = 100 ;
 const int relaisPin = 2 ;
 //
 unsigned long int relaisLastTime ;
 bool relaisOn = false, relaisLastTrigger = false ;
 relaisState_t relaisLastState = LOW ;
-
 //
-void relaisSetup (void) {
+static unsigned long int relaisDataCB (void) {
+  //
+  return relaisLastState ;
+  //
+}
+//
+void relaisSetup (loggerCBs_t & callbacks) {
   //
   pinMode (relaisPin, OUTPUT) ;
   digitalWrite (relaisPin, (relaisLastState = LOW)) ;
+  //
+  callbacks.add (& relaisDataCB) ;
   //
 }
 //

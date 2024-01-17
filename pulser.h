@@ -9,7 +9,7 @@ const int pulserPin = 10 ;
 //
 // extern unsigned int pulserProgressCount ;
 //
-extern void pulserSetup (void) ;
+extern void pulserSetup (loggerCBs_t &) ;
 extern bool pulserLoop (bool) ;
 //
 #endif

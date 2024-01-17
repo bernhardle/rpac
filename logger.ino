@@ -10,6 +10,22 @@ unsigned long loggerLastWrite = 0 ;
 unsigned int loggerLastSample = 0 ;
 bool loggerEnabled = false ;
 //
+bool loggerCBs::add (unsigned long (*f)(void)) {
+  //
+  if (num < mcbs) {
+    //
+    cb [num ++] = f ;
+    //
+    return true ;
+  } 
+  //
+#ifdef __DEBUG__PRESSURE__
+    Serial.println ("[WARNING] Number of callbacks reached.") ;
+#endif
+  return false ;
+//
+}
+//
 static void loggerBlinkFast (void) {
   //
   for (int i = 0; i < 20; i++) {
@@ -45,6 +61,21 @@ void loggerSetup (String && stamp) {
   //
   buttonPressedTime = 0 ;
   //
+  if (loggerFlag) {
+    //
+#ifdef __DEBUG__LOGGER__
+    Serial.println ("[INFO] Data logging has been enabled by compiled configuration.") ;
+#endif
+    //
+  } else {
+    //
+#ifdef __DEBUG__LOGGER__
+    Serial.println ("[INFO] Data logging has been disabled by compiled configuration.") ;
+#endif
+    //
+    return ;
+  }
+  //
 #ifdef __DEBUG__LOGGER__
   Serial.print ("[INTERACTIVE] To disable logging enter 'n' or press button within ") ;
   Serial.print (String (waitForCmd / 1000, DEC)) ;
@@ -58,7 +89,7 @@ void loggerSetup (String && stamp) {
     if (buttonPressedTime > 0) {
       //
 #ifdef __DEBUG__LOGGER__
-      Serial.println ("Button has been pressed ...") ;
+      Serial.println ("[INTERACTIVE] Button has been pressed ...") ;
 #endif
       //
       loggerBlinkFast () ;
@@ -95,19 +126,36 @@ void loggerSetup (String && stamp) {
     //
   }
   //
-  if (loggerCmd && loggerFlag) {
+  if (!loggerCmd) {
     //
-    //  Digital pin #__ powers the data logger;
-    //  Allow the logger to boot before opening
-    //  serial connection and awaiting response.
+#ifdef __DEBUG__LOGGER__
+    Serial.println ("[INTERACTIVE] Data logging has been disabled.") ;
+#endif
     //
-    Serial1.begin (57600) ;
+    return ;
+  }
+  //
+  //  Digital pin #__ powers the data logger;
+  //  Allow the logger to boot before opening
+  //  serial connection and awaiting response.
+  //
+  Serial1.begin (57600) ;
+  //
+  delay (100) ;
+  //
+  digitalWrite (loggerPin, HIGH) ;
+  //
+  delay (300) ;
+  //
+  for (unsigned long start = millis (), now = start ; now < start + loggerRetryDura; now = millis ()) {
+    //
+    if (Serial1.available ()) break ;
     //
     delay (100) ;
     //
-    digitalWrite (loggerPin, HIGH) ;
-    //
-    while (Serial1.available () == 0) ;
+  }
+  //
+  if (Serial1.available ()) {
     //
     String msg = Serial1.readString () ;
     //
@@ -121,40 +169,43 @@ void loggerSetup (String && stamp) {
       Serial1.flush () ;
       //
 #ifdef __DEBUG__LOGGER__
-      Serial.println ("Data logging is enabled per " + stamp) ;
+      Serial.println ("[INFO] Data logging started per: " + stamp) ;
 #endif
+      //
+      return ;
       //
     } else {
       //
 #ifdef __DEBUG__LOGGER__
-      Serial.println ("Enabling of data logging failed: " + msg) ;
+      Serial.println ("[WARNING] Logger unit reported error: " + msg) ;
 #endif
-      //
-      digitalWrite (loggerPin, LOW) ;
-      //
-#ifdef __DEBUG__LOGGER__
-      Serial.println ("Data logging is disabled.") ;
-#endif
-      //
-      Serial1.end () ;
       //
     }
     //
   } else {
     //
 #ifdef __DEBUG__LOGGER__
-    Serial.println ("Data logging is disabled.") ;
+    Serial.println ("[WARNING] Logger unit not responing.") ;
 #endif
     //
   }
   //
+#ifdef __DEBUG__LOGGER__
+  Serial.println ("[WARNING] Start of data logging failed. Powering off.") ;
+#endif
+  //
+  digitalWrite (loggerPin, LOW) ;
+  //
+  Serial1.end () ;
+  //
+  return ;
+  //
 }
 //
-void loggerLoop (const pressureData_t & data, bool pulserState, bool flowState, String && message) {
+void loggerLoop (const pressureData_t & data, bool pulserState, bool flowState, String && message, const loggerCBs_t & callbacks) {
   //
   unsigned long myTime = millis () ;
   //
-  if (! loggerEnabled) return ;
   //
   if (data.sample > loggerLastSample) {
     //
@@ -167,6 +218,17 @@ void loggerLoop (const pressureData_t & data, bool pulserState, bool flowState, 
       return ;
       //
     }
+    //
+    for (int i = 0 ; i < callbacks.num ; i++) {
+      //
+      Serial.print (String ((*callbacks.cb[i])(), DEC)) ;
+      Serial.print (";") ;
+      //
+    }
+    //
+    Serial.println (message) ;
+    //
+    if (! loggerEnabled) return ;
     //
     Serial1.print (String(data.sample, DEC)) ;
     Serial1.print (";") ;
@@ -185,10 +247,15 @@ void loggerLoop (const pressureData_t & data, bool pulserState, bool flowState, 
     //
   } else if (myTime > data.time + loggerFadeOut) {
     //
+    Serial1.println ("End of data log.") ;
+    Serial1.flush () ;
+    //
+    delay (500) ;
+    //
     digitalWrite (loggerPin, LOW) ;
     //
 #ifdef __DEBUG__LOGGER__
-    Serial.println ("Data logging is disabled.") ;
+    Serial.println ("[INFO] Data logging is disabled.") ;
 #endif
     //
     Serial1.end () ;

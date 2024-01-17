@@ -17,11 +17,19 @@ static void buttonIntHandler () {
   //
 }
 //
-void buttonSetup (void) {
+static unsigned long int buttonDataCB (void) {
+  //
+  return BUTTONSTATE(buttonPressedCount) ;
+  //
+}
+//
+void buttonSetup (loggerCBs_t & callbacks) {
   //
   pinMode (buttonPin, INPUT_PULLUP) ;
   //
   attachInterrupt(digitalPinToInterrupt(buttonPin), buttonIntHandler, FALLING) ;
+  //
+  callbacks.add (& buttonDataCB) ;
   //
 }
 //

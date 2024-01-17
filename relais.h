@@ -3,7 +3,7 @@
 //
 #include "global.h"
 //
-extern void relaisSetup (void) ;
+extern void relaisSetup (loggerCBs_t &) ;
 extern bool relaisLoop (bool) ;
 //
 #endif

@@ -3,6 +3,6 @@
 //
 #include "global.h"
 //
-extern String setupRTC (void) ;
+extern String rtcSetup (void) ;
 //
 #endif

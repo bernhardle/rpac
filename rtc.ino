@@ -32,7 +32,7 @@ static String rtcDateTime2Stamp (const DateTime & dat) {
   return stamp ;
 }
 //
-String setupRTC (void) {
+String rtcSetup (void) {
   //
   Wire.begin() ;
   //
@@ -44,7 +44,7 @@ String setupRTC (void) {
       DateTime now = rtc.now () ;
       //
 #ifdef __DEBUG__RPAC__
-      Serial.print ("RTC @ setup is ") ;
+      Serial.print ("[INFO] RTC @ setup is ") ;
       Serial.println (rtcDateTime2Stamp (now)) ;
 #endif
       //

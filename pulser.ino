@@ -17,10 +17,18 @@ static unsigned long pulserChangeTime = 0 ;
 static unsigned int pulserMode = 0, pulserProgressCount = 0 ;
 static bool pulserEnabled = true, lastPulseState = false ;
 //
-void pulserSetup (void) {
+static unsigned long int pulserDataCB (void) {
+  //
+  return digitalRead (pulserPin) ;
+  //
+}
+//
+void pulserSetup (loggerCBs_t & callbacks) {
   //
   pinMode (pulserPin, OUTPUT) ;
   digitalWrite (pulserPin, LOW) ;
+  //
+  callbacks.add (& pulserDataCB) ;
   //
   pulserMode = 0 ;
   pulserProgressCount = 0 ;

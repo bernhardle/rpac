@@ -2,15 +2,19 @@
 //
 unsigned long nextSampleTime = 0, sampleAdjust = 5 ;
 //
-void pressureSetup (pressureData_t & data) {
+static unsigned long int pressureDataCB (void) {
+  //
+  return analogRead (pressurePin) ;
+  //
+}
+//
+void pressureSetup (loggerCBs_t & callbacks) {
   //
   pinMode (pressurePin, INPUT) ;
   //
-  data.sample = 0 ;
-  data.time = millis () ;
-  data.pressure = 0 ;
-  //
   nextSampleTime = sampleInterval ;
+  //
+  callbacks.add (& pressureDataCB) ;
   //
   return ;
 }

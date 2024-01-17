@@ -18,7 +18,7 @@ typedef class pressureData {
   //
 } pressureData_t ;
 //
-extern void pressureSetup (pressureData_t &) ;
+extern void pressureSetup (loggerCBs_t &) ;
 extern void pressureLoop (pressureData_t &) ;
 //
 #endif

@@ -13,6 +13,7 @@ const unsigned long loopMaxDura = 8 ;
 #endif
 //
 pressureData_t pressureData ;
+loggerCBs_t loggerCallBacks ;
 //
 // the setup function runs once when you press reset or power the board
 //
@@ -22,17 +23,18 @@ void setup() {
   //
   signalSetup () ;
   //
-  buttonSetup () ;
+  buttonSetup (loggerCallBacks) ;
   //
-  loggerSetup (setupRTC ()) ;
+  loggerSetup (rtcSetup ()) ;
   //
-  pressureSetup (pressureData) ;
+  pressureSetup (loggerCallBacks) ;
   //
-  pulserSetup () ;
+  pulserSetup (loggerCallBacks) ;
   //
-  relaisSetup () ;
+  relaisSetup (loggerCallBacks) ;
   //
-  flowSetup () ;
+  flowSetup (loggerCallBacks) ;
+  //
 }
 //
 // the loop function runs over and over again forever
@@ -40,25 +42,25 @@ void setup() {
 void loop() {
   //
   unsigned long loopBegin = millis () ;
-  bool pulseState, buttonState, flowState ;
+  bool pulseState, buttonState, flowState, relaisState ;
   //
   buttonState = buttonLoop () ;
   //
   pulseState = pulserLoop (buttonState) ;
   //
-  signalLoop (pulseState) ;
+  flowState = flowLoop () ;
   //
   pressureLoop (pressureData) ;
   //
-  flowState = flowLoop () ;
+  relaisState = relaisLoop (flowState) ;
   //
-  loggerLoop (pressureData, pulseState, flowState, "[]") ;
+  loggerLoop (pressureData, pulseState, flowState, "[]", loggerCallBacks) ;
   //
 #ifdef __DEBUG__RPAC__
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
 #endif
   //
-  relaisLoop (flowState) ;
+  signalLoop ((relaisState && ! pulseState) || (pulseState && ! relaisState)) ;
   //
 }
 //
