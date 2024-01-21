@@ -3,9 +3,13 @@
 //
 #include "global.h"
 //
-const int flowPin = 7, flowCountsPerUnit = 12 ;
+const int flowMeterPin = 7, flowCountsPerUnit = 12 ;
+#ifdef __DEBUG__FLOW__
+const int flowMirrorPin = 3, flowGroundPin = 4 ;
+#endif
 //
 extern void flowSetup (loggerCBs_t &) ;
 extern bool flowLoop (void) ;
+extern unsigned long int flowLastActiveTime (void) ;
 //
 #endif

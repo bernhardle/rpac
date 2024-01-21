@@ -28,7 +28,7 @@ void pulserSetup (loggerCBs_t & callbacks) {
   pinMode (pulserPin, OUTPUT) ;
   digitalWrite (pulserPin, LOW) ;
   //
-  callbacks.add (& pulserDataCB) ;
+  callbacks.add (& pulserDataCB, "pulse") ;
   //
   pulserMode = 0 ;
   pulserProgressCount = 0 ;
@@ -93,7 +93,7 @@ bool pulserLoop (bool pulserTrigger) {
             pulserEnabled = false ;
             //
 #ifdef __DEBUG__PULSER__
-            Serial.print ("[INFO] Disabeling auto pulse.") ;
+            Serial.println ("[INFO] Disabeling auto pulse.") ;
 #endif
             //
           }

@@ -32,7 +32,16 @@ static String rtcDateTime2Stamp (const DateTime & dat) {
   return stamp ;
 }
 //
-String rtcSetup (void) {
+static unsigned long int timeDataCB (void) {
+  //
+  return millis() ;
+  //
+}
+//
+//
+String rtcSetup (loggerCBs_t & callbacks) {
+  //
+  callbacks.add (& timeDataCB, "time") ;
   //
   Wire.begin() ;
   //

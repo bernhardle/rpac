@@ -29,7 +29,7 @@ void buttonSetup (loggerCBs_t & callbacks) {
   //
   attachInterrupt(digitalPinToInterrupt(buttonPin), buttonIntHandler, FALLING) ;
   //
-  callbacks.add (& buttonDataCB) ;
+  callbacks.add (& buttonDataCB, "button") ;
   //
 }
 //

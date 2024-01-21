@@ -3,6 +3,6 @@
 //
 #include "global.h"
 //
-extern String rtcSetup (void) ;
+extern String rtcSetup (loggerCBs_t &) ;
 //
 #endif

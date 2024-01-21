@@ -1,7 +1,7 @@
 #include "flow.h"
 //
-static volatile long int flowCountsTotal = 0, flowCountsTotalLast = 0, flowCountsTotalLastTime = 0, flowCountMeanTime = 0 ;
-static volatile short int flowCounts = 0 ;
+static volatile long int flowLastTick = 0, flowCountsTotal = 0, flowCountsTotalLast = 0, flowCountsTotalLastTime = 0, flowCountMeanTime = 0 ;
+static volatile short int flowCounts = 0, flowLastProgress = 0 ;
 static volatile bool flowTrigger = false ;
 #ifdef __DEBUG__FLOW__
 static volatile bool flowTriggerError = false ;
@@ -12,6 +12,8 @@ static void flowIntHandler (void) {
   flowCounts ++ ;
   //
   flowCountsTotal ++ ;
+  //
+  flowLastTick = millis () ;
   //
   if (flowCounts == flowCountsPerUnit) {
     //
@@ -33,26 +35,41 @@ static unsigned long int flowDataCB (void) {
   //
 }
 //
+unsigned long int flowLastActiveTime (void) {
+  //
+  return flowLastTick ;
+  //
+}
+//
 void flowSetup (loggerCBs_t & callbacks) {
   //
-  pinMode (flowPin, INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
+  pinMode (flowMeterPin, INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
   //
-  attachInterrupt(digitalPinToInterrupt(flowPin), flowIntHandler, FALLING) ;
+#ifdef __DEBUG__FLOW__
+  pinMode (flowGroundPin, OUTPUT) ;
+  pinMode (flowMirrorPin, OUTPUT) ;
   //
-  flowCountsTotalLastTime = millis () ;
+  digitalWrite (flowGroundPin, LOW) ;
+  digitalWrite (flowMirrorPin, HIGH) ;
+  // delay (300) ;
+  // digitalWrite (flowMirrorPin, LOW) ;
+#endif
   //
-  callbacks.add (& flowDataCB) ;
+  attachInterrupt(digitalPinToInterrupt(flowMeterPin), flowIntHandler, FALLING) ;
+  //
+  flowLastTick = flowCountsTotalLastTime = millis () ;
+  //
+  callbacks.add (& flowDataCB, "flow") ;
   //
 }
 //
 bool flowLoop (void) {
   //
-  unsigned long progress = flowCountsTotal - flowCountsTotalLast ;
+  unsigned long int progress = flowCountsTotal - flowCountsTotalLast ;
+  unsigned long int now = millis () ;
+  unsigned long int interval = now - flowCountsTotalLastTime ;
   //
   if (progress > 0) {
-    //
-    unsigned long int now = millis () ;
-    unsigned long int interval = now - flowCountsTotalLastTime ;
     //
     flowCountMeanTime = interval / progress ;
     //
@@ -60,7 +77,19 @@ bool flowLoop (void) {
     //
     flowCountsTotalLastTime = now ;
     //
+    flowLastProgress = progress ;
+    //
+  } else {
+    //
+    flowCountMeanTime = interval / flowLastProgress ;
+    //
   }
+  //
+  
+  //
+#ifdef __DEBUG__FLOW__
+  digitalWrite (flowMirrorPin, digitalRead (flowMeterPin)) ;
+#endif
   //
   if (flowTrigger) {
     //
