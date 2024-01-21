@@ -6,12 +6,17 @@
 class loggerCBs {
   //
   public :
-    static const int mcbs = 8 ;
-    int num ;
+    static const int mcbs = 8, mhdl = 32, rowl = 256 ;
+    char row [rowl] = "" ;
+    int num = 0 ;
     unsigned long (*cb[mcbs])(void) ;
+    char hd [mcbs][mhdl + 1] ;
   public :
     loggerCBs () : num (0) {}
-    bool add (unsigned long (*)(void)) ;
+    bool add (unsigned long (*)(void), const String &) ;
+    const char * logRow (const String &) ;
+    const char * headRow (const String &) ;
+    inline unsigned long (*operator [](int i))(void) const { return cb [i] ; }
   //
 } ;
 //
@@ -23,7 +28,7 @@ const unsigned long logRes = 4, loggerRetryDura = 3000 ;
 //
 // extern volatile bool loggerEnabled ;
 //
-extern void loggerSetup (String &&) ;
-extern void loggerLoop (const pressureData_t &, bool, bool, String &&, const loggerCBs_t &) ;
+extern void loggerSetup (const loggerCBs_t &, const String & = "No start time argument.") ;
+extern bool loggerLoop (const String &, const loggerCBs_t &, bool = false) ;
 //
 #endif

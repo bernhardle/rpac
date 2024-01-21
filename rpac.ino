@@ -6,13 +6,12 @@
 #include "pressure.h"
 #include "logger.h"
 #include "signal.h"
-#include "rtc.h"
+#include "time.h"
 //
 #ifdef __DEBUG__RPAC__
-const unsigned long loopMaxDura = 8 ;
+const unsigned long loopMaxDura = 12 ;
 #endif
 //
-pressureData_t pressureData ;
 loggerCBs_t loggerCallBacks ;
 //
 // the setup function runs once when you press reset or power the board
@@ -23,17 +22,19 @@ void setup() {
   //
   signalSetup () ;
   //
-  buttonSetup (loggerCallBacks) ;
-  //
-  loggerSetup (rtcSetup ()) ;
+  String start = timeSetup (loggerCallBacks) ;
   //
   pressureSetup (loggerCallBacks) ;
+  //
+  buttonSetup (loggerCallBacks) ;
   //
   pulserSetup (loggerCallBacks) ;
   //
   relaisSetup (loggerCallBacks) ;
   //
   flowSetup (loggerCallBacks) ;
+  //
+  loggerSetup (loggerCallBacks, start) ;
   //
 }
 //
@@ -42,7 +43,9 @@ void setup() {
 void loop() {
   //
   unsigned long loopBegin = millis () ;
-  bool pulseState, buttonState, flowState, relaisState ;
+  bool buttonState, flowState, pulseState, relaisState, shutdown = false ;
+  //
+  shutdown = loopBegin > flowLastActiveTime() + 30000 ? true : false ;
   //
   buttonState = buttonLoop () ;
   //
@@ -50,11 +53,11 @@ void loop() {
   //
   flowState = flowLoop () ;
   //
-  pressureLoop (pressureData) ;
+  pressureLoop () ;
   //
   relaisState = relaisLoop (flowState) ;
   //
-  loggerLoop (pressureData, pulseState, flowState, "[]", loggerCallBacks) ;
+  loggerLoop ("", loggerCallBacks, shutdown) ;
   //
 #ifdef __DEBUG__RPAC__
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;

@@ -16,4 +16,6 @@
 //
 typedef class loggerCBs loggerCBs_t ;
 //
+// #define LED_BUILTIN LED_BLUE
+//
 #endif

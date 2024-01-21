@@ -2,7 +2,7 @@
 //
 #include <RTClib.h>
 //
-#include "rtc.h"
+#include "time.h"
 //
 #ifdef __DEBUG__RPAC__
 const char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"} ;
@@ -10,7 +10,7 @@ const char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "
 //
 static RTC_PCF8523 rtc ;
 //
-static String rtcDateTime2Stamp (const DateTime & dat) {
+static String timeDateTime2Stamp (const DateTime & dat) {
   //
   String stamp (dat.year(), DEC) ;
   stamp.concat ('-') ;
@@ -32,7 +32,16 @@ static String rtcDateTime2Stamp (const DateTime & dat) {
   return stamp ;
 }
 //
-String rtcSetup (void) {
+static unsigned long int timeDataCB (void) {
+  //
+  return millis () ;
+  //
+}
+//
+//
+String timeSetup (loggerCBs_t & callbacks) {
+  //
+  callbacks.add (& timeDataCB, "time") ;
   //
   Wire.begin() ;
   //
@@ -45,10 +54,10 @@ String rtcSetup (void) {
       //
 #ifdef __DEBUG__RPAC__
       Serial.print ("[INFO] RTC @ setup is ") ;
-      Serial.println (rtcDateTime2Stamp (now)) ;
+      Serial.println (timeDateTime2Stamp (now)) ;
 #endif
       //
-      return rtcDateTime2Stamp (now) ;
+      return timeDateTime2Stamp (now) ;
       //
     } else {
       //

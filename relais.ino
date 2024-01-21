@@ -20,7 +20,7 @@ void relaisSetup (loggerCBs_t & callbacks) {
   pinMode (relaisPin, OUTPUT) ;
   digitalWrite (relaisPin, (relaisLastState = LOW)) ;
   //
-  callbacks.add (& relaisDataCB) ;
+  callbacks.add (& relaisDataCB, "relais") ;
   //
 }
 //

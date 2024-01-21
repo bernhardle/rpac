@@ -5,20 +5,9 @@
 //
 #include "global.h"
 //
-const unsigned long sampleInterval = 250 ;
 const int pressurePin = A0 ;
 //
-typedef class pressureData {
-  //
-  public :
-    unsigned long time ;
-    unsigned short sample, pressure ;
-  public :
-    pressureData () : time (0), sample (0), pressure (0) {}
-  //
-} pressureData_t ;
-//
 extern void pressureSetup (loggerCBs_t &) ;
-extern void pressureLoop (pressureData_t &) ;
+extern void pressureLoop (void) ;
 //
 #endif
