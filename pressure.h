@@ -5,9 +5,7 @@
 //
 #include "global.h"
 //
-const int pressurePin = A0 ;
-//
-extern void pressureSetup (loggerCBs_t &) ;
+extern void pressureSetup (pin_size_t, loggerCBs_t &) ;
 extern void pressureLoop (void) ;
 //
 #endif

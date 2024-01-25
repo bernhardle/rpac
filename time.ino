@@ -1,12 +1,8 @@
 #include <Wire.h>
-//
 #include <RTClib.h>
 //
 #include "time.h"
-//
-#ifdef __DEBUG__RPAC__
-const char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"} ;
-#endif
+#include "logger.h"
 //
 static RTC_PCF8523 rtc ;
 //
@@ -34,7 +30,7 @@ static String timeDateTime2Stamp (const DateTime & dat) {
 //
 static unsigned long int timeDataCB (void) {
   //
-  return millis () ;
+  return millis() ;
   //
 }
 //

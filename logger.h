@@ -1,16 +1,19 @@
 #ifndef __logger_h_included__
 #define __logger_h_included__
 //
-#include "pressure.h"
-//
 class loggerCBs {
   //
+  //  mcbs: max. number of callback functions
+  //  mhdl: max. length of header string
+  //  mfml: max. length of format string
+  //  rowl: lenght of buffer used by sprintft
+  //  
   public :
-    static const int mcbs = 8, mhdl = 32, rowl = 256 ;
+    static const int mcbs = 8, mhdl = 32, mfml = 8, rowl = 256 ;
     char row [rowl] = "" ;
     int num = 0 ;
     unsigned long (*cb[mcbs])(void) ;
-    char hd [mcbs][mhdl + 1] ;
+    char hd [mcbs][mhdl + 1], fm [mcbs][mfml + 1] ;
   public :
     loggerCBs () : num (0) {}
     bool add (unsigned long (*)(void), const String &) ;
@@ -22,13 +25,12 @@ class loggerCBs {
 //
 class DateTime ;
 //
-const int loggerPin = 15 ;
 const bool loggerFlag = true ;
 const unsigned long logRes = 4, loggerRetryDura = 3000 ;
 //
 // extern volatile bool loggerEnabled ;
 //
-extern void loggerSetup (const loggerCBs_t &, const String & = "No start time argument.") ;
-extern bool loggerLoop (const String &, const loggerCBs_t &, bool = false) ;
+extern void loggerSetup (pin_size_t, loggerCBs_t &, const String & = "No start time argument.") ;
+extern bool loggerLoop (const String &, loggerCBs_t &, bool = false) ;
 //
 #endif

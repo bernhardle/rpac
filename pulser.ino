@@ -1,5 +1,6 @@
 #include "global.h"
 #include "pulser.h"
+#include "logger.h"
 //
 #if 1
 const int pulserVars = 1 ;
@@ -16,6 +17,7 @@ const unsigned int pulserProgress [pulserVars] = {1, 12, 12, 17, 21, 53} ;
 static unsigned long pulserChangeTime = 0 ;
 static unsigned int pulserMode = 0, pulserProgressCount = 0 ;
 static bool pulserEnabled = true, lastPulseState = false ;
+static pin_size_t pulserPin ;
 //
 static unsigned long int pulserDataCB (void) {
   //
@@ -23,9 +25,9 @@ static unsigned long int pulserDataCB (void) {
   //
 }
 //
-void pulserSetup (loggerCBs_t & callbacks) {
+void pulserSetup (int pin, loggerCBs_t & callbacks) {
   //
-  pinMode (pulserPin, OUTPUT) ;
+  pinMode ((pulserPin = pin), OUTPUT) ;
   digitalWrite (pulserPin, LOW) ;
   //
   callbacks.add (& pulserDataCB, "pulse") ;

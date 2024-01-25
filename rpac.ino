@@ -2,8 +2,10 @@
 //
 #include "global.h"
 #include "button.h"
+#include "flow.h"
 #include "pulser.h"
 #include "pressure.h"
+#include "relais.h"
 #include "logger.h"
 #include "signal.h"
 #include "time.h"
@@ -24,17 +26,17 @@ void setup() {
   //
   String start = timeSetup (loggerCallBacks) ;
   //
-  pressureSetup (loggerCallBacks) ;
+  pressureSetup (A0, loggerCallBacks) ;
   //
-  buttonSetup (loggerCallBacks) ;
+  buttonSetup (16, loggerCallBacks) ;
   //
-  pulserSetup (loggerCallBacks) ;
+  pulserSetup (10, loggerCallBacks) ;
   //
-  relaisSetup (loggerCallBacks) ;
+  relaisSetup (2, loggerCallBacks) ;
   //
-  flowSetup (loggerCallBacks) ;
+  flowSetup (7, loggerCallBacks) ; 
   //
-  loggerSetup (loggerCallBacks, start) ;
+  loggerSetup (15, loggerCallBacks, start) ;
   //
 }
 //
