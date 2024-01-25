@@ -7,7 +7,7 @@
 const unsigned long waitForCmd = 5000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
 //
 static unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
-static int loggerShutDownStage = -1 ;
+static int loggerShutDownStage = 5 ;
 static bool loggerEnabled = false ;
 static pin_size_t loggerPin ;
 //
@@ -202,6 +202,7 @@ void loggerSetup (pin_size_t pin, loggerCBs_t & callbacks, const String & stamp)
     if (msg.indexOf ("2<") != -1) {
       //
       loggerEnabled = true ;
+      loggerShutDownStage = 1 ;
       //
       Serial1.println (callbacks.headRow (stamp)) ;
       Serial1.flush () ;
@@ -209,8 +210,6 @@ void loggerSetup (pin_size_t pin, loggerCBs_t & callbacks, const String & stamp)
 #ifdef __DEBUG__LOGGER__
       Serial.println ("[INFO] Data logging started per: " + stamp) ;
 #endif
-      //
-      loggerShutDownStage = 1 ;
       //
       return ;
       //

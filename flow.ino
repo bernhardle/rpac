@@ -83,11 +83,10 @@ bool flowLoop (void) {
     //
   } else {
     //
-    flowCountMeanTime = interval / flowLastProgress ;
+    flowCountMeanTime = flowLastProgress > 0 ? interval / flowLastProgress : interval ;
     //
   }
   //
-  
   //
 #ifdef __DEBUG__FLOW__
   digitalWrite (flowMirrorPin, digitalRead (flowMeterPin)) ;

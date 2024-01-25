@@ -26,17 +26,17 @@ void setup() {
   //
   String start = timeSetup (loggerCallBacks) ;
   //
-  pressureSetup (A0, loggerCallBacks) ;
+  pressureSetup (A0, loggerCallBacks) ;       // NanoEvery: A0 || u-blow Nina W-101: A0
   //
-  buttonSetup (16, loggerCallBacks) ;
+  buttonSetup (16, loggerCallBacks) ;         // NanoEvery: 16 || u-blow Nina W-101: 27
   //
-  pulserSetup (10, loggerCallBacks) ;
+  pulserSetup (10, loggerCallBacks) ;         // NanoEvery: 10 || u-blow Nina W-101: 10
   //
-  relaisSetup (2, loggerCallBacks) ;
+  relaisSetup (2, loggerCallBacks) ;          // NanoEvery: 2 || u-blow Nina W-101: 18
   //
-  flowSetup (7, loggerCallBacks) ; 
+  flowSetup (7, loggerCallBacks) ;            // NanoEvery: 7 || u-blow Nina W-101: 19
   //
-  loggerSetup (15, loggerCallBacks, start) ;
+  loggerSetup (15, loggerCallBacks, start) ;  // NanoEvery: 15 || u-blow Nina W-101: 15
   //
 }
 //
