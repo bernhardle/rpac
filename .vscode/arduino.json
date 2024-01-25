@@ -1,0 +1,5 @@
+{
+    "board": "arduino:megaavr:nona4809",
+    "sketch": "rpac.ino",
+    "configuration": "mode=on"
+}
