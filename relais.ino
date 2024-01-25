@@ -1,13 +1,14 @@
 #include "relais.h"
+#include "logger.h"
 //
 typedef decltype (HIGH) relaisState_t ;
 //
 const unsigned int relaisHoldDura = 100 ;
-const int relaisPin = 2 ;
 //
-unsigned long int relaisLastTime ;
-bool relaisOn = false, relaisLastTrigger = false ;
-relaisState_t relaisLastState = LOW ;
+static unsigned long int relaisLastTime ;
+static bool relaisOn = false, relaisLastTrigger = false ;
+static relaisState_t relaisLastState = LOW ;
+static pin_size_t relaisPin ;
 //
 static unsigned long int relaisDataCB (void) {
   //
@@ -15,9 +16,9 @@ static unsigned long int relaisDataCB (void) {
   //
 }
 //
-void relaisSetup (loggerCBs_t & callbacks) {
+void relaisSetup (pin_size_t pin, loggerCBs_t & callbacks) {
   //
-  pinMode (relaisPin, OUTPUT) ;
+  pinMode ((relaisPin = pin), OUTPUT) ;
   digitalWrite (relaisPin, (relaisLastState = LOW)) ;
   //
   callbacks.add (& relaisDataCB, "relais") ;

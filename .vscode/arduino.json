@@ -1,5 +1,7 @@
 {
     "board": "arduino:megaavr:nona4809",
     "sketch": "rpac.ino",
-    "configuration": "mode=on"
+    "configuration": "mode=on",
+    "programmer": "medbg",
+    "port": "COM3"
 }

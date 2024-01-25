@@ -1,9 +1,11 @@
 #include "button.h"
+#include "logger.h"
 //
 #define BUTTONSTATE(a)  (a > 7 ? true : false)
 //
-static volatile unsigned long buttonPressedTime = 0 ;
+volatile unsigned long buttonPressedTime = 0 ;
 static signed short buttonPressedCount = 0 ;
+static pin_size_t buttonPin ;
 //
 #ifdef __DEBUG__BUTTON__
 static bool buttonLastState = false ;
@@ -23,9 +25,9 @@ static unsigned long int buttonDataCB (void) {
   //
 }
 //
-void buttonSetup (loggerCBs_t & callbacks) {
+void buttonSetup (pin_size_t pin, loggerCBs_t & callbacks) {
   //
-  pinMode (buttonPin, INPUT_PULLUP) ;
+  pinMode ((buttonPin = pin), INPUT_PULLUP) ;
   //
   attachInterrupt(digitalPinToInterrupt(buttonPin), buttonIntHandler, FALLING) ;
   //
@@ -57,3 +59,5 @@ bool buttonLoop (void) {
   return BUTTONSTATE(buttonPressedCount) ;
   //
 }
+//
+//

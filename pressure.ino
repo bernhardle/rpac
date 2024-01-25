@@ -1,4 +1,7 @@
 #include "pressure.h"
+#include "logger.h"
+//
+static pin_size_t pressurePin ;
 //
 static unsigned long int pressureDataCB (void) {
   //
@@ -6,9 +9,9 @@ static unsigned long int pressureDataCB (void) {
   //
 }
 //
-void pressureSetup (loggerCBs_t & callbacks) {
+void pressureSetup (pin_size_t pin, loggerCBs_t & callbacks) {
   //
-  pinMode (pressurePin, INPUT) ;
+  pinMode ((pressurePin = pin), INPUT) ;
   //
   callbacks.add (& pressureDataCB, "pressure") ;
   //

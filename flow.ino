@@ -1,8 +1,10 @@
 #include "flow.h"
+#include "logger.h"
 //
 static volatile long int flowLastTick = 0, flowCountsTotal = 0, flowCountsTotalLast = 0, flowCountsTotalLastTime = 0, flowCountMeanTime = 0 ;
 static volatile short int flowCounts = 0, flowLastProgress = 0 ;
 static volatile bool flowTrigger = false ;
+static pin_size_t flowMeterPin ;
 #ifdef __DEBUG__FLOW__
 static volatile bool flowTriggerError = false ;
 #endif
@@ -41,9 +43,9 @@ unsigned long int flowLastActiveTime (void) {
   //
 }
 //
-void flowSetup (loggerCBs_t & callbacks) {
+void flowSetup (pin_size_t pin, loggerCBs_t & callbacks) {
   //
-  pinMode (flowMeterPin, INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
+  pinMode ((flowMeterPin = pin), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
   //
 #ifdef __DEBUG__FLOW__
   pinMode (flowGroundPin, OUTPUT) ;
@@ -51,8 +53,8 @@ void flowSetup (loggerCBs_t & callbacks) {
   //
   digitalWrite (flowGroundPin, LOW) ;
   digitalWrite (flowMirrorPin, HIGH) ;
-  // delay (300) ;
-  // digitalWrite (flowMirrorPin, LOW) ;
+  delay (300) ;
+  digitalWrite (flowMirrorPin, LOW) ;
 #endif
   //
   attachInterrupt(digitalPinToInterrupt(flowMeterPin), flowIntHandler, FALLING) ;

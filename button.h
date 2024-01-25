@@ -3,9 +3,9 @@
 //
 #include "global.h"
 //
-const int buttonPin = 16 ;
+extern volatile unsigned long buttonPressedTime ;
 //
-extern void buttonSetup (void) ;
+extern void buttonSetup (pin_size_t, loggerCBs_t &) ;
 extern bool buttonLoop (void) ;
 //
 #endif

@@ -5,11 +5,9 @@
 //
 #include "global.h"
 //
-const int pulserPin = 10 ;
-//
 // extern unsigned int pulserProgressCount ;
 //
-extern void pulserSetup (loggerCBs_t &) ;
+extern void pulserSetup (pin_size_t, loggerCBs_t &) ;
 extern bool pulserLoop (bool) ;
 //
 #endif

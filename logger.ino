@@ -1,14 +1,15 @@
 #include <RTClib.h>
 //
 #include "global.h"
-#include "pressure.h"
+#include "button.h"
 #include "logger.h"
 //
 const unsigned long waitForCmd = 5000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
 //
-unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
-int loggerShutDownStage = -1 ;
-bool loggerEnabled = false ;
+static unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
+static int loggerShutDownStage = -1 ;
+static bool loggerEnabled = false ;
+static pin_size_t loggerPin ;
 //
 bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
   //
@@ -86,10 +87,11 @@ static inline float digit2hcPa (int dgs) {
   //
 }
 //
-void loggerSetup (const loggerCBs_t & callbacks, const String & stamp) {
+void loggerSetup (pin_size_t pin, loggerCBs_t & callbacks, const String & stamp) {
   //
   bool loggerCmd = true ;
   //
+  loggerPin = pin ;
   pinMode (loggerPin, OUTPUT) ;
   digitalWrite (loggerPin, LOW) ;
   //
@@ -240,7 +242,7 @@ void loggerSetup (const loggerCBs_t & callbacks, const String & stamp) {
   //
 }
 //
-bool loggerLoop (const String & message, const loggerCBs_t & callbacks, bool shutdown) {
+bool loggerLoop (const String & message, loggerCBs_t & callbacks, bool shutdown) {
   //
   unsigned long myTime = millis () ;
   //
