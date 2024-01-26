@@ -1,7 +1,8 @@
 {
-    "board": "esp32:esp32:nina_w10",
+    "board": "arduino:megaavr:nona4809",
     "sketch": "rpac.ino",
-    "configuration": "UploadSpeed=921600,FlashSize=2M,FlashFreq=80,PartitionScheme=default,CPUFreq=160,LoopCore=1,EventsCore=0,DebugLevel=none,EraseFlash=none",
-    "programmer": "esptool",
+    "output": "C:\\Users\\Bernhard\\Documents\\Arduino\\buildspace",
+    "configuration": "mode=on",
+    "programmer": "medbg",
     "port": "COM7"
 }

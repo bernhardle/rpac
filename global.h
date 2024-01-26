@@ -16,7 +16,7 @@
 //
 typedef class loggerCBs loggerCBs_t ;
 //
-#define LED_BUILTIN LED_BLUE
-typedef uint8_t pin_size_t ;
+// #define LED_BUILTIN LED_BLUE
+// typedef uint8_t pin_size_t ;
 //
 #endif
