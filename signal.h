@@ -12,12 +12,11 @@ typedef struct signalSequence {
   //
 } signalSequence_t ;
 //
-const short unsigned signalPin = LED_BUILTIN ;
 const short unsigned seqHB [2][2] {{2,5},{2,10}} ;
 const signalSequence_t heartBeat (0,2, seqHB) ;
 const signalSequence_t blankSeq (0, 0, nullptr) ;
 //
-extern void signalSetup (void) ;
+extern void signalSetup (pin_size_t) ;
 extern void signalLoop (bool, const signalSequence_t & = heartBeat) ;
 //
 #endif

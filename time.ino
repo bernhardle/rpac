@@ -39,6 +39,7 @@ String timeSetup (loggerCBs_t & callbacks) {
   //
   callbacks.add (& timeDataCB, "time") ;
   //
+#ifndef ARDUINO_UBLOX_NINA_W10
   Wire.begin() ;
   //
   {
@@ -66,5 +67,8 @@ String timeSetup (loggerCBs_t & callbacks) {
     }
   //
   }
+#else
+  return String ("[INFO] RTC not implemented in NINA W10.") ;
+#endif
   //
 }

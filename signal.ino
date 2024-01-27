@@ -1,10 +1,11 @@
 #include "signal.h"
 //
+static pin_size_t signalPin ;
 static bool signalLastState = false ;
 //
-void signalSetup (void) {
+void signalSetup (pin_size_t pin) {
   //
-  pinMode (signalPin, OUTPUT) ;
+  pinMode ((signalPin = pin), OUTPUT) ;
   //
   digitalWrite (signalPin, HIGH) ;
   //

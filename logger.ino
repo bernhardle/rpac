@@ -4,7 +4,7 @@
 #include "button.h"
 #include "logger.h"
 //
-const unsigned long waitForCmd = 5000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
+const unsigned long waitForCmd = 5000, loggerSampleInterval = 1000, loggerSampleAdjust = 4 ;
 //
 static unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
 static int loggerShutDownStage = 5 ;
