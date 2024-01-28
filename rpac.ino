@@ -29,15 +29,15 @@ void setup() {
   //
   pressureSetup (A0, loggerCallBacks) ;       // NanoEvery: A0 || u-blow Nina W-101: A0
   //
-  buttonSetup (27, loggerCallBacks) ;         // NanoEvery: 16 || u-blow Nina W-101: 27
+  buttonSetup (16, loggerCallBacks) ;         // NanoEvery: 16 || u-blow Nina W-101: 27
   //
   controlSetup () ;                           //
   //
   pulserSetup (10, loggerCallBacks) ;         // NanoEvery: 10 || u-blow Nina W-101: 10
   //
-  relaisSetup (18, loggerCallBacks) ;         // NanoEvery: 2 || u-blow Nina W-101: 18
+  relaisSetup (2, loggerCallBacks) ;          // NanoEvery: 2 || u-blow Nina W-101: 18
   //
-  flowSetup (19, loggerCallBacks) ;           // NanoEvery: 7 || u-blow Nina W-101: 19
+  flowSetup (7, loggerCallBacks) ;            // NanoEvery: 7 || u-blow Nina W-101: 19
   //
   loggerSetup (15, loggerCallBacks, start) ;  // NanoEvery: 15 || u-blow Nina W-101: 15
   //
@@ -49,13 +49,13 @@ void loop() {
   //
   unsigned long loopBegin = millis () ;
   bool buttonState = false, flowState = false, pulseState = false, relaisState = false, shutdown = false ;
-  uint8_t mode = 0 ;
+  uint8_t command = 0 ;
   //
-  shutdown = loopBegin > flowLastActiveTime() + 30000 ? true : false ;
+  // shutdown = loopBegin > flowLastActiveTime() + 60000 ? true : false ;
   //
   buttonState = buttonLoop () ;
   //
-  mode = controlLoop (buttonState) ;
+  command = controlLoop (buttonState) ;
   //
   pulseState = pulserLoop (buttonState) ;
   //
@@ -65,7 +65,7 @@ void loop() {
   //
   relaisState = relaisLoop (flowState) ;
   //
-  loggerLoop ("", loggerCallBacks, shutdown) ;
+  loggerLoop ("", loggerCallBacks, command == 4) ;
   //
 #ifdef __DEBUG__RPAC__
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;

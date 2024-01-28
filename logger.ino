@@ -4,11 +4,11 @@
 #include "button.h"
 #include "logger.h"
 //
-const unsigned long waitForCmd = 5000, loggerSampleInterval = 1000, loggerSampleAdjust = 4 ;
+const unsigned long waitForCmd = 5000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
 //
 static unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
 static int loggerShutDownStage = 5 ;
-static bool loggerEnabled = false ;
+static bool loggerEnabled = false, loggerShutdownLockIn = false ;
 static pin_size_t loggerPin ;
 //
 bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
@@ -245,7 +245,9 @@ bool loggerLoop (const String & message, loggerCBs_t & callbacks, bool shutdown)
   //
   unsigned long myTime = millis () ;
   //
-  if (shutdown) {
+  if (shutdown && loggerEnabled) loggerShutdownLockIn = true ;
+  //
+  if (loggerShutdownLockIn) {
     //
     switch (loggerShutDownStage) {
       //
@@ -289,6 +291,7 @@ bool loggerLoop (const String & message, loggerCBs_t & callbacks, bool shutdown)
         Serial.println ("[INFO] Data logger shutdown completed.") ;
 #endif
         loggerShutDownStage = 5 ;
+        loggerShutdownLockIn = false ;
         break ;
         //
       case 5:

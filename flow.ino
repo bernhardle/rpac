@@ -1,8 +1,12 @@
 #include "flow.h"
 #include "logger.h"
 //
+const std::array<uint8_t,10> flowCountsPerUnit = {{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U}} ;
+//
 static volatile long int flowLastTick = 0, flowCountsTotal = 0, flowCountsTotalLast = 0, flowCountsTotalLastTime = 0, flowCountMeanTime = 0 ;
-static volatile short int flowCounts = 0, flowLastProgress = 0 ;
+static volatile short int flowCounts = 0, flowLastProgress = 0 ; 
+static uint8_t flowCountsPerUnitPos = 0 ;
+//
 static volatile bool flowTrigger = false ;
 static pin_size_t flowMeterPin ;
 #ifdef __DEBUG__FLOW__
@@ -17,9 +21,11 @@ static void flowIntHandler (void) {
   //
   flowLastTick = millis () ;
   //
-  if (flowCounts == flowCountsPerUnit) {
+  if (flowCounts == flowCountsPerUnit [flowCountsPerUnitPos]) {
     //
     flowCounts = 0 ;
+    flowCountsPerUnitPos ++ ; 
+    if (flowCountsPerUnitPos == flowCountsPerUnit.size()) flowCountsPerUnitPos = 0 ;
     //
 #ifdef __DEBUG__FLOW__
     flowTriggerError = flowTrigger ;  // 'flowTrigger' should be cleared at this time otherwise flag error condition
