@@ -4,10 +4,9 @@
 #include <String.h>
 //
 #include "global.h"
+#include "control.h"
 //
-// extern unsigned int pulserProgressCount ;
-//
-extern void pulserSetup (pin_size_t, loggerCBs_t &) ;
+extern void pulserSetup (pin_size_t, controlCBs_t &, loggerCBs_t &) ;
 extern bool pulserLoop (bool) ;
 //
 #endif

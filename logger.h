@@ -1,6 +1,8 @@
 #ifndef __logger_h_included__
 #define __logger_h_included__
 //
+#include "control.h"
+//
 class loggerCBs {
   //
   //  mcbs: max. number of callback functions
@@ -19,7 +21,7 @@ class loggerCBs {
     bool add (unsigned long (*)(void), const String &) ;
     const char * logRow (const String &) ;
     const char * headRow (const String &) ;
-    inline unsigned long (*operator [](int i))(void) const { return cb [i] ; }
+    inline unsigned long (*operator [](int i) const)(void) { return cb [i] ; }
   //
 } ;
 //
@@ -30,7 +32,7 @@ const unsigned long logRes = 4, loggerRetryDura = 3000 ;
 //
 // extern volatile bool loggerEnabled ;
 //
-extern void loggerSetup (pin_size_t, loggerCBs_t &, const String & = "No start time argument.") ;
-extern bool loggerLoop (const String &, loggerCBs_t &, bool = false) ;
+extern void loggerSetup (pin_size_t, controlCBs_t &, loggerCBs_t &, const String & = "No start time argument.") ;
+extern bool loggerLoop (const String &, loggerCBs_t &) ;
 //
 #endif

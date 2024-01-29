@@ -8,120 +8,152 @@
 #endif
 //
 static unsigned long controlButtonTimeHigh = 0, controlButtonTimeLow = 0 ;
-static uint8_t controlMode = 0, controlCount = 0 ;
+static uint8_t controlMode = 0, controlCount = 0, controlLastCmd = 0 ;
 //
-void controlSetup (void) {
+template <int n> controlCallbacks <n>::controlCallbacks (void) {
+  cbs.fill ([](void) -> uint8_t { return 0U ; }) ;
+}
+//
+static unsigned long int controlDataCB (void) {
+  //
+  uint8_t r = controlLastCmd ;
+  controlLastCmd = 0 ;
+  return r ;
+  //
+}
+//
+void controlSetup (controlCBs_t & ccbs, loggerCBs_t & lcbs) {
     //
     controlMode = 0 ;
     controlButtonTimeHigh = 0 ;
     controlButtonTimeLow = 0 ;
+    lcbs.add (& controlDataCB, "control") ;
     //
 }
 //
-uint8_t controlLoop (bool button) {
+bool controlLoop (bool button, const controlCBs_t & ccbs) {
     //
     unsigned long myTime = millis () ;
     //
     switch (controlMode) {
+      //
+      case 0 :
         //
-        case 0 :
+        if (button) {
           //
-          if (button) {
-            //
-            __switchControlMode(1) ;
-            controlButtonTimeHigh = myTime ;
-            //
-          }
+          __switchControlMode(1) ;
+          controlButtonTimeHigh = myTime ;
+          controlCount = 1 ;
+          button = false ;
           //
-          break ;
+        }
+        //
+        break ;
+        //
+      case 1 :
+        //
+        if (button) {
           //
-        case 1 :
-          //
-          if (button && myTime > controlButtonTimeHigh + 500) {
+          if (myTime > controlButtonTimeHigh + 400) {
             //
             __switchControlMode(4) ;
             //
-          } else if (!button && myTime < controlButtonTimeHigh + 50) {
+          }
+          //
+          button = false ;
+          //
+        } else {
+          //
+          if (myTime < controlButtonTimeHigh + 50) {
             //
             __switchControlMode(0) ;
-            controlCount = 0 ;
-            controlButtonTimeLow = 0 ;
-            controlButtonTimeHigh = 0 ;
             //
-          } else if (!button && myTime > controlButtonTimeHigh + 50) {
+          } else {
             //
             __switchControlMode(2) ;
             controlButtonTimeLow = myTime ;
             //
           }
           //
-          break ;
+        }
+        //
+        break ;
+        //
+      case 2 :
+        //
+        if (button) {
           //
-        case 2 :
-          //
-          if (! button && myTime > controlButtonTimeLow + 500) {
-            //
-            __switchControlMode(3) ;
-            controlCount ++ ;
-            //
-          } else if (button && myTime < controlButtonTimeLow + 50) {
+          if(controlCount + 2 > ccbs.size ()) {
             //
             __switchControlMode(4) ;
+            button = false ;
             //
-          } else if (button && myTime > controlButtonTimeLow + 50) {
+          } else {
             //
             __switchControlMode(1) ;
+            button = false ;
             controlCount ++ ;
             controlButtonTimeHigh = myTime ;
             //
           }
-          break ;
           //
-        case 3:
+        } else {
           //
-          {
-            int ret = controlCount ;
-            Serial.print ("[Debug] Control # ") ;
-            Serial.println (String (controlCount, DEC)) ;
-            __switchControlMode(0) ;
-            controlCount = 0 ;
-            controlButtonTimeLow = 0 ;
-            controlButtonTimeHigh = 0 ;
-            return ret ;
-          }
-          //
-        case 4:
-          //
-          if (!button) {
+          if (myTime > controlButtonTimeLow + 500) {
             //
-            __switchControlMode(5) ;
-            controlButtonTimeLow = myTime ;
+            __switchControlMode(3) ;
             //
-          }
-          break ;
+          } 
+        }
+        break ;
+        //
+      case 3:
+        //
+#ifdef __DEBUG_CONTROL__
+        Serial.print ("[Debug] Control # ") ;
+        Serial.println (String (controlCount, DEC)) ;
+#endif
+        (*ccbs [controlCount])() ;
+        __switchControlMode(0) ;
+        controlLastCmd = controlCount ;
+        //
+        break ;
+        //
+      case 4:
+        //
+        if (!button) {
           //
-        case 5 :
+          __switchControlMode(5) ;
+          controlButtonTimeLow = myTime ;
           //
-          if (button) {
-            //
-            __switchControlMode(4) ;
-            //
-          } else if (! button && myTime > controlButtonTimeLow + 500) {
-            //
-            __switchControlMode(0) ;
-            controlCount = 0 ;
-            controlButtonTimeLow = 0 ;
-            controlButtonTimeHigh = 0 ;
-            //
-          }
-          break ;
+        } else {
           //
-        default :
+          if (controlCount > 1) button = false ;
           //
-          break ;
+        }
+        break ;
+        //
+      case 5 :
+        //
+        if (button) {
+          //
+          __switchControlMode(4) ;
+          //
+          if (controlCount > 1) button = false ;
+          //
+        } else if (! button && myTime > controlButtonTimeLow + 500) {
+          //
+          __switchControlMode(0) ;
+          //
+        }
+        break ;
+        //
+      default :
+        //
+        break ;
     }
     //
-    return 0 ;
+    return button ;
     //
   }
   //

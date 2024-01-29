@@ -1,7 +1,13 @@
 #include "flow.h"
 #include "logger.h"
 //
+#ifdef ARDUINO_UBLOX_NINA_W10
+#include <array>
 const std::array<uint8_t,10> flowCountsPerUnit = {{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U}} ;
+#else
+#include <Array.h>
+const Array <uint8_t,10> flowCountsPerUnit = {{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U}} ;
+#endif
 //
 static volatile long int flowLastTick = 0, flowCountsTotal = 0, flowCountsTotalLast = 0, flowCountsTotalLastTime = 0, flowCountMeanTime = 0 ;
 static volatile short int flowCounts = 0, flowLastProgress = 0 ; 
@@ -69,6 +75,13 @@ void flowSetup (pin_size_t pin, loggerCBs_t & callbacks) {
   //
   callbacks.add (& flowDataCB, "flow") ;
   //
+#ifdef __DEBUG__FLOW__
+  {
+    
+    Serial.print ("[INFO] Flow counter divides by ") ;
+    Serial.println ("...") ;
+  }
+#endif
 }
 //
 bool flowLoop (void) {

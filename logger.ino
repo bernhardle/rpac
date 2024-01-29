@@ -7,9 +7,19 @@
 const unsigned long waitForCmd = 5000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
 //
 static unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
-static int loggerShutDownStage = 5 ;
-static bool loggerEnabled = false, loggerShutdownLockIn = false ;
+static int loggerShutDownStage = 0 ;
+static bool loggerEnabled = false ;
 static pin_size_t loggerPin ;
+//
+static uint8_t loggerControlCB (void) {
+  //
+  Serial.println ("[INFO] loggerControlCB () for shutdown ...") ;
+  //
+  if (loggerEnabled) loggerShutDownStage = 1 ;
+  //
+  return 0 ;
+  //
+}
 //
 bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
   //
@@ -87,7 +97,7 @@ static inline float digit2hcPa (int dgs) {
   //
 }
 //
-void loggerSetup (pin_size_t pin, loggerCBs_t & callbacks, const String & stamp) {
+void loggerSetup (pin_size_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const String & stamp) {
   //
   bool loggerCmd = true ;
   //
@@ -167,7 +177,7 @@ void loggerSetup (pin_size_t pin, loggerCBs_t & callbacks, const String & stamp)
 #ifdef __DEBUG__LOGGER__
     Serial.println ("[INTERACTIVE] Data logging has been disabled.") ;
     //
-    Serial.println (callbacks.headRow (stamp)) ;
+    Serial.println (lcbs.headRow (stamp)) ;
 #endif
     //
     return ;
@@ -202,10 +212,11 @@ void loggerSetup (pin_size_t pin, loggerCBs_t & callbacks, const String & stamp)
     if (msg.indexOf ("2<") != -1) {
       //
       loggerEnabled = true ;
-      loggerShutDownStage = 1 ;
       //
-      Serial1.println (callbacks.headRow (stamp)) ;
+      Serial1.println (lcbs.headRow (stamp)) ;
       Serial1.flush () ;
+      //  register shutdown callback for 3 x button press
+      ccbs.add (loggerControlCB, 3) ;
       //
 #ifdef __DEBUG__LOGGER__
       Serial.println ("[INFO] Data logging started per: " + stamp) ;
@@ -241,71 +252,69 @@ void loggerSetup (pin_size_t pin, loggerCBs_t & callbacks, const String & stamp)
   //
 }
 //
-bool loggerLoop (const String & message, loggerCBs_t & callbacks, bool shutdown) {
+bool loggerLoop (const String & message, loggerCBs_t & lcbs) {
   //
   unsigned long myTime = millis () ;
   //
-  if (shutdown && loggerEnabled) loggerShutdownLockIn = true ;
-  //
-  if (loggerShutdownLockIn) {
+  switch (loggerShutDownStage) {
     //
-    switch (loggerShutDownStage) {
+    case 0 :
       //
-      case 1 :
-        //
+      break ;
+      //
+    case 1 :
+      //
 #ifdef __DEBUG__LOGGER__
-        Serial.println ("[INFO] Logger shutdown - flushing serial connection") ;
+      Serial.println ("[INFO] Logger shutdown - flushing serial connection") ;
 #endif
-        Serial1.println ("*** end of data log file ***") ;
-        Serial1.flush () ;
-        loggerShutdownFlushTime = millis () ;
-        loggerShutDownStage = 2 ;
-        loggerEnabled = false ;
-        break ;
-        //
-      case 2:
-        //
-        if (millis () > loggerShutdownFlushTime + 500) {
+      Serial1.println ("*** end of data log file ***") ;
+      Serial1.flush () ;
+      loggerShutdownFlushTime = millis () ;
+      loggerShutDownStage = 2 ;
+      loggerEnabled = false ;
+      break ;
+      //
+    case 2:
+      //
+      if (millis () > loggerShutdownFlushTime + 500) {
 #ifdef __DEBUG__LOGGER__
-          Serial.println ("[INFO] Logger shutdown - terminating serial connection.") ;
+        Serial.println ("[INFO] Logger shutdown - terminating serial connection.") ;
 #endif
-          Serial1.end () ;
-          loggerShutDownStage = 3 ;
-        }
-        break ;
-        //
-      case 3:
-        //
-        if (millis () > loggerShutdownFlushTime + 1000) {
+        Serial1.end () ;
+        loggerShutDownStage = 3 ;
+      }
+      break ;
+      //
+    case 3:
+      //
+      if (millis () > loggerShutdownFlushTime + 1000) {
 #ifdef __DEBUG__LOGGER__
-          Serial.println ("[INFO] Logger shutdown - switching off logger device.") ;
+        Serial.println ("[INFO] Logger shutdown - switching off logger device.") ;
 #endif
-          digitalWrite (loggerPin, LOW) ;
-          loggerShutDownStage = 4 ;
-        }
-        break ;
-        //
-      case 4:
-        //
+        digitalWrite (loggerPin, LOW) ;
+        loggerShutDownStage = 4 ;
+      }
+      break ;
+      //
+    case 4:
+      //
 #ifdef __DEBUG__LOGGER__
-        Serial.println ("[INFO] Data logger shutdown completed.") ;
+      Serial.println ("[INFO] Data logger shutdown completed.") ;
 #endif
-        loggerShutDownStage = 5 ;
-        loggerShutdownLockIn = false ;
-        break ;
-        //
-      case 5:
-        //
-        break ;
-        //
-      default:
+      loggerShutDownStage = 5 ;
+      break ;
+      //
+    case 5 :
+      //
+      break ;
+      //
+    default:
 #ifdef __DEBUG__LOGGER__
-        Serial.println ("[WARNING] Data logger shutdown state error.") ;
+      Serial.println ("[WARNING] Data logger shutdown state error.") ;
 #endif
-        break ;
-    }
-    //
+      break ;
   }
+  //
   //
   while (myTime > loggerNextSampleTime) loggerNextSampleTime += loggerSampleInterval ;
   //
@@ -317,7 +326,7 @@ bool loggerLoop (const String & message, loggerCBs_t & callbacks, bool shutdown)
   //
   if (loggerEnabled) {
     //
-    Serial1.println (callbacks.logRow (message)) ;
+    Serial1.println (lcbs.logRow (message)) ;
     //
     return true ;
     //
@@ -325,7 +334,7 @@ bool loggerLoop (const String & message, loggerCBs_t & callbacks, bool shutdown)
   //
 #ifdef __DEBUG__LOGGER__
   //
-  Serial.println (callbacks.logRow (message)) ;
+  Serial.println (lcbs.logRow (message)) ;
   //
 #endif
   //

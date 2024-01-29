@@ -2,7 +2,7 @@
 #include "pulser.h"
 #include "logger.h"
 //
-#if 1
+#if 0
 const int pulserVars = 1 ;
 const unsigned long pulserOnDura [pulserVars] = {0} ;
 const unsigned long pulserOffDura [pulserVars] = {10000} ;
@@ -19,18 +19,41 @@ static unsigned int pulserMode = 0, pulserProgressCount = 0 ;
 static bool pulserEnabled = true, lastPulseState = false ;
 static pin_size_t pulserPin ;
 //
+static uint8_t pulserControlCB (void) {
+  //
+  if (pulserEnabled) {
+    //
+    pulserEnabled = false ;
+#ifdef __DEBUG__PULSER__
+    Serial.println ("[INFO] pulserControlCB () disabled autopulse") ;
+#endif
+    //
+  } else {
+    //
+    pulserEnabled = true ;
+#ifdef __DEBUG__PULSER__
+    Serial.println ("[INFO] pulserControlCB () enabled autopulse") ;
+#endif
+    //
+  }
+  //
+  return 0 ;
+  //
+}
+
 static unsigned long int pulserDataCB (void) {
   //
   return digitalRead (pulserPin) ;
   //
 }
 //
-void pulserSetup (int pin, loggerCBs_t & callbacks) {
+void pulserSetup (int pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
   //
   pinMode ((pulserPin = pin), OUTPUT) ;
   digitalWrite (pulserPin, LOW) ;
   //
-  callbacks.add (& pulserDataCB, "pulse") ;
+  lcbs.add (& pulserDataCB, "pulse") ;
+  ccbs.add (& pulserControlCB, 2) ;
   //
   pulserMode = 0 ;
   pulserProgressCount = 0 ;
@@ -38,7 +61,7 @@ void pulserSetup (int pin, loggerCBs_t & callbacks) {
   lastPulseState = false ;
   //
 #ifdef __DEBUG__PULSER__
-  Serial.println ("INFO] Pulse pattern variants:") ;
+  Serial.println ("[INFO] Pulse pattern variants:") ;
   //
   for (int i = 0 ; i < pulserVars ; i++) {
     //
@@ -93,6 +116,7 @@ bool pulserLoop (bool pulserTrigger) {
           } else {
             //
             pulserEnabled = false ;
+            pulserMode = 0 ;
             //
 #ifdef __DEBUG__PULSER__
             Serial.println ("[INFO] Disabeling auto pulse.") ;

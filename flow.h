@@ -1,7 +1,6 @@
 #ifndef __flow_h_included__
 #define __flow_h_included__
 //
-#include <array>
 #include "global.h"
 //
 #ifdef __DEBUG__FLOW__
