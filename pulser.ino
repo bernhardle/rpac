@@ -9,9 +9,9 @@ const unsigned long pulserOffDura [pulserVars] = {10000} ;
 const unsigned int pulserProgress [pulserVars] = {1} ;
 #else
 const int pulserVars = 6 ;
-const unsigned long pulserOnDura [pulserVars] = {0, 500, 1000, 2000, 3000, 4500} ;
-const unsigned long pulserOffDura [pulserVars] = {10000, 9500, 6000, 4000, 3000, 2000} ;
-const unsigned int pulserProgress [pulserVars] = {1, 12, 12, 17, 21, 53} ;
+const unsigned long pulserOnDura [pulserVars] = {0, 1500, 2500, 4000, 5500, 7000} ;
+const unsigned long pulserOffDura [pulserVars] = {10000, 6000, 5000, 4000, 3000, 2000} ;
+const unsigned int pulserProgress [pulserVars] = {1, 12, 12, 17, 21, 25} ;
 #endif
 //
 static unsigned long pulserChangeTime = 0 ;

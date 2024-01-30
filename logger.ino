@@ -4,18 +4,21 @@
 #include "button.h"
 #include "logger.h"
 //
-const unsigned long waitForCmd = 5000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
+const unsigned long int waitForCmd = 5000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
+#ifdef __DEBUG__LOGGER__
+const unsigned long int loggerSampleOutput = 10 * loggerSampleInterval ;
+#endif
 //
 static unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
-static int loggerShutDownStage = 0 ;
-static bool loggerEnabled = false ;
+static int loggerShutDownStage = 5 ;
+// static bool loggerEnabled = false ;
 static pin_size_t loggerPin ;
 //
 static uint8_t loggerControlCB (void) {
   //
   Serial.println ("[INFO] loggerControlCB () for shutdown ...") ;
   //
-  if (loggerEnabled) loggerShutDownStage = 1 ;
+  if (loggerShutDownStage == 0) loggerShutDownStage = 1 ;
   //
   return 0 ;
   //
@@ -34,7 +37,7 @@ bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
     return true ;
   } 
   //
-#ifdef __DEBUG__PRESSURE__
+#ifdef __DEBUG__LOGGER__
     Serial.println ("[WARNING] Number of callbacks reached.") ;
 #endif
   return false ;
@@ -211,12 +214,13 @@ void loggerSetup (pin_size_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const
     //
     if (msg.indexOf ("2<") != -1) {
       //
-      loggerEnabled = true ;
+      // loggerEnabled = true ;
+      loggerShutDownStage = 0 ;
       //
       Serial1.println (lcbs.headRow (stamp)) ;
       Serial1.flush () ;
-      //  register shutdown callback for 3 x button press
-      ccbs.add (loggerControlCB, 3) ;
+      //  register shutdown callback for 4 x button press
+      ccbs.add (loggerControlCB, 4) ;
       //
 #ifdef __DEBUG__LOGGER__
       Serial.println ("[INFO] Data logging started per: " + stamp) ;
@@ -252,7 +256,7 @@ void loggerSetup (pin_size_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const
   //
 }
 //
-bool loggerLoop (const String & message, loggerCBs_t & lcbs) {
+bool loggerLoop (loggerCBs_t & lcbs) {
   //
   unsigned long myTime = millis () ;
   //
@@ -260,7 +264,17 @@ bool loggerLoop (const String & message, loggerCBs_t & lcbs) {
     //
     case 0 :
       //
-      break ;
+      while (myTime > loggerNextSampleTime) loggerNextSampleTime += loggerSampleInterval ;
+      //
+      if (myTime < loggerNextSampleTime - loggerSampleAdjust) { return false ; }
+      //
+      delay (loggerNextSampleTime - myTime) ;
+      //
+      loggerNextSampleTime += loggerSampleInterval ;
+      //
+      Serial1.println (lcbs.logRow ("")) ;
+      //
+      return true ;
       //
     case 1 :
       //
@@ -271,7 +285,7 @@ bool loggerLoop (const String & message, loggerCBs_t & lcbs) {
       Serial1.flush () ;
       loggerShutdownFlushTime = millis () ;
       loggerShutDownStage = 2 ;
-      loggerEnabled = false ;
+      // loggerEnabled = false ;
       break ;
       //
     case 2:
@@ -306,6 +320,18 @@ bool loggerLoop (const String & message, loggerCBs_t & lcbs) {
       //
     case 5 :
       //
+#ifdef __DEBUG__LOGGER__
+      //
+      while (myTime > loggerNextSampleTime + loggerSampleOutput) loggerNextSampleTime += loggerSampleOutput ;
+      //
+      if (myTime > loggerNextSampleTime) {
+        //
+        loggerNextSampleTime += loggerSampleOutput ;
+        Serial.println (lcbs.logRow ("")) ;
+        //
+      }
+      //
+#endif
       break ;
       //
     default:
@@ -315,28 +341,6 @@ bool loggerLoop (const String & message, loggerCBs_t & lcbs) {
       break ;
   }
   //
-  //
-  while (myTime > loggerNextSampleTime) loggerNextSampleTime += loggerSampleInterval ;
-  //
-  if (myTime < loggerNextSampleTime - loggerSampleAdjust) { return false ; }
-  //
-  delay (loggerNextSampleTime - myTime) ;
-  //
-  loggerNextSampleTime += loggerSampleInterval ;
-  //
-  if (loggerEnabled) {
-    //
-    Serial1.println (lcbs.logRow (message)) ;
-    //
-    return true ;
-    //
-  } 
-  //
-#ifdef __DEBUG__LOGGER__
-  //
-  Serial.println (lcbs.logRow (message)) ;
-  //
-#endif
-  //
   return false ;
+  //
 }

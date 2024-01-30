@@ -9,15 +9,37 @@ const std::array<uint8_t,10> flowCountsPerUnit = {{12U,11U,12U,11U,12U,11U,12U,1
 const Array <uint8_t,10> flowCountsPerUnit = {{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U}} ;
 #endif
 //
-static volatile long int flowLastTick = 0, flowCountsTotal = 0, flowCountsTotalLast = 0, flowCountsTotalLastTime = 0, flowCountMeanTime = 0 ;
-static volatile short int flowCounts = 0, flowLastProgress = 0 ; 
+static volatile long int flowLastTick = 0, flowCountsTotal = 0 ;
+static volatile short int flowCounts = 0 ; 
 static uint8_t flowCountsPerUnitPos = 0 ;
+static bool flowCountLowRes = false ;
 //
 static volatile bool flowTrigger = false ;
 static pin_size_t flowMeterPin ;
 #ifdef __DEBUG__FLOW__
 static volatile bool flowTriggerError = false ;
 #endif
+//
+static uint8_t flowControlCB (void) {
+  //
+  if (flowCountLowRes) {
+    //
+    flowCountLowRes = false ;
+    //
+#ifdef __DEBUG__FLOW__
+  Serial.println ("[INFO] flowControlCB () switched to high resolution 1:10") ;
+#endif
+  } else {
+    //
+    flowCountLowRes = true ;
+    //
+#ifdef __DEBUG__FLOW__
+  Serial.println ("[INFO] flowControlCB () switched to low resolution 1:1") ;
+#endif
+  }
+  //
+  return 0 ;
+}
 //
 static void flowIntHandler (void) {
   //
@@ -29,15 +51,15 @@ static void flowIntHandler (void) {
   //
   if (flowCounts == flowCountsPerUnit [flowCountsPerUnitPos]) {
     //
-    flowCounts = 0 ;
-    flowCountsPerUnitPos ++ ; 
-    if (flowCountsPerUnitPos == flowCountsPerUnit.size()) flowCountsPerUnitPos = 0 ;
-    //
 #ifdef __DEBUG__FLOW__
     flowTriggerError = flowTrigger ;  // 'flowTrigger' should be cleared at this time otherwise flag error condition
 #endif
     //
-    flowTrigger = true ;
+    flowTrigger = flowCountLowRes ? flowCountsPerUnitPos == 0 : true ;
+    //
+    flowCounts = 0 ;
+    flowCountsPerUnitPos ++ ; 
+    if (flowCountsPerUnitPos == flowCountsPerUnit.size()) flowCountsPerUnitPos = 0 ;
     //
   }
   //
@@ -45,7 +67,7 @@ static void flowIntHandler (void) {
 //
 static unsigned long int flowDataCB (void) {
   //
-  return flowCountMeanTime ;
+  return flowCountsTotal ;
   //
 }
 //
@@ -55,61 +77,20 @@ unsigned long int flowLastActiveTime (void) {
   //
 }
 //
-void flowSetup (pin_size_t pin, loggerCBs_t & callbacks) {
+void flowSetup (pin_size_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
   //
   pinMode ((flowMeterPin = pin), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
   //
-#ifdef __DEBUG__FLOW__
-  pinMode (flowGroundPin, OUTPUT) ;
-  pinMode (flowMirrorPin, OUTPUT) ;
-  //
-  digitalWrite (flowGroundPin, LOW) ;
-  digitalWrite (flowMirrorPin, HIGH) ;
-  delay (300) ;
-  digitalWrite (flowMirrorPin, LOW) ;
-#endif
-  //
   attachInterrupt(digitalPinToInterrupt(flowMeterPin), flowIntHandler, FALLING) ;
   //
-  flowLastTick = flowCountsTotalLastTime = millis () ;
+  flowLastTick = millis () ;
   //
-  callbacks.add (& flowDataCB, "flow") ;
+  lcbs.add (& flowDataCB, "flow") ;
+  ccbs.add (& flowControlCB, 3) ;
   //
-#ifdef __DEBUG__FLOW__
-  {
-    
-    Serial.print ("[INFO] Flow counter divides by ") ;
-    Serial.println ("...") ;
-  }
-#endif
 }
 //
 bool flowLoop (void) {
-  //
-  unsigned long int progress = flowCountsTotal - flowCountsTotalLast ;
-  unsigned long int now = millis () ;
-  unsigned long int interval = now - flowCountsTotalLastTime ;
-  //
-  if (progress > 0) {
-    //
-    flowCountMeanTime = interval / progress ;
-    //
-    flowCountsTotalLast = flowCountsTotal ;
-    //
-    flowCountsTotalLastTime = now ;
-    //
-    flowLastProgress = progress ;
-    //
-  } else {
-    //
-    flowCountMeanTime = flowLastProgress > 0 ? interval / flowLastProgress : interval ;
-    //
-  }
-  //
-  //
-#ifdef __DEBUG__FLOW__
-  digitalWrite (flowMirrorPin, digitalRead (flowMeterPin)) ;
-#endif
   //
   if (flowTrigger) {
     //

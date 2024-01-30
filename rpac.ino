@@ -24,21 +24,21 @@ void setup() {
   //
   Serial.begin (115200) ;
   //
-  signalSetup (LED_BUILTIN) ;                         //  NanoEvery: LED_BUILTIN || u-blow Nina W-101: LED_BLUE
+  signalSetup (LED_BUILTIN) ;                                   //  NanoEvery: LED_BUILTIN || u-blow Nina W-101: LED_BLUE
   //
-  String start = timeSetup (loggerCallBacks) ;
+  String start = timeSetup (loggerCallBacks) ;                  //
   //
-  pressureSetup (A0, loggerCallBacks) ;               // NanoEvery: A0 || u-blow Nina W-101: A0
+  pressureSetup (A0, loggerCallBacks) ;                         // NanoEvery: A0 || u-blow Nina W-101: A0
   //
-  buttonSetup (16, loggerCallBacks) ;                 // NanoEvery: 16 || u-blow Nina W-101: 27
+  buttonSetup (16, loggerCallBacks) ;                           // NanoEvery: 16 || u-blow Nina W-101: 27
   //
-  controlSetup (controlCallBacks, loggerCallBacks) ;  //
+  controlSetup (controlCallBacks, loggerCallBacks) ;            //
   //
-  pulserSetup (10, controlCallBacks, loggerCallBacks) ; // NanoEvery: 10 || u-blow Nina W-101: 10
+  pulserSetup (10, controlCallBacks, loggerCallBacks) ;         // NanoEvery: 10 || u-blow Nina W-101: 10
   //
-  relaisSetup (2, loggerCallBacks) ;                  // NanoEvery: 2 || u-blow Nina W-101: 18
+  relaisSetup (2, loggerCallBacks) ;                            // NanoEvery: 2 || u-blow Nina W-101: 18
   //
-  flowSetup (7, loggerCallBacks) ;                    // NanoEvery: 7 || u-blow Nina W-101: 19
+  flowSetup (7, controlCallBacks, loggerCallBacks) ;            // NanoEvery: 7 || u-blow Nina W-101: 19
   //
   loggerSetup (15, controlCallBacks, loggerCallBacks, start) ;  // NanoEvery: 15 || u-blow Nina W-101: 15
   //
@@ -49,9 +49,7 @@ void setup() {
 void loop() {
   //
   unsigned long loopBegin = millis () ;
-  bool buttonState = false, flowState = false, pulseState = false, relaisState = false, shutdown = false ;
-  //
-  // shutdown = loopBegin > flowLastActiveTime() + 60000 ? true : false ;
+  bool buttonState = false, flowState = false, pulseState = false, relaisState = false ;
   //
   buttonState = controlLoop (buttonLoop (), controlCallBacks) ;
   //
@@ -63,7 +61,7 @@ void loop() {
   //
   relaisState = relaisLoop (flowState) ;
   //
-  loggerLoop ("", loggerCallBacks) ;
+  loggerLoop (loggerCallBacks) ;
   //
 #ifdef __DEBUG__RPAC__
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
