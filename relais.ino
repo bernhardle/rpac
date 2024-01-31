@@ -7,19 +7,19 @@ const unsigned int relaisHoldDura = 100 ;
 //
 static unsigned long int relaisLastTime ;
 static bool relaisOn = false, relaisLastTrigger = false ;
-static relaisState_t relaisLastState = LOW ;
+static relaisState_t relaisState = LOW ;
 static pin_size_t relaisPin ;
 //
 static unsigned long int relaisDataCB (void) {
   //
-  return relaisLastState ;
+  return relaisState ;
   //
 }
 //
 void relaisSetup (pin_size_t pin, loggerCBs_t & callbacks) {
   //
   pinMode ((relaisPin = pin), OUTPUT) ;
-  digitalWrite (relaisPin, (relaisLastState = LOW)) ;
+  digitalWrite (relaisPin, (relaisState = LOW)) ;
   //
   callbacks.add (& relaisDataCB, "relais") ;
   //
@@ -27,11 +27,11 @@ void relaisSetup (pin_size_t pin, loggerCBs_t & callbacks) {
 //
 bool relaisLoop (bool trigger) {
   //
-  if (relaisLastState == HIGH) {
+  if (relaisState == HIGH) {
     //
     if (millis () > relaisLastTime + relaisHoldDura) {
       //
-      digitalWrite (relaisPin, (relaisLastState = LOW)) ;
+      digitalWrite (relaisPin, (relaisState = LOW)) ;
       //
 #ifdef __DEBUG__RELAIS__
       Serial.print ("[Info] Relais state is OFF @ ") ;
@@ -45,7 +45,7 @@ bool relaisLoop (bool trigger) {
     //
     if (trigger && ! relaisLastTrigger) {
       //
-      digitalWrite (relaisPin, (relaisLastState = HIGH)) ;
+      digitalWrite (relaisPin, (relaisState = HIGH)) ;
       //
 #ifdef __DEBUG__RELAIS__
       Serial.print ("[Info] Relais state is ON @ ") ;
@@ -60,6 +60,6 @@ bool relaisLoop (bool trigger) {
   //
   relaisLastTrigger = trigger ;
   //
-  return relaisLastState ;
+  return relaisState ;
   //
 }

@@ -16,21 +16,21 @@ const unsigned int pulserProgress [pulserVars] = {1, 12, 12, 17, 21, 25} ;
 //
 static unsigned long pulserChangeTime = 0 ;
 static unsigned int pulserMode = 0, pulserProgressCount = 0 ;
-static bool pulserEnabled = true, lastPulseState = false ;
+static bool pulserAuto = true, pulserState = false ;
 static pin_size_t pulserPin ;
 //
 static uint8_t pulserControlCB (void) {
   //
-  if (pulserEnabled) {
+  if (pulserAuto) {
     //
-    pulserEnabled = false ;
+    pulserAuto = false ;
 #ifdef __DEBUG__PULSER__
     Serial.println ("[INFO] pulserControlCB () disabled autopulse") ;
 #endif
     //
   } else {
     //
-    pulserEnabled = true ;
+    pulserAuto = true ;
 #ifdef __DEBUG__PULSER__
     Serial.println ("[INFO] pulserControlCB () enabled autopulse") ;
 #endif
@@ -43,7 +43,7 @@ static uint8_t pulserControlCB (void) {
 
 static unsigned long int pulserDataCB (void) {
   //
-  return digitalRead (pulserPin) ;
+  return pulserState ;
   //
 }
 //
@@ -56,9 +56,9 @@ void pulserSetup (int pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
   ccbs.add (& pulserControlCB, 2) ;
   //
   pulserMode = 0 ;
+  pulserState = false ;
   pulserProgressCount = 0 ;
   pulserChangeTime = millis () ;
-  lastPulseState = false ;
   //
 #ifdef __DEBUG__PULSER__
   Serial.println ("[INFO] Pulse pattern variants:") ;
@@ -81,18 +81,18 @@ void pulserSetup (int pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
 //
 bool pulserLoop (bool pulserTrigger) {
   //
-  if (pulserEnabled) {
+  if (pulserAuto) {
     //
     unsigned long myTime = millis () ;
     //
-    if (digitalRead (pulserPin)) {
+    if (pulserState) {
       //
       if (myTime > pulserChangeTime + pulserOnDura [pulserMode]) {
         //
         digitalWrite (pulserPin, LOW) ;
         //
         pulserChangeTime = myTime ;
-        lastPulseState = false ;
+        pulserState = false ;
         //
         if (++ pulserProgressCount > pulserProgress [pulserMode]) {
           //
@@ -115,7 +115,7 @@ bool pulserLoop (bool pulserTrigger) {
             //
           } else {
             //
-            pulserEnabled = false ;
+            pulserAuto = false ;
             pulserMode = 0 ;
             //
 #ifdef __DEBUG__PULSER__
@@ -135,7 +135,7 @@ bool pulserLoop (bool pulserTrigger) {
         digitalWrite (pulserPin, HIGH) ;
         //
         pulserChangeTime = myTime ;
-        lastPulseState = true ;
+        pulserState = true ;
         //
       }
       //
@@ -143,9 +143,9 @@ bool pulserLoop (bool pulserTrigger) {
     //
   } else {
     //
-    if (pulserTrigger != lastPulseState) {
+    if (pulserTrigger != pulserState) {
       //
-      digitalWrite (pulserPin, (lastPulseState = pulserTrigger) ? HIGH : LOW) ;
+      digitalWrite (pulserPin, (pulserState = pulserTrigger) ? HIGH : LOW) ;
       //
 #ifdef __DEBUG__PULSER__
       Serial.println (pulserTrigger ? "[INFO] Pulse manually started." : "[INFO] Pulse manually stopped.") ;
@@ -156,6 +156,6 @@ bool pulserLoop (bool pulserTrigger) {
     //
   }
   //
-  return digitalRead (pulserPin) ;
+  return pulserState ;
   //
 }

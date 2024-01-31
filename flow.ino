@@ -9,10 +9,10 @@ const std::array<uint8_t,10> flowCountsPerUnit = {{12U,11U,12U,11U,12U,11U,12U,1
 const Array <uint8_t,10> flowCountsPerUnit = {{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U}} ;
 #endif
 //
-static volatile long int flowLastTick = 0, flowCountsTotal = 0 ;
+static volatile long int flowCountsTotal = 0 ;
 static volatile short int flowCounts = 0 ; 
 static uint8_t flowCountsPerUnitPos = 0 ;
-static bool flowCountLowRes = false ;
+static bool flowCountLowRes = true ;
 //
 static volatile bool flowTrigger = false ;
 static pin_size_t flowMeterPin ;
@@ -47,8 +47,6 @@ static void flowIntHandler (void) {
   //
   flowCountsTotal ++ ;
   //
-  flowLastTick = millis () ;
-  //
   if (flowCounts == flowCountsPerUnit [flowCountsPerUnitPos]) {
     //
 #ifdef __DEBUG__FLOW__
@@ -71,19 +69,11 @@ static unsigned long int flowDataCB (void) {
   //
 }
 //
-unsigned long int flowLastActiveTime (void) {
-  //
-  return flowLastTick ;
-  //
-}
-//
 void flowSetup (pin_size_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
   //
   pinMode ((flowMeterPin = pin), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
   //
   attachInterrupt(digitalPinToInterrupt(flowMeterPin), flowIntHandler, FALLING) ;
-  //
-  flowLastTick = millis () ;
   //
   lcbs.add (& flowDataCB, "flow") ;
   ccbs.add (& flowControlCB, 3) ;

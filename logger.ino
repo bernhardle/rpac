@@ -4,21 +4,20 @@
 #include "button.h"
 #include "logger.h"
 //
-const unsigned long int waitForCmd = 5000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
+const unsigned long int waitForCmd = 3000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
 #ifdef __DEBUG__LOGGER__
 const unsigned long int loggerSampleOutput = 10 * loggerSampleInterval ;
 #endif
 //
 static unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
-static int loggerShutDownStage = 5 ;
-// static bool loggerEnabled = false ;
+static uint8_t loggerMode = 5U ;
 static pin_size_t loggerPin ;
 //
 static uint8_t loggerControlCB (void) {
   //
   Serial.println ("[INFO] loggerControlCB () for shutdown ...") ;
   //
-  if (loggerShutDownStage == 0) loggerShutDownStage = 1 ;
+  if (loggerMode == 0) loggerMode = 1 ;
   //
   return 0 ;
   //
@@ -214,8 +213,7 @@ void loggerSetup (pin_size_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const
     //
     if (msg.indexOf ("2<") != -1) {
       //
-      // loggerEnabled = true ;
-      loggerShutDownStage = 0 ;
+      loggerMode = 0 ;
       //
       Serial1.println (lcbs.headRow (stamp)) ;
       Serial1.flush () ;
@@ -260,7 +258,7 @@ bool loggerLoop (loggerCBs_t & lcbs) {
   //
   unsigned long myTime = millis () ;
   //
-  switch (loggerShutDownStage) {
+  switch (loggerMode) {
     //
     case 0 :
       //
@@ -284,8 +282,8 @@ bool loggerLoop (loggerCBs_t & lcbs) {
       Serial1.println ("*** end of data log file ***") ;
       Serial1.flush () ;
       loggerShutdownFlushTime = millis () ;
-      loggerShutDownStage = 2 ;
-      // loggerEnabled = false ;
+      loggerMode = 2 ;
+      //
       break ;
       //
     case 2:
@@ -295,7 +293,7 @@ bool loggerLoop (loggerCBs_t & lcbs) {
         Serial.println ("[INFO] Logger shutdown - terminating serial connection.") ;
 #endif
         Serial1.end () ;
-        loggerShutDownStage = 3 ;
+        loggerMode = 3 ;
       }
       break ;
       //
@@ -306,7 +304,7 @@ bool loggerLoop (loggerCBs_t & lcbs) {
         Serial.println ("[INFO] Logger shutdown - switching off logger device.") ;
 #endif
         digitalWrite (loggerPin, LOW) ;
-        loggerShutDownStage = 4 ;
+        loggerMode = 4 ;
       }
       break ;
       //
@@ -315,7 +313,7 @@ bool loggerLoop (loggerCBs_t & lcbs) {
 #ifdef __DEBUG__LOGGER__
       Serial.println ("[INFO] Data logger shutdown completed.") ;
 #endif
-      loggerShutDownStage = 5 ;
+      loggerMode = 5 ;
       break ;
       //
     case 5 :

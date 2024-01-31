@@ -1,4 +1,5 @@
 //
+#include "logger.h"
 #include "control.h"
 //
 #ifdef __DEBUG_CONTROL__

@@ -13,6 +13,7 @@
 //
 #ifdef __DEBUG__RPAC__
 const unsigned long loopMaxDura = 12 ;
+unsigned loopCount = 0 ;
 #endif
 //
 loggerCBs_t loggerCallBacks ;
@@ -30,17 +31,17 @@ void setup() {
   //
   pressureSetup (A0, loggerCallBacks) ;                         // NanoEvery: A0 || u-blow Nina W-101: A0
   //
-  buttonSetup (16, loggerCallBacks) ;                           // NanoEvery: 16 || u-blow Nina W-101: 27
+  buttonSetup (27, loggerCallBacks) ;                           // NanoEvery: 16 || u-blow Nina W-101: 27 = SW01
   //
   controlSetup (controlCallBacks, loggerCallBacks) ;            //
   //
   pulserSetup (10, controlCallBacks, loggerCallBacks) ;         // NanoEvery: 10 || u-blow Nina W-101: 10
   //
-  relaisSetup (2, loggerCallBacks) ;                            // NanoEvery: 2 || u-blow Nina W-101: 18
+  relaisSetup (18, loggerCallBacks) ;                            // NanoEvery: 2 || u-blow Nina W-101: 18
   //
-  flowSetup (7, controlCallBacks, loggerCallBacks) ;            // NanoEvery: 7 || u-blow Nina W-101: 19
+  flowSetup (33, controlCallBacks, loggerCallBacks) ;            // NanoEvery: 7 || u-blow Nina W-101: 33 = SW02
   //
-  loggerSetup (15, controlCallBacks, loggerCallBacks, start) ;  // NanoEvery: 15 || u-blow Nina W-101: 15
+  loggerSetup (15, controlCallBacks, loggerCallBacks, start) ;    // NanoEvery: 15 || u-blow Nina W-101: 15
   //
 }
 //
@@ -49,17 +50,17 @@ void setup() {
 void loop() {
   //
   unsigned long loopBegin = millis () ;
-  bool buttonState = false, flowState = false, pulseState = false, relaisState = false ;
+  bool button = false, flow = false, pulse = false, relais = false ;
   //
-  buttonState = controlLoop (buttonLoop (), controlCallBacks) ;
+  button = controlLoop (buttonLoop (), controlCallBacks) ;
   //
-  pulseState = pulserLoop (buttonState) ;
+  pulse = pulserLoop (button) ;
   //
   pressureLoop () ;
   //
-  flowState = flowLoop () ;
+  flow = flowLoop () ;
   //
-  relaisState = relaisLoop (flowState) ;
+  relais = relaisLoop (flow) ;
   //
   loggerLoop (loggerCallBacks) ;
   //
@@ -67,7 +68,11 @@ void loop() {
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
 #endif
   //
-  signalLoop ((relaisState && ! pulseState) || (pulseState && ! relaisState)) ;
+  signalLoop ((relais && ! pulse) || (pulse && ! relais)) ;
   //
+  #ifdef ARDUINO_UBLOX_NINA_W10
+  //  Prevent watchdog from firing ...
+  delay (1) ;
+  #endif
 }
 //

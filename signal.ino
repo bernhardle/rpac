@@ -1,7 +1,7 @@
 #include "signal.h"
 //
 static pin_size_t signalPin ;
-static bool signalLastState = false ;
+static bool signalState = false ;
 //
 void signalSetup (pin_size_t pin) {
   //
@@ -15,11 +15,21 @@ void signalSetup (pin_size_t pin) {
   //
   delay (500) ;
   //
-  signalLastState = false ;
+  signalState = false ;
 }
 //
 void signalLoop (bool state, const signalSequence_t & prio) {
   //
-  if (state != signalLastState) digitalWrite (signalPin, (signalLastState = state) ? HIGH : LOW) ;
+  if (state != signalState) {
+    //
+    signalState = state ;
+    //
+  #ifdef ARDUINO_UBLOX_NINA_W10
+    digitalWrite (signalPin, ! signalState) ;
+  #else
+    digitalWrite (signalPin, signalState) ;
+  #endif
+    //
+  }
   //
 }
