@@ -55,7 +55,7 @@ bool controlLoop (bool button, const controlCBs_t & ccbs) {
         //
         if (button) {
           //
-          if (myTime > controlButtonTimeHigh + 400) {
+          if (myTime > controlButtonTimeHigh + 350) {
             //
             __switchControlMode(4) ;
             //

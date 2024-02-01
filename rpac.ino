@@ -25,23 +25,23 @@ void setup() {
   //
   Serial.begin (115200) ;
   //
-  signalSetup (LED_BUILTIN) ;                                   //  NanoEvery: LED_BUILTIN || u-blow Nina W-101: LED_BLUE
+  signalSetup (rpacPin::signal) ;                                     //  NanoEvery: LED_BUILTIN || u-blow Nina W-101: LED_BLUE
   //
-  String start = timeSetup (loggerCallBacks) ;                  //
+  String start = timeSetup (loggerCallBacks) ;                        //
   //
-  pressureSetup (A0, loggerCallBacks) ;                         // NanoEvery: A0 || u-blow Nina W-101: A0
+  pressureSetup (rpacPin::pressure, loggerCallBacks) ;                // NanoEvery: A0 || u-blow Nina W-101: A0
   //
-  buttonSetup (27, loggerCallBacks) ;                           // NanoEvery: 16 || u-blow Nina W-101: 27 = SW01
+  buttonSetup (rpacPin::button, loggerCallBacks) ;                    // NanoEvery: 16 || u-blow Nina W-101: 27 = SW01
   //
-  controlSetup (controlCallBacks, loggerCallBacks) ;            //
+  controlSetup (controlCallBacks, loggerCallBacks) ;                  //
   //
-  pulserSetup (10, controlCallBacks, loggerCallBacks) ;         // NanoEvery: 10 || u-blow Nina W-101: 10
+  pulserSetup (rpacPin::pulser, controlCallBacks, loggerCallBacks) ;  // NanoEvery: 10 || u-blow Nina W-101: 10
   //
-  relaisSetup (18, loggerCallBacks) ;                            // NanoEvery: 2 || u-blow Nina W-101: 18
+  relaisSetup (rpacPin::relais, loggerCallBacks) ;                    // NanoEvery: 2 || u-blow Nina W-101: 18
   //
-  flowSetup (33, controlCallBacks, loggerCallBacks) ;            // NanoEvery: 7 || u-blow Nina W-101: 33 = SW02
+  flowSetup (rpacPin::flow, controlCallBacks, loggerCallBacks) ;      // NanoEvery: 7 || u-blow Nina W-101: 33 = SW02
   //
-  loggerSetup (15, controlCallBacks, loggerCallBacks, start) ;    // NanoEvery: 15 || u-blow Nina W-101: 15
+  loggerSetup (rpacPin::logger, controlCallBacks, loggerCallBacks, start) ;  // NanoEvery: 15 || u-blow Nina W-101: 15
   //
 }
 //
@@ -70,9 +70,9 @@ void loop() {
   //
   signalLoop ((relais && ! pulse) || (pulse && ! relais)) ;
   //
-  #ifdef ARDUINO_UBLOX_NINA_W10
+#ifdef ARDUINO_UBLOX_NINA_W10
   //  Prevent watchdog from firing ...
   delay (1) ;
-  #endif
+#endif
 }
 //

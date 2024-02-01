@@ -1,7 +1,7 @@
 #include "pressure.h"
 #include "logger.h"
 //
-static pin_size_t pressurePin ;
+static uint8_t pressurePin ;
 //
 static unsigned long int pressureDataCB (void) {
   //
@@ -9,11 +9,11 @@ static unsigned long int pressureDataCB (void) {
   //
 }
 //
-void pressureSetup (pin_size_t pin, loggerCBs_t & callbacks) {
+void pressureSetup (rpacPin_t pin, loggerCBs_t & lcbs) {
   //
-  pinMode ((pressurePin = pin), INPUT) ;
+  pinMode ((pressurePin = static_cast <uint8_t> (pin)), INPUT) ;
   //
-  callbacks.add (& pressureDataCB, "pressure") ;
+  lcbs.add (& pressureDataCB, "pressure") ;
   //
   return ;
 }

@@ -5,7 +5,7 @@
 //
 #include "global.h"
 //
-extern void pressureSetup (pin_size_t, loggerCBs_t &) ;
+extern void pressureSetup (rpacPin_t, loggerCBs_t &) ;
 extern void pressureLoop (void) ;
 //
 #endif

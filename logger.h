@@ -32,7 +32,7 @@ const unsigned long logRes = 4, loggerRetryDura = 3000 ;
 //
 // extern volatile bool loggerEnabled ;
 //
-extern void loggerSetup (pin_size_t, controlCBs_t &, loggerCBs_t &, const String & = "No start time argument.") ;
+extern void loggerSetup (rpacPin_t, controlCBs_t &, loggerCBs_t &, const String & = "No start time argument.") ;
 extern bool loggerLoop (loggerCBs_t &) ;
 //
 #endif

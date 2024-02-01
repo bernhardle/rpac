@@ -5,7 +5,7 @@
 #include "logger.h"
 #include "control.h"
 //
-extern void flowSetup (pin_size_t, controlCBs_t &, loggerCBs_t &) ;
+extern void flowSetup (rpacPin_t, controlCBs_t &, loggerCBs_t &) ;
 extern bool flowLoop (void) ;
 //
 #endif

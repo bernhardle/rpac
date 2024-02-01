@@ -5,7 +5,7 @@
 //
 extern volatile unsigned long buttonPressedTime ;
 //
-extern void buttonSetup (pin_size_t, loggerCBs_t &) ;
+extern void buttonSetup (rpacPin_t, loggerCBs_t &) ;
 extern bool buttonLoop (void) ;
 //
 #endif

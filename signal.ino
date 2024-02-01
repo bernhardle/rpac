@@ -1,11 +1,11 @@
 #include "signal.h"
 //
-static pin_size_t signalPin ;
+static uint8_t signalPin ;
 static bool signalState = false ;
 //
-void signalSetup (pin_size_t pin) {
+void signalSetup (rpacPin_t pin) {
   //
-  pinMode ((signalPin = pin), OUTPUT) ;
+  pinMode ((signalPin = static_cast <uint8_t> (pin)), OUTPUT) ;
   //
   digitalWrite (signalPin, HIGH) ;
   //

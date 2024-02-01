@@ -11,7 +11,7 @@ const unsigned long int loggerSampleOutput = 10 * loggerSampleInterval ;
 //
 static unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
 static uint8_t loggerMode = 5U ;
-static pin_size_t loggerPin ;
+static uint8_t loggerPin ;
 //
 static uint8_t loggerControlCB (void) {
   //
@@ -77,9 +77,9 @@ static void loggerBlinkFast (void) {
   //
   for (int i = 0; i < 20; i++) {
     //
-    digitalWrite (LED_BUILTIN, HIGH);
+    digitalWrite (static_cast <uint8_t> (rpacPin::signal), HIGH);
     delay (10) ;
-    digitalWrite (LED_BUILTIN, LOW);
+    digitalWrite (static_cast <uint8_t> (rpacPin::signal), LOW);
     delay (50) ;
     //
   }
@@ -99,11 +99,11 @@ static inline float digit2hcPa (int dgs) {
   //
 }
 //
-void loggerSetup (pin_size_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const String & stamp) {
+void loggerSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const String & stamp) {
   //
   bool loggerCmd = true ;
   //
-  loggerPin = pin ;
+  loggerPin = static_cast <uint8_t> (pin) ;
   pinMode (loggerPin, OUTPUT) ;
   digitalWrite (loggerPin, LOW) ;
   //
@@ -132,7 +132,7 @@ void loggerSetup (pin_size_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const
   //
   for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (200)) {
     //
-    digitalWrite (LED_BUILTIN, HIGH) ;
+    digitalWrite (static_cast <uint8_t> (rpacPin::signal), HIGH) ;
     //
     if (buttonPressedTime > 0) {
       //
@@ -168,7 +168,7 @@ void loggerSetup (pin_size_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const
     //
     delay (150) ;
     //
-    digitalWrite (LED_BUILTIN, LOW) ;
+    digitalWrite (static_cast <uint8_t> (rpacPin::signal), LOW) ;
     //
     delay (450) ;
     //

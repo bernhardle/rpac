@@ -15,7 +15,7 @@ static uint8_t flowCountsPerUnitPos = 0 ;
 static bool flowCountLowRes = true ;
 //
 static volatile bool flowTrigger = false ;
-static pin_size_t flowMeterPin ;
+static uint8_t flowMeterPin ;
 #ifdef __DEBUG__FLOW__
 static volatile bool flowTriggerError = false ;
 #endif
@@ -69,9 +69,9 @@ static unsigned long int flowDataCB (void) {
   //
 }
 //
-void flowSetup (pin_size_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
+void flowSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
   //
-  pinMode ((flowMeterPin = pin), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
+  pinMode ((flowMeterPin = static_cast <uint8_t> (pin)), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
   //
   attachInterrupt(digitalPinToInterrupt(flowMeterPin), flowIntHandler, FALLING) ;
   //

@@ -17,7 +17,7 @@ const unsigned int pulserProgress [pulserVars] = {1, 12, 12, 17, 21, 25} ;
 static unsigned long pulserChangeTime = 0 ;
 static unsigned int pulserMode = 0, pulserProgressCount = 0 ;
 static bool pulserAuto = true, pulserState = false ;
-static pin_size_t pulserPin ;
+static uint8_t pulserPin ;
 //
 static uint8_t pulserControlCB (void) {
   //
@@ -47,9 +47,9 @@ static unsigned long int pulserDataCB (void) {
   //
 }
 //
-void pulserSetup (int pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
+void pulserSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
   //
-  pinMode ((pulserPin = pin), OUTPUT) ;
+  pinMode ((pulserPin = static_cast <uint8_t> (pin)), OUTPUT) ;
   digitalWrite (pulserPin, LOW) ;
   //
   lcbs.add (& pulserDataCB, "pulse") ;

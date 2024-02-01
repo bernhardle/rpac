@@ -6,7 +6,7 @@
 #include "global.h"
 #include "control.h"
 //
-extern void pulserSetup (pin_size_t, controlCBs_t &, loggerCBs_t &) ;
+extern void pulserSetup (rpacPin_t, controlCBs_t &, loggerCBs_t &) ;
 extern bool pulserLoop (bool) ;
 //
 #endif

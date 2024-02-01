@@ -18,8 +18,11 @@
 typedef class loggerCBs loggerCBs_t ;
 //
 #ifdef ARDUINO_UBLOX_NINA_W10
-#define LED_BUILTIN LED_BLUE
-typedef uint8_t pin_size_t ;
+enum struct rpacPin {logger = 15, button = 27, flow = 33, pressure = A0, pulser = 10, relais = 23, signal = LED_BLUE} ;
+#else
+enum struct rpacPin {logger = 15, button= 16, flow = 7, pressure = A0, pulser = 10, relais = 2, signal = LED_BUILTIN} ;
 #endif
+//
+typedef rpacPin rpacPin_t ;
 //
 #endif

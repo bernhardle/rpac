@@ -5,7 +5,7 @@
 //
 volatile unsigned long buttonPressedTime = 0 ;
 static signed short buttonPressedCount = 0 ;
-static pin_size_t buttonPin ;
+static uint8_t buttonPin ;
 //
 #ifdef __DEBUG__BUTTON__
 static bool buttonLastState = false ;
@@ -25,9 +25,9 @@ static unsigned long int buttonDataCB (void) {
   //
 }
 //
-void buttonSetup (pin_size_t pin, loggerCBs_t & callbacks) {
+void buttonSetup (rpacPin_t pin, loggerCBs_t & callbacks) {
   //
-  pinMode ((buttonPin = pin), INPUT_PULLUP) ;
+  pinMode ((buttonPin = static_cast <uint8_t> (pin)), INPUT_PULLUP) ;
   //
   attachInterrupt(digitalPinToInterrupt(buttonPin), buttonIntHandler, FALLING) ;
   //

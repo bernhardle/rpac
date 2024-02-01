@@ -3,12 +3,18 @@
 //
 typedef decltype (HIGH) relaisState_t ;
 //
+#ifdef ARDUINO_UBLOX_NINA_W10
+inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r == HIGH ? LOW : HIGH) ; }
+#else
+inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r) ; }
+#endif
+//
 const unsigned int relaisHoldDura = 100 ;
 //
 static unsigned long int relaisLastTime ;
 static bool relaisOn = false, relaisLastTrigger = false ;
 static relaisState_t relaisState = LOW ;
-static pin_size_t relaisPin ;
+static uint8_t relaisPin ;
 //
 static unsigned long int relaisDataCB (void) {
   //
@@ -16,10 +22,10 @@ static unsigned long int relaisDataCB (void) {
   //
 }
 //
-void relaisSetup (pin_size_t pin, loggerCBs_t & callbacks) {
+void relaisSetup (rpacPin_t pin, loggerCBs_t & callbacks) {
   //
-  pinMode ((relaisPin = pin), OUTPUT) ;
-  digitalWrite (relaisPin, (relaisState = LOW)) ;
+  pinMode ((relaisPin = static_cast <uint8_t> (pin)), OUTPUT) ;
+  __digitalWrite (relaisPin, (relaisState = LOW)) ;
   //
   callbacks.add (& relaisDataCB, "relais") ;
   //
@@ -31,7 +37,7 @@ bool relaisLoop (bool trigger) {
     //
     if (millis () > relaisLastTime + relaisHoldDura) {
       //
-      digitalWrite (relaisPin, (relaisState = LOW)) ;
+      __digitalWrite (relaisPin, (relaisState = LOW)) ;
       //
 #ifdef __DEBUG__RELAIS__
       Serial.print ("[Info] Relais state is OFF @ ") ;
@@ -45,7 +51,7 @@ bool relaisLoop (bool trigger) {
     //
     if (trigger && ! relaisLastTrigger) {
       //
-      digitalWrite (relaisPin, (relaisState = HIGH)) ;
+      __digitalWrite (relaisPin, (relaisState = HIGH)) ;
       //
 #ifdef __DEBUG__RELAIS__
       Serial.print ("[Info] Relais state is ON @ ") ;
