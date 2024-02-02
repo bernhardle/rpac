@@ -25,7 +25,7 @@ void setup() {
   //
   Serial.begin (115200) ;
   //
-  signalSetup (rpacPin::signal) ;                                     //  NanoEvery: LED_BUILTIN || u-blow Nina W-101: LED_BLUE
+  signalSetup (rpacPin::signal, controlCallBacks) ;                   //  NanoEvery: LED_BUILTIN || u-blow Nina W-101: LED_BLUE
   //
   String start = timeSetup (loggerCallBacks) ;                        //
   //

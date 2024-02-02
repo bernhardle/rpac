@@ -3,20 +3,23 @@
 //
 #include "global.h"
 //
-typedef struct signalSequence {
+template <uint8_t n> class signaltrain {
   //
-  short unsigned rep = 0 ;
-  short unsigned len = 0 ;
-  const short unsigned (*seq)[2] = nullptr ;
-  signalSequence (short unsigned a, short unsigned b, const short unsigned (*c)[2]) : rep (a), len (b), seq(c) {}
+  public :
+    enum struct sequence {dark = 0, heartbeat = 1, blinkfast = 2, blinkslow = 3} ;
+  private :
+    // std::array <unsigned short int, n> seq ;
+    //
+    uint8_t rep = 0, pos = 0 ;
+    sequence seq ;
+    //
+  public :
+    signaltrain (sequence a, uint8_t b) : seq (a), rep (b) {}
   //
-} signalSequence_t ;
+} ;
 //
-const short unsigned seqHB [2][2] {{2,5},{2,10}} ;
-const signalSequence_t heartBeat (0,2, seqHB) ;
-const signalSequence_t blankSeq (0, 0, nullptr) ;
-//
-extern void signalSetup (rpacPin_t) ;
-extern void signalLoop (bool, const signalSequence_t & = heartBeat) ;
+extern void signalSetup (rpacPin_t, controlCBs_t &) ;
+extern void signalLaunch (uint8_t) ;
+extern void signalLoop (bool) ;
 //
 #endif
