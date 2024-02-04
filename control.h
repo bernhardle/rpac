@@ -12,16 +12,16 @@
 template <int n> class controlCallbacks {
     private :
 #ifdef ARDUINO_UBLOX_NINA_W10
-        std::array <uint8_t (*)(void), n> cbs ;
+        std::array <uint8_t (*)(uint8_t), n> cbs ;
 #else
         Array <uint8_t (*)(void), n> cbs ;
 #endif
     public :
         controlCallbacks (void) ;
-        inline uint8_t (*operator[](int i) const)(void) {
+        inline uint8_t (*operator[](int i) const)(uint8_t) {
             return cbs.at(i) ;
         }
-        inline void add (uint8_t (*f)(void), int i) { cbs.at(i) = f ; }
+        inline void add (uint8_t (*f)(uint8_t), int i) { cbs.at(i) = f ; }
         inline int size (void) const { return cbs.size() ; }
 } ;
 //

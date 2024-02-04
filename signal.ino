@@ -1,33 +1,41 @@
 #include "signal.h"
 #include "control.h"
 //
-static uint8_t signalPin, signalMode = 10, signalRepetitions = 0 ;
-static bool signalState = false ;
-//
-static uint8_t signalControlCB (void) {
+namespace {
   //
+  enum struct status : uint8_t { start = 0, bright = 1, cycle = 2, idle = 10, uninitialized = UCHAR_MAX} ;
+  //
+  static uint8_t signalPin, signalRepetitions = 0 ;
+  static bool signalState = false ;
+  static status signalstatus = status::uninitialized ;
+  //
+  static uint8_t signalControlCB (uint8_t cmd) {
+    //
 #ifdef __DEBUG__SIGNAL__
-  Serial.println ("[INFO] signalControlCB () ...") ;
+    Serial.println ("[INFO] signalControlCB () ...") ;
 #endif
-  signalLaunch (5) ;
-  //
-  return 0U ;
-}
-//
-static void signalSwitchLED (bool state) {
-  //
-  if (state != signalState) {
+    signalLaunchAsync (4) ;
     //
-    signalState = state ;
+    return cmd ;
+  }
+  //
+  static void signalSwitchLED (bool state) {
     //
-  #ifdef ARDUINO_UBLOX_NINA_W10
-    digitalWrite (signalPin, ! signalState) ;
-  #else
-    digitalWrite (signalPin, signalState) ;
-  #endif
+    if (state != signalState) {
+      //
+      signalState = state ;
+      //
+#ifdef ARDUINO_UBLOX_NINA_W10
+      digitalWrite (signalPin, ! signalState) ;
+#else
+      digitalWrite (signalPin, signalState) ;
+#endif
+      //
+    }
     //
   }
-}
+  //
+} ;
 //
 void signalSetup (rpacPin_t pin, controlCBs_t & ccbs) {
   //
@@ -39,12 +47,29 @@ void signalSetup (rpacPin_t pin, controlCBs_t & ccbs) {
   //
   ccbs.add (& signalControlCB, 1) ;
   //
+  signalstatus = status::idle ;
+  //
 }
 //
-void signalLaunch (uint8_t i) {
+void signalLaunchAsync (uint8_t i) {
+  //
+  if (signalstatus == status::uninitialized) {
+    //
+#ifdef __DEBUG__SIGNAL__
+  Serial.println ("[INFO] signalLaunchAsync () called before signalSetup () ...") ;
+#endif
+    //
+    return ;
+  }
   //
   signalRepetitions = i ;
-  signalMode = 0 ;
+  signalstatus = status::start ;
+  //
+}
+//
+void signalLaunchBlocking (uint8_t n) {
+  //
+  for (signalLaunchAsync (n) ; signalstatus != status::idle ; signalLoop (false)) ;
   //
 }
 //
@@ -55,51 +80,51 @@ void signalLoop (bool state) {
   //
   unsigned long int myTime = millis () ;
   //
-  switch (signalMode) {
+  switch (signalstatus) {
     //
-    case 0 :
+    case status::start :
       //
       signalCounter = 0 ;
-      signalTimeOut = myTime + 40 ;
-      signalMode = 1 ;
+      signalTimeOut = myTime + 30 ;
+      signalstatus = status::bright ;
       signalSwitchLED (true) ;
       break ;
       //
-    case 1 :
+    case status::bright :
       //
       if (myTime > signalTimeOut) {
         //
-        signalTimeOut = myTime + 120 ;
-        signalMode = 2 ;
+        signalTimeOut = myTime + 70 ;
+        signalstatus = status::cycle ;
         signalSwitchLED (false) ;
         //
         if (++ signalCounter > signalRepetitions) {
           //
-          signalMode = 10 ;
+          signalstatus = status::idle ;
           //
         }
         //
       }
       break ;
       //
-    case 2 :
+    case status::cycle :
       //
       if (myTime > signalTimeOut) {
         //
-        signalTimeOut = myTime + 40 ;
-        signalMode = 1 ;
+        signalTimeOut = myTime + 30 ;
+        signalstatus = status::bright ;
         signalSwitchLED (true) ;
         //
       }
       break ;
       //
-    case 3 :
+    case status::idle :
+      //
+      signalSwitchLED (state) ;
       //
       break ;
       //
-    case 10 :
-      //
-      signalSwitchLED (state) ;
+    case status::uninitialized :
       //
       break ;
       //

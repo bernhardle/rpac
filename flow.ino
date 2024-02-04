@@ -20,7 +20,7 @@ static uint8_t flowMeterPin ;
 static volatile bool flowTriggerError = false ;
 #endif
 //
-static uint8_t flowControlCB (void) {
+static uint8_t flowControlCB (uint8_t) {
   //
   if (flowCountLowRes) {
     //
@@ -29,6 +29,8 @@ static uint8_t flowControlCB (void) {
 #ifdef __DEBUG__FLOW__
   Serial.println ("[INFO] flowControlCB () switched to high resolution 1:10") ;
 #endif
+    return 1U ;
+    //
   } else {
     //
     flowCountLowRes = true ;
@@ -36,9 +38,9 @@ static uint8_t flowControlCB (void) {
 #ifdef __DEBUG__FLOW__
   Serial.println ("[INFO] flowControlCB () switched to low resolution 1:1") ;
 #endif
+    return 0U ;
   }
   //
-  return 0 ;
 }
 //
 static void flowIntHandler (void) {

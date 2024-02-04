@@ -9,9 +9,9 @@ const unsigned long pulserOffDura [pulserVars] = {10000} ;
 const unsigned int pulserProgress [pulserVars] = {1} ;
 #else
 const int pulserVars = 6 ;
-const unsigned long pulserOnDura [pulserVars] = {0, 1500, 2500, 4000, 5500, 7000} ;
+const unsigned long pulserOnDura [pulserVars] = {0, 2000, 3000, 4000, 5500, 7000} ;
 const unsigned long pulserOffDura [pulserVars] = {10000, 6000, 5000, 4000, 3000, 2000} ;
-const unsigned int pulserProgress [pulserVars] = {1, 12, 12, 17, 21, 25} ;
+const unsigned int pulserProgress [pulserVars] = {1, 6, 8, 14, 20, 25} ;
 #endif
 //
 static unsigned long pulserChangeTime = 0 ;
@@ -19,7 +19,7 @@ static unsigned int pulserMode = 0, pulserProgressCount = 0 ;
 static bool pulserAuto = true, pulserState = false ;
 static uint8_t pulserPin ;
 //
-static uint8_t pulserControlCB (void) {
+static uint8_t pulserControlCB (uint8_t) {
   //
   if (pulserAuto) {
     //
@@ -28,12 +28,16 @@ static uint8_t pulserControlCB (void) {
     Serial.println ("[INFO] pulserControlCB () disabled autopulse") ;
 #endif
     //
+    return 0U ;
+    //
   } else {
     //
     pulserAuto = true ;
 #ifdef __DEBUG__PULSER__
     Serial.println ("[INFO] pulserControlCB () enabled autopulse") ;
 #endif
+    //
+    return 1U ;
     //
   }
   //

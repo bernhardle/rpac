@@ -3,6 +3,7 @@
 #include "global.h"
 #include "button.h"
 #include "logger.h"
+#include "signal.h"
 //
 const unsigned long int waitForCmd = 3000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
 #ifdef __DEBUG__LOGGER__
@@ -13,7 +14,7 @@ static unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
 static uint8_t loggerMode = 5U ;
 static uint8_t loggerPin ;
 //
-static uint8_t loggerControlCB (void) {
+static uint8_t loggerControlCB (uint8_t) {
   //
   Serial.println ("[INFO] loggerControlCB () for shutdown ...") ;
   //
@@ -73,38 +74,11 @@ const char * loggerCBs::headRow (const String & stamp) {
   return row ;
 }
 //
-static void loggerBlinkFast (void) {
-  //
-  for (int i = 0; i < 20; i++) {
-    //
-    digitalWrite (static_cast <uint8_t> (rpacPin::signal), HIGH);
-    delay (10) ;
-    digitalWrite (static_cast <uint8_t> (rpacPin::signal), LOW);
-    delay (50) ;
-    //
-  }
-}
-//
-static inline float digit2hcPa (int dgs) {
-  //  
-  //  Voltage divider is 100 k / 147 k
-  //  in order to scale max. out < 3.3V
-  //  pressure zero offset is ~ 33 digits raw
-  //  MXP555 sensitvity is 9.0 mV / kPa
-  //  ADC conversion rate is 5 / 1.024 mV / digit 
-  //
-  static const float sca = float (1.47 * 5.0/1024 / 0.9) ;
-  //
-  return float (max (dgs - 33, 0)) * sca ;
-  //
-}
-//
 void loggerSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const String & stamp) {
   //
   bool loggerCmd = true ;
   //
-  loggerPin = static_cast <uint8_t> (pin) ;
-  pinMode (loggerPin, OUTPUT) ;
+  pinMode ((loggerPin = static_cast <uint8_t> (pin)), OUTPUT) ;
   digitalWrite (loggerPin, LOW) ;
   //
   buttonPressedTime = 0 ;
@@ -132,15 +106,13 @@ void loggerSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const 
   //
   for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (200)) {
     //
-    digitalWrite (static_cast <uint8_t> (rpacPin::signal), HIGH) ;
-    //
     if (buttonPressedTime > 0) {
       //
 #ifdef __DEBUG__LOGGER__
       Serial.println ("[INTERACTIVE] Button has been pressed ...") ;
 #endif
       //
-      loggerBlinkFast () ;
+      signalLaunchBlocking (7) ;
       //
       loggerCmd = false ;
       //
@@ -156,7 +128,7 @@ void loggerSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const 
       //
       if (msg == 'n') {
         //
-        loggerBlinkFast () ;
+        signalLaunchBlocking (7) ;
         //
         loggerCmd = false ;
         //
@@ -165,12 +137,6 @@ void loggerSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const 
       }
       //
     }
-    //
-    delay (150) ;
-    //
-    digitalWrite (static_cast <uint8_t> (rpacPin::signal), LOW) ;
-    //
-    delay (450) ;
     //
   }
   //

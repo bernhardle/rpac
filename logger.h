@@ -11,11 +11,11 @@ class loggerCBs {
   //  rowl: lenght of buffer used by sprintft
   //  
   public :
-    static const int mcbs = 8, mhdl = 32, mfml = 8, rowl = 256 ;
+    static const int mcbs = 8, mhdl = 32, rowl = 12 * mcbs ;
     char row [rowl] = "" ;
-    int num = 0 ;
+    uint8_t num = 0 ;
     unsigned long (*cb[mcbs])(void) ;
-    char hd [mcbs][mhdl + 1], fm [mcbs][mfml + 1] ;
+    char hd [mcbs][mhdl + 1] ;
   public :
     loggerCBs () : num (0) {}
     bool add (unsigned long (*)(void), const String &) ;

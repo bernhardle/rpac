@@ -8,17 +8,17 @@
 #define __switchControlMode(a)  (controlMode = a)
 #endif
 //
-static unsigned long controlButtonTimeHigh = 0, controlButtonTimeLow = 0 ;
-static uint8_t controlMode = 0, controlCount = 0, controlLastCmd = 0 ;
+static unsigned long controlButtonTimeHigh = 0, controlButtonTimeLow = 0, controlLastCmd = 0 ;
+static uint8_t controlMode = 0, controlCount = 0 ;
 //
 template <int n> controlCallbacks <n>::controlCallbacks (void) {
-  cbs.fill ([](void) -> uint8_t { return 0U ; }) ;
+  cbs.fill ([](uint8_t val) -> uint8_t { return val ; }) ;
 }
 //
 static unsigned long int controlDataCB (void) {
   //
-  uint8_t r = controlLastCmd ;
-  controlLastCmd = 0 ;
+  auto r = controlLastCmd ;
+  controlLastCmd = 0x0UL ;
   return r ;
   //
 }
@@ -111,12 +111,11 @@ bool controlLoop (bool button, const controlCBs_t & ccbs) {
       case 3:
         //
 #ifdef __DEBUG_CONTROL__
-        Serial.print ("[Debug] Control # ") ;
+        Serial.print ("[Debug] Control command # ") ;
         Serial.println (String (controlCount, DEC)) ;
 #endif
-        (*ccbs [controlCount])() ;
+        controlLastCmd = (*ccbs [controlCount])(controlCount) << 8 | controlCount ;
         __switchControlMode(0) ;
-        controlLastCmd = controlCount ;
         //
         break ;
         //
