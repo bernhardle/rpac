@@ -104,37 +104,41 @@ void loggerSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const 
   Serial.println (" sec.") ;
 #endif
   //
-  for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (200)) {
+  {
     //
-    if (buttonPressedTime > 0) {
-      //
-#ifdef __DEBUG__LOGGER__
-      Serial.println ("[INTERACTIVE] Button has been pressed ...") ;
-#endif
-      //
-      signalLaunchBlocking (7) ;
-      //
-      loggerCmd = false ;
-      //
-      buttonPressedTime = 0 ;
-      //
-      break ;
-      //
-    }
+    SignalHook hook (sig::scheme::blinkfast) ;
     //
-    if (Serial.available () > 0) {
+    for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (200)) {
       //
-      int msg = Serial.read () ;
-      //
-      if (msg == 'n') {
+      if (buttonPressedTime > 0) {
         //
-        signalLaunchBlocking (7) ;
+#ifdef __DEBUG__LOGGER__
+        Serial.println ("[INTERACTIVE] Button has been pressed ...") ;
+#endif
         //
         loggerCmd = false ;
+        //
+        buttonPressedTime = 0 ;
         //
         break ;
         //
       }
+      //
+      if (Serial.available () > 0) {
+        //
+        int msg = Serial.read () ;
+        //
+        if (msg == 'n') {
+          //
+          loggerCmd = false ;
+          //
+          break ;
+          //
+        }
+        //
+      }
+      //
+      hook () ;
       //
     }
     //
@@ -147,6 +151,8 @@ void loggerSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const 
     //
     Serial.println (lcbs.headRow (stamp)) ;
 #endif
+    //
+    signalLaunchBlocking (sig::scheme::blinkfast, 7) ;
     //
     return ;
   }
@@ -183,7 +189,9 @@ void loggerSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const 
       //
       Serial1.println (lcbs.headRow (stamp)) ;
       Serial1.flush () ;
-      //  register shutdown callback for 4 x button press
+      //
+      //  register control callback (4 x button press -> shutdown)
+      //
       ccbs.add (loggerControlCB, 4) ;
       //
 #ifdef __DEBUG__LOGGER__

@@ -1,6 +1,7 @@
 #include "global.h"
 #include "pulser.h"
 #include "logger.h"
+#include "signal.h"
 //
 #if 0
 const int pulserVars = 1 ;
@@ -27,6 +28,8 @@ static uint8_t pulserControlCB (uint8_t) {
 #ifdef __DEBUG__PULSER__
     Serial.println ("[INFO] pulserControlCB () disabled autopulse") ;
 #endif
+    //
+    signalLaunchAsync (sig::scheme::blinkfast, 2) ;
     //
     return 0U ;
     //

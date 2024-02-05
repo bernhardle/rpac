@@ -8,18 +8,19 @@ namespace {
   static uint8_t signalPin, signalRepetitions = 0 ;
   static bool signalState = false ;
   static status signalstatus = status::uninitialized ;
+  static sig::scheme signalscheme = sig::scheme::dark ;
   //
-  static uint8_t signalControlCB (uint8_t cmd) {
+  uint8_t signalControlCB (uint8_t cmd) {
     //
 #ifdef __DEBUG__SIGNAL__
     Serial.println ("[INFO] signalControlCB () ...") ;
 #endif
-    signalLaunchAsync (4) ;
+    signalLaunchAsync (sig::scheme::blinkfast, 3) ;
     //
     return cmd ;
   }
   //
-  static void signalSwitchLED (bool state) {
+  void signalSwitchLED (bool state) {
     //
     if (state != signalState) {
       //
@@ -37,6 +38,24 @@ namespace {
   //
 } ;
 //
+void SignalHook::operator ()(void) const {
+  //
+  signalLoop (false) ;
+  //
+}
+//
+SignalHook::SignalHook (sig::scheme s) {
+  //
+  signalLaunchAsync (s, UCHAR_MAX) ;
+  //
+}
+//
+SignalHook::~SignalHook () {
+  //
+  signalstatus = status::idle ;
+  //
+}
+//
 void signalSetup (rpacPin_t pin, controlCBs_t & ccbs) {
   //
   pinMode ((signalPin = static_cast <uint8_t> (pin)), OUTPUT) ;
@@ -51,7 +70,7 @@ void signalSetup (rpacPin_t pin, controlCBs_t & ccbs) {
   //
 }
 //
-void signalLaunchAsync (uint8_t i) {
+void signalLaunchAsync (sig::scheme s, uint8_t i) {
   //
   if (signalstatus == status::uninitialized) {
     //
@@ -63,13 +82,14 @@ void signalLaunchAsync (uint8_t i) {
   }
   //
   signalRepetitions = i ;
+  signalscheme = s ;
   signalstatus = status::start ;
   //
 }
 //
-void signalLaunchBlocking (uint8_t n) {
+void signalLaunchBlocking (sig::scheme s, uint8_t n) {
   //
-  for (signalLaunchAsync (n) ; signalstatus != status::idle ; signalLoop (false)) ;
+  for (signalLaunchAsync (s, n) ; signalstatus != status::idle ; signalLoop (false)) ;
   //
 }
 //
@@ -134,3 +154,4 @@ void signalLoop (bool state) {
   }
   //
 }
+//

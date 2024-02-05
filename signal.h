@@ -4,23 +4,26 @@
 #include "global.h"
 #include "control.h"
 //
-template <uint8_t n> class signaltrain {
+namespace sig {
   //
-  public :
-    enum struct sequence {dark = 0, heartbeat = 1, blinkfast = 2, blinkslow = 3} ;
-  private :
-    //
-    uint8_t rep = 0, pos = 0 ;
-    sequence seq ;
-    //
-  public :
-    signaltrain (sequence a, uint8_t b) : seq (a), rep (b) {}
+  enum struct scheme : uint8_t {dark = 0, flat = 1, heartbeat = 2, blinkfast = 3, blinkslow = 4 } ;
   //
 } ;
 //
+class SignalHook {
+  //
+  private :
+    //
+  public :
+    //
+    void operator ()(void) const ;
+    SignalHook (sig::scheme) ;
+    ~SignalHook () ;
+} ;
+//
 extern void signalSetup (rpacPin_t, controlCBs_t &) ;
-extern void signalLaunchBlocking (uint8_t) ;
-extern void signalLaunchAsync (uint8_t) ;
+extern void signalLaunchAsync (sig::scheme, uint8_t) ;
+extern void signalLaunchBlocking (sig::scheme, uint8_t) ;
 extern void signalLoop (bool) ;
 //
 #endif
