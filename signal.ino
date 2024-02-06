@@ -1,3 +1,13 @@
+//
+//  (c) Bernhard Schupp, Frankfurt (2024)
+//
+#ifdef ARDUINO_UBLOX_NINA_W10
+#include <array>
+template <typename A, int n> using Array = std::array <A, n> ;
+#else
+#include <Array.h>
+#endif
+//
 #include "signal.h"
 #include "control.h"
 //
@@ -14,7 +24,7 @@ namespace {
   constexpr uint8_t head (uint16_t a) { return a >> 8 ; }
   constexpr uint8_t tail (uint16_t a) { return static_cast <uint8_t> (a) ; }
   //
-  const std::array <uint16_t, 4> sigseq = {pack(0U,100U), pack (100U,0U), pack(20U, 20U), pack (255U,255U)} ;
+  const Array <uint16_t, 4> sigseq = {{pack(0U,100U), pack (100U,0U), pack(20U, 20U), pack (255U,255U)}} ;
   //
   uint8_t signalControlCB (uint8_t cmd) {
     //

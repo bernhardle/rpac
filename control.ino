@@ -1,4 +1,6 @@
 //
+//  (c) Bernhard Schupp, Frankfurt (2024)
+//
 #include "logger.h"
 #include "control.h"
 //

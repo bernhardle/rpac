@@ -1,3 +1,6 @@
+//
+//  (c) Bernhard Schupp, Frankfurt (2024)
+//
 #ifndef __global_h_included__
 #define __global_h_included__
 //

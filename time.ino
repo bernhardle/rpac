@@ -1,3 +1,6 @@
+//
+//  (c) Bernhard Schupp, Frankfurt (2024)
+//
 #include <Wire.h>
 #include <RTClib.h>
 //

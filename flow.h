@@ -1,3 +1,6 @@
+//
+//  (c) Bernhard Schupp, Frankfurt (2024)
+//
 #ifndef __flow_h_included__
 #define __flow_h_included__
 //

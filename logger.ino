@@ -1,3 +1,6 @@
+//
+//  (c) Bernhard Schupp, Frankfurt (2024)
+//
 #include <RTClib.h>
 //
 #include "global.h"

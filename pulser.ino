@@ -1,3 +1,6 @@
+//
+//  (c) Bernhard Schupp, Frankfurt (2024)
+//
 #include "global.h"
 #include "pulser.h"
 #include "logger.h"
@@ -18,9 +21,9 @@ namespace {
   const unsigned int pulserProgress [pulserVars] = {1} ;
 #else
   const int pulserVars = 6 ;
-  const Array <unsigned long, pulserVars> pulserOnDura = {0, 2000, 3000, 4000, 5000, 6000} ;
-  const Array <unsigned long, pulserVars> pulserOffDura = {10000, 6000, 5000, 4000, 3000, 2500} ;
-  const Array <uint8_t, pulserVars> pulserProgress = {1, 6, 8, 14, 20, 25} ;
+  const Array <unsigned long, pulserVars> pulserOnDura = {{0, 2000, 3000, 4000, 5000, 6000}} ;
+  const Array <unsigned long, pulserVars> pulserOffDura = {{10000, 6000, 5000, 4000, 3000, 2500}} ;
+  const Array <uint8_t, pulserVars> pulserProgress = {{1, 6, 8, 14, 20, 25}} ;
 #endif
   //
   static unsigned long pulserChangeTime = 0 ;

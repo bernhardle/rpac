@@ -1,5 +1,10 @@
+//
+//  (c) Bernhard Schupp, Frankfurt (2024)
+//
 #ifndef __signal_h_included__
 #define __signal_h_included__
+//
+#include <limits.h>
 //
 #include "global.h"
 #include "control.h"

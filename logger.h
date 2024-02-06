@@ -1,3 +1,6 @@
+//
+//  (c) Bernhard Schupp, Frankfurt (2024)
+//
 #ifndef __logger_h_included__
 #define __logger_h_included__
 //

@@ -1,3 +1,6 @@
+//
+//  (c) Bernhard Schupp, Frankfurt (2024)
+//
 #ifndef __control_h_included__
 #define __control_h_included__
 //
