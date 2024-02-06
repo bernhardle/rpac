@@ -10,12 +10,20 @@ namespace {
   static status signalstatus = status::uninitialized ;
   static sig::scheme signalscheme = sig::scheme::dark ;
   //
+  constexpr uint16_t pack (uint8_t a, uint8_t b) { return a << 8 | b ; }
+  constexpr uint8_t head (uint16_t a) { return a >> 8 ; }
+  constexpr uint8_t tail (uint16_t a) { return static_cast <uint8_t> (a) ; }
+  //
+  const std::array <uint16_t, 4> sigseq = {pack(0U,100U), pack (100U,0U), pack(20U, 20U), pack (255U,255U)} ;
+  //
   uint8_t signalControlCB (uint8_t cmd) {
+    //
+    static uint8_t cnt = 0 ;
     //
 #ifdef __DEBUG__SIGNAL__
     Serial.println ("[INFO] signalControlCB () ...") ;
 #endif
-    signalLaunchAsync (sig::scheme::blinkfast, 3) ;
+    signalLaunchAsync (static_cast <sig::scheme> (cnt++ % 4), 10) ;
     //
     return cmd ;
   }
@@ -96,7 +104,7 @@ void signalLaunchBlocking (sig::scheme s, uint8_t n) {
 void signalLoop (bool state) {
   //
   static unsigned long int signalTimeOut = 0 ;
-  static uint8_t signalCounter = 0 ;
+  static uint8_t signalCounter = 0, signalHead = 0, signalTail = 0 ;
   //
   unsigned long int myTime = millis () ;
   //
@@ -104,19 +112,21 @@ void signalLoop (bool state) {
     //
     case status::start :
       //
+      signalHead = head (sigseq [static_cast <uint8_t> (signalscheme)]) ;
+      signalTail = tail (sigseq [static_cast <uint8_t> (signalscheme)]) ;
       signalCounter = 0 ;
-      signalTimeOut = myTime + 30 ;
+      signalTimeOut = myTime + signalHead ;
       signalstatus = status::bright ;
-      signalSwitchLED (true) ;
+      if (signalHead > 0) signalSwitchLED (true) ;
       break ;
       //
     case status::bright :
       //
       if (myTime > signalTimeOut) {
         //
-        signalTimeOut = myTime + 70 ;
+        signalTimeOut = myTime + signalTail ;
         signalstatus = status::cycle ;
-        signalSwitchLED (false) ;
+        if (signalTail > 0) signalSwitchLED (false) ;
         //
         if (++ signalCounter > signalRepetitions) {
           //
@@ -131,9 +141,9 @@ void signalLoop (bool state) {
       //
       if (myTime > signalTimeOut) {
         //
-        signalTimeOut = myTime + 30 ;
+        signalTimeOut = myTime + signalHead ;
         signalstatus = status::bright ;
-        signalSwitchLED (true) ;
+        if (signalHead > 0) signalSwitchLED (true) ;
         //
       }
       break ;

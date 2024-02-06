@@ -6,7 +6,7 @@
 //
 namespace sig {
   //
-  enum struct scheme : uint8_t {dark = 0, flat = 1, heartbeat = 2, blinkfast = 3, blinkslow = 4 } ;
+  enum struct scheme : uint8_t {dark = 0U, flat = 1U, blinkfast = 2U, blinkslow = 3U } ;
   //
 } ;
 //

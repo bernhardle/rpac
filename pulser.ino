@@ -3,54 +3,64 @@
 #include "logger.h"
 #include "signal.h"
 //
-#if 0
-const int pulserVars = 1 ;
-const unsigned long pulserOnDura [pulserVars] = {0} ;
-const unsigned long pulserOffDura [pulserVars] = {10000} ;
-const unsigned int pulserProgress [pulserVars] = {1} ;
+#ifdef ARDUINO_UBLOX_NINA_W10
+#include <array>
+template <typename A, int n> using Array = std::array <A, n> ;
 #else
-const int pulserVars = 6 ;
-const unsigned long pulserOnDura [pulserVars] = {0, 2000, 3000, 4000, 5500, 7000} ;
-const unsigned long pulserOffDura [pulserVars] = {10000, 6000, 5000, 4000, 3000, 2000} ;
-const unsigned int pulserProgress [pulserVars] = {1, 6, 8, 14, 20, 25} ;
+#include <Array.h>
 #endif
 //
-static unsigned long pulserChangeTime = 0 ;
-static unsigned int pulserMode = 0, pulserProgressCount = 0 ;
-static bool pulserAuto = true, pulserState = false ;
-static uint8_t pulserPin ;
-//
-static uint8_t pulserControlCB (uint8_t) {
+namespace {
+#if 0
+  const int pulserVars = 1 ;
+  const unsigned long pulserOnDura [pulserVars] = {0} ;
+  const unsigned long pulserOffDura [pulserVars] = {10000} ;
+  const unsigned int pulserProgress [pulserVars] = {1} ;
+#else
+  const int pulserVars = 6 ;
+  const Array <unsigned long, pulserVars> pulserOnDura = {0, 2000, 3000, 4000, 5000, 6000} ;
+  const Array <unsigned long, pulserVars> pulserOffDura = {10000, 6000, 5000, 4000, 3000, 2500} ;
+  const Array <uint8_t, pulserVars> pulserProgress = {1, 6, 8, 14, 20, 25} ;
+#endif
   //
-  if (pulserAuto) {
+  static unsigned long pulserChangeTime = 0 ;
+  static unsigned int pulserMode = 0, pulserProgressCount = 0 ;
+  static bool pulserAuto = true, pulserState = false ;
+  static uint8_t pulserPin ;
+  //
+  uint8_t pulserControlCB (uint8_t) {
     //
-    pulserAuto = false ;
-#ifdef __DEBUG__PULSER__
-    Serial.println ("[INFO] pulserControlCB () disabled autopulse") ;
-#endif
+    if (pulserAuto) {
+      //
+      pulserAuto = false ;
+  #ifdef __DEBUG__PULSER__
+      Serial.println ("[INFO] pulserControlCB () disabled autopulse") ;
+  #endif
+      //
+      signalLaunchAsync (sig::scheme::blinkfast, 2) ;
+      //
+      return 0U ;
+      //
+    } else {
+      //
+      pulserAuto = true ;
+  #ifdef __DEBUG__PULSER__
+      Serial.println ("[INFO] pulserControlCB () enabled autopulse") ;
+  #endif
+      //
+      return 1U ;
+      //
+    }
     //
-    signalLaunchAsync (sig::scheme::blinkfast, 2) ;
-    //
-    return 0U ;
-    //
-  } else {
-    //
-    pulserAuto = true ;
-#ifdef __DEBUG__PULSER__
-    Serial.println ("[INFO] pulserControlCB () enabled autopulse") ;
-#endif
-    //
-    return 1U ;
+    return 0 ;
     //
   }
   //
-  return 0 ;
-  //
-}
-
-static unsigned long int pulserDataCB (void) {
-  //
-  return pulserState ;
+  unsigned long int pulserDataCB (void) {
+    //
+    return pulserState ;
+    //
+  }
   //
 }
 //

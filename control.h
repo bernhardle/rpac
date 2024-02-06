@@ -3,6 +3,7 @@
 //
 #ifdef ARDUINO_UBLOX_NINA_W10
 #include <array>
+template <typename A, int n> using Array = std::array <A, n> ;
 #else
 #include <Array.h>
 #endif
@@ -11,11 +12,7 @@
 //
 template <int n> class controlCallbacks {
     private :
-#ifdef ARDUINO_UBLOX_NINA_W10
-        std::array <uint8_t (*)(uint8_t), n> cbs ;
-#else
-        Array <uint8_t (*)(void), n> cbs ;
-#endif
+        Array <uint8_t (*)(uint8_t), n> cbs ;
     public :
         controlCallbacks (void) ;
         inline uint8_t (*operator[](int i) const)(uint8_t) {
