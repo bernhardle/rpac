@@ -1,16 +1,11 @@
 //
 //  (c) Bernhard Schupp, Frankfurt (2024)
 //
+#include "global.h"
 #include "flow.h"
 #include "logger.h"
 //
-#ifdef ARDUINO_UBLOX_NINA_W10
-#include <array>
-const std::array<uint8_t,10> flowCountsPerUnit = {{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U}} ;
-#else
-#include <Array.h>
 const Array <uint8_t,10> flowCountsPerUnit = {{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U}} ;
-#endif
 //
 static volatile long int flowCountsTotal = 0 ;
 static volatile short int flowCounts = 0 ; 

@@ -77,14 +77,14 @@ const char * loggerCBs::headRow (const String & stamp) {
   return row ;
 }
 //
-void loggerSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const String & stamp) {
+void loggerSetup (rpac::SimpleButton & button, rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const String & stamp) {
   //
   bool loggerCmd = true ;
   //
   pinMode ((loggerPin = static_cast <uint8_t> (pin)), OUTPUT) ;
   digitalWrite (loggerPin, LOW) ;
   //
-  buttonPressedTime = 0 ;
+  button.pressed () ;
   //
   if (loggerFlag) {
     //
@@ -113,15 +113,13 @@ void loggerSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const 
     //
     for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (200)) {
       //
-      if (buttonPressedTime > 0) {
+      if (button.pressed ()) {
         //
 #ifdef __DEBUG__LOGGER__
         Serial.println ("[INTERACTIVE] Button has been pressed ...") ;
 #endif
         //
         loggerCmd = false ;
-        //
-        buttonPressedTime = 0 ;
         //
         break ;
         //

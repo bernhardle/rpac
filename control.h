@@ -15,10 +15,10 @@ template <typename A, int n> using Array = std::array <A, n> ;
 //
 template <int n> class controlCallbacks {
     private :
-        Array <uint8_t (*)(uint8_t), n> cbs ;
+        Array <std::function <uint8_t (uint8_t)>, n> cbs ;
     public :
         controlCallbacks (void) ;
-        inline uint8_t (*operator[](int i) const)(uint8_t) {
+        inline std::function <uint8_t (uint8_t)> operator[](int i) const {
             return cbs.at(i) ;
         }
         inline void add (uint8_t (*f)(uint8_t), int i) { cbs.at(i) = f ; }

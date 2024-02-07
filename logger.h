@@ -28,14 +28,10 @@ class loggerCBs {
   //
 } ;
 //
-class DateTime ;
-//
 const bool loggerFlag = true ;
 const unsigned long logRes = 4, loggerRetryDura = 3000 ;
 //
-// extern volatile bool loggerEnabled ;
-//
-extern void loggerSetup (rpacPin_t, controlCBs_t &, loggerCBs_t &, const String & = "No start time argument.") ;
+extern void loggerSetup (rpac::SimpleButton &, rpacPin_t, controlCBs_t &, loggerCBs_t &, const String & = "No start time argument.") ;
 extern bool loggerLoop (loggerCBs_t &) ;
 //
 #endif

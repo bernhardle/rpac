@@ -19,6 +19,8 @@ const unsigned long loopMaxDura = 12 ;
 unsigned loopCount = 0 ;
 #endif
 //
+rpac::DebouncedButton <rpacPin::button> myButton ;
+//
 loggerCBs_t loggerCallBacks ;
 controlCBs_t controlCallBacks ;
 //
@@ -28,15 +30,15 @@ void setup() {
   //
   Serial.begin (115200) ;
   //
-  signalSetup (rpacPin::signal, controlCallBacks) ;                   //  NanoEvery: LED_BUILTIN || u-blow Nina W-101: LED_BLUE
+  signalSetup (rpacPin::signal, controlCallBacks) ;     //  NanoEvery: LED_BUILTIN || u-blow Nina W-101: LED_BLUE
   //
-  String start = timeSetup (loggerCallBacks) ;                        //
+  String start = timeSetup (loggerCallBacks) ;          //
   //
-  pressureSetup (rpacPin::pressure, loggerCallBacks) ;                // NanoEvery: A0 || u-blow Nina W-101: A0
+  pressureSetup (rpacPin::pressure, loggerCallBacks) ;  // NanoEvery: A0 || u-blow Nina W-101: A0
   //
-  buttonSetup (rpacPin::button, loggerCallBacks) ;                    // NanoEvery: 16 || u-blow Nina W-101: 27 = SW01
+  myButton.setup (loggerCallBacks) ;                    // NanoEvery: 16 || u-blow Nina W-101: 27 = SW01
   //
-  controlSetup (controlCallBacks, loggerCallBacks) ;                  //
+  controlSetup (controlCallBacks, loggerCallBacks) ;    //
   //
   pulserSetup (rpacPin::pulser, controlCallBacks, loggerCallBacks) ;  // NanoEvery: 10 || u-blow Nina W-101: 10
   //
@@ -44,7 +46,7 @@ void setup() {
   //
   flowSetup (rpacPin::flow, controlCallBacks, loggerCallBacks) ;      // NanoEvery: 7 || u-blow Nina W-101: 33 = SW02
   //
-  loggerSetup (rpacPin::logger, controlCallBacks, loggerCallBacks, start) ;  // NanoEvery: 15 || u-blow Nina W-101: 15
+  loggerSetup (myButton, rpacPin::logger, controlCallBacks, loggerCallBacks, start) ;  // NanoEvery: 15 || u-blow Nina W-101: 15
   //
 }
 //
@@ -55,7 +57,7 @@ void loop() {
   unsigned long loopBegin = millis () ;
   bool button = false, flow = false, pulse = false, relais = false ;
   //
-  button = controlLoop (buttonLoop (), controlCallBacks) ;
+  button = controlLoop (myButton.loop (), controlCallBacks) ;
   //
   pulse = pulserLoop (button) ;
   //

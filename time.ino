@@ -4,6 +4,7 @@
 #include <Wire.h>
 #include <RTClib.h>
 //
+#include "global.h"
 #include "time.h"
 #include "logger.h"
 //

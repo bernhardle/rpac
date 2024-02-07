@@ -6,6 +6,8 @@
 //
 #include "global.h"
 //
+class DateTime ;
+//
 extern String timeSetup (loggerCBs_t &) ;
 //
 #endif

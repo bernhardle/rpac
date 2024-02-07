@@ -116,7 +116,7 @@ bool controlLoop (bool button, const controlCBs_t & ccbs) {
         Serial.print ("[Debug] Control command # ") ;
         Serial.println (String (controlCount, DEC)) ;
 #endif
-        controlLastCmd = (*ccbs [controlCount])(controlCount) << 8 | controlCount ;
+        controlLastCmd = ccbs [controlCount](controlCount) << 8 | controlCount ;
         __switchControlMode(0) ;
         //
         break ;

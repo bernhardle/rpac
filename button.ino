@@ -4,62 +4,62 @@
 #include "button.h"
 #include "logger.h"
 //
-#define BUTTONSTATE(a)  (a > 7 ? true : false)
-//
-volatile unsigned long buttonPressedTime = 0 ;
-static signed short buttonPressedCount = 0 ;
-static uint8_t buttonPin ;
-//
-#ifdef __DEBUG__BUTTON__
-static bool buttonLastState = false ;
-#endif
+template <rpacPin_t p> Array <unsigned long int, 32> rpac::DebouncedButton <p>::times{0} ;
+template <rpacPin_t p> Array <unsigned short int, 32> rpac::DebouncedButton <p>::counts{0} ;
 //
 //  Handles the falling edge interrupt caused by switch closing contacts
 //
-static void buttonIntHandler () {
+template <rpacPin_t p> void rpac::DebouncedButton <p>::intHandler (void) {
   //
-  buttonPressedTime = millis () ;
-  //
-}
-//
-static unsigned long int buttonDataCB (void) {
-  //
-  return BUTTONSTATE(buttonPressedCount) ;
+  times.at(static_cast <int> (p)) = millis () ;
   //
 }
 //
-void buttonSetup (rpacPin_t pin, loggerCBs_t & callbacks) {
+//  Writes to the data log
+//
+template <rpacPin_t p> unsigned long int rpac::DebouncedButton <p>::dataCB (void) {
   //
-  pinMode ((buttonPin = static_cast <uint8_t> (pin)), INPUT_PULLUP) ;
-  //
-  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonIntHandler, FALLING) ;
-  //
-  callbacks.add (& buttonDataCB, "button") ;
+  return BUTTONSTATE(counts.at(static_cast<int> (p))) ;
   //
 }
 //
-bool buttonLoop (void) {
+template <rpacPin_t p> void rpac::DebouncedButton <p>::setup (loggerCBs_t & callbacks) {
+  //
+  pinMode (static_cast<int> (p), INPUT_PULLUP) ;
+  //
+  attachInterrupt(digitalPinToInterrupt(static_cast<int>(p)), & intHandler, FALLING) ;
+  //
+  callbacks.add (& dataCB, "button") ;
+  //
+}
+//
+template <rpacPin_t p> bool rpac::DebouncedButton <p>::loop (void) {
   //
   unsigned long myTime = millis () ;
   //
-  if (myTime > buttonPressedTime + 20) {
+  if (myTime > time + 20) {
     //
-    buttonPressedCount = digitalRead (buttonPin) ? max (buttonPressedCount - 1, 0) : min (buttonPressedCount + 1, 15) ;
+    count = digitalRead (static_cast<int>(p)) ? max (count - 1, 0) : min (count + 1, 15) ;
     //
   } 
   //
 #ifdef __DEBUG__BUTTON__
   //
-  if (BUTTONSTATE(buttonPressedCount) != buttonLastState) {
+  if (BUTTONSTATE(count) != check) {
     //
-    buttonLastState = BUTTONSTATE(buttonPressedCount) ;
+    check = BUTTONSTATE(count) ;
     //
-    Serial.println (String (BUTTONSTATE(buttonPressedCount) ? "[INFO] Button was pressed @" : "[INFO] Button was released @ ") + String (millis(), DEC)) ;
+    Serial.println (String (BUTTONSTATE(count) ? "[INFO] Button was pressed @" : "[INFO] Button was released @ ") + String (millis(), DEC)) ;
     //
   }
 #endif
   //
-  return BUTTONSTATE(buttonPressedCount) ;
+  return BUTTONSTATE(count) ;
   //
 }
 //
+template <rpacPin_t p> bool rpac::DebouncedButton <p>::pressed (void) {
+  //
+  return time > last ? (last = time, true) : false ;
+  //
+}
