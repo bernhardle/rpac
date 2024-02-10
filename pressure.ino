@@ -4,33 +4,26 @@
 #include "pressure.h"
 #include "logger.h"
 //
-static uint8_t pressurePin ;
 //
-static unsigned long int pressureDataCB (void) {
+//  Voltage divider is 100 k / 147 k
+//  in order to scale max. 5V out < 3.3V
+//  pressure zero offset is ~ 33 digits raw
+//  MXP555 sensitvity is 9.0 mV / kPa
+//  ADC conversion rate is 5 / 1.024 mV / digit 
+//
+//  Scaling term: float (max (dgs - 33, 0)) * float (1.47 * 5.0 / 1024 / 0.9) ;
+//
+//
+template <rpac::rpacPin_t p> void rpac::Pressure <p>::setup (loggerCBs_t & lcbs) {
   //
-  //  Voltage divider is 100 k / 147 k
-  //  in order to scale max. 5V out < 3.3V
-  //  pressure zero offset is ~ 33 digits raw
-  //  MXP555 sensitvity is 9.0 mV / kPa
-  //  ADC conversion rate is 5 / 1.024 mV / digit 
+  pinMode (static_cast <uint8_t> (p), INPUT) ;
   //
-  //  Scaling term: float (max (dgs - 33, 0)) * float (1.47 * 5.0 / 1024 / 0.9) ;
-  //
-  return analogRead (pressurePin) ;
+  lcbs.add ([](void) -> unsigned long int { return analogRead (static_cast <uint8_t> (p)) ; }, "Pressure PIN" + String (static_cast <int> (p))) ;
   //
 }
 //
-void pressureSetup (rpacPin_t pin, loggerCBs_t & lcbs) {
+template <rpac::rpacPin_t p> bool rpac::Pressure <p>::loop (void) {
   //
-  pinMode ((pressurePin = static_cast <uint8_t> (pin)), INPUT) ;
-  //
-  lcbs.add (& pressureDataCB, "pressure") ;
-  //
-  return ;
-}
-//
-void pressureLoop (void) {
-  //
-  return ;
+  return false ;
   //
 }

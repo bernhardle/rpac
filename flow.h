@@ -8,7 +8,29 @@
 #include "logger.h"
 #include "control.h"
 //
-extern void flowSetup (rpacPin_t, controlCBs_t &, loggerCBs_t &) ;
-extern bool flowLoop (void) ;
+namespace rpac {
+    //
+    template <rpacPin_t p> class Flow {
+        //
+        const static uint8_t countsPerUnitSize = 10 ;
+        const static uint8_t countsPerUnit [countsPerUnitSize] ;
+        //
+        static void handler (void) ;
+        //
+        static volatile long int total ;
+        static volatile short int counts ; 
+        static bool lowRes ;
+        static volatile bool trigger ;
+        static uint8_t pos ;
+#ifdef __DEBUG__FLOW__
+        static volatile bool error ;
+#endif
+        //
+        public :
+            static void setup (controlCBs_t &, loggerCBs_t &) ;
+            static bool loop (void) ;
+    } ;
+//
+} ;
 //
 #endif

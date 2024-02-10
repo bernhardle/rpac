@@ -1,96 +1,76 @@
 //
 //  (c) Bernhard Schupp, Frankfurt (2024)
 //
-#ifdef ARDUINO_UBLOX_NINA_W10
-#include <array>
-template <typename A, int n> using Array = std::array <A, n> ;
-#else
-#include <Array.h>
-#endif
-//
+#include "global.h"
 #include "signal.h"
 #include "control.h"
 //
-namespace {
+template <rpac::rpacPin_t p> const uint16_t rpac::Signal <p>::__sigseq [4]{__pack(0U,100U), __pack (100U,0U), __pack(20U, 20U), __pack (255U,255U)} ;
+template <rpac::rpacPin_t p> unsigned long int rpac::Signal <p>::timeOut{0} ;
+template <rpac::rpacPin_t p> typename rpac::Signal <p>::status rpac::Signal <p>::modus{status::uninitialized} ;
+template <rpac::rpacPin_t p> typename rpac::Signal <p>::scheme rpac::Signal <p>::pattern{scheme::dark} ;
+template <rpac::rpacPin_t p> uint8_t rpac::Signal <p>::cycles{0} ;
+template <rpac::rpacPin_t p> uint8_t rpac::Signal <p>::counter{0} ; 
+template <rpac::rpacPin_t p> uint8_t rpac::Signal <p>::head{0} ; 
+template <rpac::rpacPin_t p> uint8_t rpac::Signal <p>::tail{0} ;
+template <rpac::rpacPin_t p> bool rpac::Signal <p>::led{false} ;
+//
+template <rpac::rpacPin_t p> void rpac::Signal <p>::switchLED (bool s) {
+    //
+    if (led != s) {
+      //
+#ifdef ARDUINO_UBLOX_NINA_W10
+      digitalWrite (static_cast <uint8_t> (p), ! (led = s)) ;
+#else
+      digitalWrite (static_cast <uint8_t> (p), (led = s)) ;
+#endif
+      //
+    }
+    //
+  }
+//
+template <rpac::rpacPin_t p> rpac::Signal <p>::Hook::Hook (Signal<p>::scheme s) {
   //
-  enum struct status : uint8_t { start = 0, bright = 1, cycle = 2, idle = 10, uninitialized = UCHAR_MAX} ;
+  async (s, UCHAR_MAX) ;
   //
-  static uint8_t signalPin, signalRepetitions = 0 ;
-  static bool signalState = false ;
-  static status signalstatus = status::uninitialized ;
-  static sig::scheme signalscheme = sig::scheme::dark ;
+}
+//
+template <rpac::rpacPin_t p> rpac::Signal <p>::Hook::~Hook () {
   //
-  constexpr uint16_t pack (uint8_t a, uint8_t b) { return a << 8 | b ; }
-  constexpr uint8_t head (uint16_t a) { return a >> 8 ; }
-  constexpr uint8_t tail (uint16_t a) { return static_cast <uint8_t> (a) ; }
+  async (Signal::scheme::dark, 1) ;
   //
-  const Array <uint16_t, 4> sigseq = {{pack(0U,100U), pack (100U,0U), pack(20U, 20U), pack (255U,255U)}} ;
+}
+//
+template <rpac::rpacPin_t p> void rpac::Signal <p>::setup (controlCBs_t & ccbs) {
   //
-  uint8_t signalControlCB (uint8_t cmd) {
+  pinMode (static_cast <uint8_t> (p), OUTPUT) ;
+  //
+#ifdef ARDUINO_UBLOX_NINA_W10
+  digitalWrite (static_cast <uint8_t> (p), ! (led = false)) ;
+#else
+  digitalWrite (static_cast <uint8_t> (p), (led = false)) ;
+#endif
+  //
+  ccbs.add ([](uint8_t cmd) -> uint8_t {
     //
     static uint8_t cnt = 0 ;
     //
 #ifdef __DEBUG__SIGNAL__
     Serial.println ("[INFO] signalControlCB () ...") ;
 #endif
-    signalLaunchAsync (static_cast <sig::scheme> (cnt++ % 4), 10) ;
+    async (static_cast <Signal::scheme> (cnt++ % 4), 10) ;
     //
     return cmd ;
-  }
-  //
-  void signalSwitchLED (bool state) {
     //
-    if (state != signalState) {
-      //
-      signalState = state ;
-      //
-#ifdef ARDUINO_UBLOX_NINA_W10
-      digitalWrite (signalPin, ! signalState) ;
-#else
-      digitalWrite (signalPin, signalState) ;
-#endif
-      //
-    }
-    //
-  }
+  }, 1) ;
   //
-} ;
-//
-void SignalHook::operator ()(void) const {
-  //
-  signalLoop (false) ;
+  modus = status::idle ;
   //
 }
 //
-SignalHook::SignalHook (sig::scheme s) {
+template <rpac::rpacPin_t p> void rpac::Signal <p>::async (scheme s, uint8_t i) {
   //
-  signalLaunchAsync (s, UCHAR_MAX) ;
-  //
-}
-//
-SignalHook::~SignalHook () {
-  //
-  signalstatus = status::idle ;
-  //
-}
-//
-void signalSetup (rpacPin_t pin, controlCBs_t & ccbs) {
-  //
-  pinMode ((signalPin = static_cast <uint8_t> (pin)), OUTPUT) ;
-  //
-  digitalWrite (signalPin, LOW) ;
-  //
-  signalState = false ;
-  //
-  ccbs.add (& signalControlCB, 1) ;
-  //
-  signalstatus = status::idle ;
-  //
-}
-//
-void signalLaunchAsync (sig::scheme s, uint8_t i) {
-  //
-  if (signalstatus == status::uninitialized) {
+  if (modus == status::uninitialized) {
     //
 #ifdef __DEBUG__SIGNAL__
   Serial.println ("[INFO] signalLaunchAsync () called before signalSetup () ...") ;
@@ -99,48 +79,45 @@ void signalLaunchAsync (sig::scheme s, uint8_t i) {
     return ;
   }
   //
-  signalRepetitions = i ;
-  signalscheme = s ;
-  signalstatus = status::start ;
+  cycles = i ;
+  pattern = s ;
+  modus = status::start ;
   //
 }
 //
-void signalLaunchBlocking (sig::scheme s, uint8_t n) {
+template <rpac::rpacPin_t p> void rpac::Signal <p>::blocking (scheme s, uint8_t n) {
   //
-  for (signalLaunchAsync (s, n) ; signalstatus != status::idle ; signalLoop (false)) ;
+  for (async (s, n) ; modus != status::idle ; loop (false)) ;
   //
 }
 //
-void signalLoop (bool state) {
-  //
-  static unsigned long int signalTimeOut = 0 ;
-  static uint8_t signalCounter = 0, signalHead = 0, signalTail = 0 ;
+template <rpac::rpacPin_t p> bool rpac::Signal <p>::loop (bool ext) {
   //
   unsigned long int myTime = millis () ;
   //
-  switch (signalstatus) {
+  switch (modus) {
     //
     case status::start :
       //
-      signalHead = head (sigseq [static_cast <uint8_t> (signalscheme)]) ;
-      signalTail = tail (sigseq [static_cast <uint8_t> (signalscheme)]) ;
-      signalCounter = 0 ;
-      signalTimeOut = myTime + signalHead ;
-      signalstatus = status::bright ;
-      if (signalHead > 0) signalSwitchLED (true) ;
+      head = __head (__sigseq [static_cast <uint8_t> (pattern)]) ;
+      tail = __tail (__sigseq [static_cast <uint8_t> (pattern)]) ;
+      counter = 0 ;
+      timeOut = myTime + head ;
+      modus = status::bright ;
+      if (head > 0) switchLED (true) ;
       break ;
       //
     case status::bright :
       //
-      if (myTime > signalTimeOut) {
+      if (myTime > timeOut) {
         //
-        signalTimeOut = myTime + signalTail ;
-        signalstatus = status::cycle ;
-        if (signalTail > 0) signalSwitchLED (false) ;
+        timeOut = myTime + tail ;
+        modus = status::cycle ;
+        if (tail > 0) switchLED (false) ;
         //
-        if (++ signalCounter > signalRepetitions) {
+        if (++ counter > cycles) {
           //
-          signalstatus = status::idle ;
+          modus = status::idle ;
           //
         }
         //
@@ -149,18 +126,18 @@ void signalLoop (bool state) {
       //
     case status::cycle :
       //
-      if (myTime > signalTimeOut) {
+      if (myTime > timeOut) {
         //
-        signalTimeOut = myTime + signalHead ;
-        signalstatus = status::bright ;
-        if (signalHead > 0) signalSwitchLED (true) ;
+        timeOut = myTime + head ;
+        modus = status::bright ;
+        if (head > 0) switchLED (true) ;
         //
       }
       break ;
       //
     case status::idle :
       //
-      signalSwitchLED (state) ;
+      switchLED (ext) ;
       //
       break ;
       //
@@ -172,6 +149,8 @@ void signalLoop (bool state) {
       //
       break ;
   }
+  //
+  return (modus == status::idle) ;
   //
 }
 //

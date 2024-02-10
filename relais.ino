@@ -4,43 +4,33 @@
 #include "relais.h"
 #include "logger.h"
 //
-typedef decltype (HIGH) relaisState_t ;
-//
 #ifdef ARDUINO_UBLOX_NINA_W10
 inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r == HIGH ? LOW : HIGH) ; }
 #else
 inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r) ; }
 #endif
 //
-const unsigned int relaisHoldDura = 100 ;
+template <rpac::rpacPin_t p> unsigned long int rpac::Relais <p>::lastTime{0} ;
+template <rpac::rpacPin_t p> bool rpac::Relais <p>::lastTrigger{false} ;
+template <rpac::rpacPin_t p> typename rpac::Relais <p>::state_t rpac::Relais <p>::relais{LOW} ;
 //
-static unsigned long int relaisLastTime ;
-static bool relaisOn = false, relaisLastTrigger = false ;
-static relaisState_t relaisState = LOW ;
-static uint8_t relaisPin ;
-//
-static unsigned long int relaisDataCB (void) {
+template <rpac::rpacPin_t p> void rpac::Relais <p>::setup (loggerCBs_t & lcbs) {
   //
-  return relaisState ;
+  pinMode (static_cast <uint8_t> (p), OUTPUT) ;
+  //
+  __digitalWrite (static_cast <uint8_t> (p), (relais = LOW)) ;
+  //
+  lcbs.add ([]() -> unsigned long { return static_cast <unsigned long int> (relais) ; }, "Relais PIN" + String (static_cast <int> (p), DEC)) ;
   //
 }
 //
-void relaisSetup (rpacPin_t pin, loggerCBs_t & callbacks) {
+template <rpac::rpacPin_t p> bool rpac::Relais <p>::loop (bool trigger) {
   //
-  pinMode ((relaisPin = static_cast <uint8_t> (pin)), OUTPUT) ;
-  __digitalWrite (relaisPin, (relaisState = LOW)) ;
-  //
-  callbacks.add (& relaisDataCB, "relais") ;
-  //
-}
-//
-bool relaisLoop (bool trigger) {
-  //
-  if (relaisState == HIGH) {
+  if (relais == HIGH) {
     //
-    if (millis () > relaisLastTime + relaisHoldDura) {
+    if (millis () > lastTime + __holdDura) {
       //
-      __digitalWrite (relaisPin, (relaisState = LOW)) ;
+      __digitalWrite (static_cast <uint8_t> (p), (relais = LOW)) ;
       //
 #ifdef __DEBUG__RELAIS__
       Serial.print ("[Info] Relais state is OFF @ ") ;
@@ -52,23 +42,23 @@ bool relaisLoop (bool trigger) {
     //
   } else {
     //
-    if (trigger && ! relaisLastTrigger) {
+    if (trigger && ! lastTrigger) {
       //
-      __digitalWrite (relaisPin, (relaisState = HIGH)) ;
+      __digitalWrite (static_cast <uint8_t> (p), (relais = HIGH)) ;
       //
 #ifdef __DEBUG__RELAIS__
       Serial.print ("[Info] Relais state is ON @ ") ;
       Serial.println (millis (), DEC) ;
 #endif
       //
-      relaisLastTime = millis () ;
+      lastTime = millis () ;
       //
     }
     //
   }
   //
-  relaisLastTrigger = trigger ;
+  lastTrigger = trigger ;
   //
-  return relaisState ;
+  return static_cast <bool> (relais) ;
   //
 }

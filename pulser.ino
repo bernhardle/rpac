@@ -5,51 +5,54 @@
 #include "pulser.h"
 #include "logger.h"
 #include "signal.h"
+#include "control.h"
 //
-#ifdef ARDUINO_UBLOX_NINA_W10
-#include <array>
-template <typename A, int n> using Array = std::array <A, n> ;
-#else
-#include <Array.h>
-#endif
+template <rpac::rpacPin_t p> unsigned long int rpac::Pulser<p>::change{0} ;
+template <rpac::rpacPin_t p> unsigned short int rpac::Pulser<p>::mode{0} ;
+template <rpac::rpacPin_t p> unsigned short int rpac::Pulser<p>::cycle{0} ;
+template <rpac::rpacPin_t p> bool rpac::Pulser<p>::pulse{false} ;
+template <rpac::rpacPin_t p> bool rpac::Pulser<p>::automate{true} ;
+
 //
-namespace {
 #if 0
-  const int pulserVars = 1 ;
-  const unsigned long pulserOnDura [pulserVars] = {0} ;
-  const unsigned long pulserOffDura [pulserVars] = {10000} ;
-  const unsigned int pulserProgress [pulserVars] = {1} ;
+constexpr int vars{1} ;
+template <rpac::rpacPin_t p> const unsigned long __on [vars] = {0} ;
+template <rpac::rpacPin_t p> const unsigned long __off [vars] = {10000} ;
+template <rpac::rpacPin_t p> const unsigned int __cycles [vars] = {1} ;
 #else
-  const int pulserVars = 6 ;
-  const Array <unsigned long, pulserVars> pulserOnDura = {{0, 2000, 3000, 4000, 5000, 6000}} ;
-  const Array <unsigned long, pulserVars> pulserOffDura = {{10000, 6000, 5000, 4000, 3000, 2500}} ;
-  const Array <uint8_t, pulserVars> pulserProgress = {{1, 6, 8, 14, 20, 25}} ;
+constexpr int vars{6} ;
+template <rpac::rpacPin_t p> const unsigned long rpac::Pulser <p>::__on [vars]{0, 2000, 3000, 4000, 5000, 6000} ;
+template <rpac::rpacPin_t p> const unsigned long rpac::Pulser <p>::__off [vars]{10000, 6000, 5000, 4000, 3000, 2500} ;
+template <rpac::rpacPin_t p> const unsigned int rpac::Pulser <p>::__cycles [vars]{1, 6, 8, 14, 20, 25} ;
 #endif
+//
+template <rpac::rpacPin_t p> void rpac::Pulser <p>::setup (controlCBs_t & ccbs, loggerCBs_t & lcbs) {
   //
-  static unsigned long pulserChangeTime = 0 ;
-  static unsigned int pulserMode = 0, pulserProgressCount = 0 ;
-  static bool pulserAuto = true, pulserState = false ;
-  static uint8_t pulserPin ;
+  pinMode (static_cast <uint8_t> (p), OUTPUT) ;
+  digitalWrite (static_cast <uint8_t> (p), LOW) ;
   //
-  uint8_t pulserControlCB (uint8_t) {
+  String label = String ("Pulse PIN") + String (static_cast<int> (p), DEC) ;
+  //
+  lcbs.add ([](void) -> unsigned long int { return pulse ; }, label) ;
+  ccbs.add ([](uint8_t) -> uint8_t {
     //
-    if (pulserAuto) {
+    if (automate) {
       //
-      pulserAuto = false ;
-  #ifdef __DEBUG__PULSER__
+      automate = false ;
+#ifdef __DEBUG__PULSER__
       Serial.println ("[INFO] pulserControlCB () disabled autopulse") ;
-  #endif
+#endif
       //
-      signalLaunchAsync (sig::scheme::blinkfast, 2) ;
+      // rpac::Signal <s>::async (sig::scheme::blinkfast, 2) ;
       //
       return 0U ;
       //
     } else {
       //
-      pulserAuto = true ;
-  #ifdef __DEBUG__PULSER__
+      automate = true ;
+#ifdef __DEBUG__PULSER__
       Serial.println ("[INFO] pulserControlCB () enabled autopulse") ;
-  #endif
+#endif
       //
       return 1U ;
       //
@@ -57,86 +60,70 @@ namespace {
     //
     return 0 ;
     //
-  }
+  }, 2) ;
   //
-  unsigned long int pulserDataCB (void) {
-    //
-    return pulserState ;
-    //
-  }
-  //
-}
-//
-void pulserSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
-  //
-  pinMode ((pulserPin = static_cast <uint8_t> (pin)), OUTPUT) ;
-  digitalWrite (pulserPin, LOW) ;
-  //
-  lcbs.add (& pulserDataCB, "pulse") ;
-  ccbs.add (& pulserControlCB, 2) ;
-  //
-  pulserMode = 0 ;
-  pulserState = false ;
-  pulserProgressCount = 0 ;
-  pulserChangeTime = millis () ;
+  mode = 0 ;
+  pulse = false ;
+  cycle = 0 ;
+  change = millis () ;
   //
 #ifdef __DEBUG__PULSER__
   Serial.println ("[INFO] Pulse pattern variants:") ;
   //
-  for (int i = 0 ; i < pulserVars ; i++) {
+  for (int i = 0 ; i < vars ; i++) {
     //
     Serial.print ("\tMode ") ;
     Serial.print (String (i, DEC)) ;
     Serial.print (", ON = ") ;
-    Serial.print (String (pulserOnDura [i], DEC)) ;
+    Serial.print (String (__on [i], DEC)) ;
     Serial.print (", OFF = ") ;
-    Serial.print (String (pulserOffDura [i], DEC)) ;
+    Serial.print (String (__off [i], DEC)) ;
     Serial.print (", CYCLES = ") ;
-    Serial.print (String (pulserProgress [i], DEC)) ;
+    Serial.print (String (__cycles [i], DEC)) ;
     Serial.println (".") ;
     //
   }
 #endif
 }
 //
-bool pulserLoop (bool pulserTrigger) {
+template <rpac::rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
   //
-  if (pulserAuto) {
+  if (automate) {
     //
     unsigned long myTime = millis () ;
     //
-    if (pulserState) {
+    if (pulse) {
       //
-      if (myTime > pulserChangeTime + pulserOnDura [pulserMode]) {
+      if (myTime > change + __on [mode]) {
         //
-        digitalWrite (pulserPin, LOW) ;
+        digitalWrite (static_cast <uint8_t> (p), LOW) ;
         //
-        pulserChangeTime = myTime ;
-        pulserState = false ;
+        change = myTime ;
+        pulse = false ;
         //
-        if (++ pulserProgressCount > pulserProgress [pulserMode]) {
+        if (++ cycle > __cycles [mode]) {
           //
-          if (pulserMode < pulserVars - 1) {
+          if (mode < vars - 1) {
             //
-            pulserMode ++ ;
-            pulserProgressCount = 0 ;
+            mode ++ ;
+            cycle = 0 ;
             //
 #ifdef __DEBUG__PULSER__
             Serial.print ("[INFO] Switching auto pulse to mode ") ;
-            Serial.print (String(pulserMode, DEC)) ;
+            Serial.print (String(mode, DEC)) ;
             Serial.print ("/") ;
-            Serial.print (String(pulserVars - 1, DEC)) ;
+            Serial.print (String(vars - 1, DEC)) ;
             Serial.print (" ... ON=") ;
-            Serial.print (String(pulserOnDura [pulserMode], DEC)) ;
+            Serial.print (String(__on [mode], DEC)) ;
             Serial.print ("ms, OFF=") ;
-            Serial.print (String(pulserOffDura [pulserMode], DEC)) ;
+            Serial.print (String(__off [mode], DEC)) ;
             Serial.println ("ms.") ;
 #endif
             //
           } else {
             //
-            pulserAuto = false ;
-            pulserMode = 0 ;
+            automate = false ;
+            mode = 0 ;
             //
 #ifdef __DEBUG__PULSER__
             Serial.println ("[INFO] Disabeling auto pulse.") ;
@@ -150,12 +137,12 @@ bool pulserLoop (bool pulserTrigger) {
       //
     } else {
       //
-      if (myTime > pulserChangeTime + pulserOffDura [pulserMode]) {
+      if (myTime > change + __off [mode]) {
         //
-        digitalWrite (pulserPin, HIGH) ;
+        digitalWrite (static_cast <uint8_t> (p), HIGH) ;
         //
-        pulserChangeTime = myTime ;
-        pulserState = true ;
+        change = myTime ;
+        pulse = true ;
         //
       }
       //
@@ -163,19 +150,19 @@ bool pulserLoop (bool pulserTrigger) {
     //
   } else {
     //
-    if (pulserTrigger != pulserState) {
+    if (trigger != pulse) {
       //
-      digitalWrite (pulserPin, (pulserState = pulserTrigger) ? HIGH : LOW) ;
+      digitalWrite (static_cast <uint8_t> (p), (pulse = trigger) ? HIGH : LOW) ;
       //
 #ifdef __DEBUG__PULSER__
-      Serial.println (pulserTrigger ? "[INFO] Pulse manually started." : "[INFO] Pulse manually stopped.") ;
+      Serial.println (trigger ? "[INFO] Pulse manually started." : "[INFO] Pulse manually stopped.") ;
 #endif
-      pulserChangeTime = millis () ;
+      change = millis () ;
       //
     }
     //
   }
   //
-  return pulserState ;
+  return pulse ;
   //
 }

@@ -4,36 +4,43 @@
 #include "button.h"
 #include "logger.h"
 //
-template <rpacPin_t p> Array <unsigned long int, 32> rpac::DebouncedButton <p>::times{0} ;
-template <rpacPin_t p> Array <unsigned short int, 32> rpac::DebouncedButton <p>::counts{0} ;
+template <rpac::rpacPin_t p> volatile unsigned long int rpac::Button <p>::time{0} ;
+template <rpac::rpacPin_t p> unsigned long int rpac::Button <p>::last{0} ;
+template <rpac::rpacPin_t p> unsigned short int rpac::Button <p>::count{0} ;
+        //
+#ifdef __DEBUG__BUTTON__
+template <rpac::rpacPin_t p> bool rpac::Button <p>::check{false} ;
+#endif
 //
 //  Handles the falling edge interrupt caused by switch closing contacts
 //
-template <rpacPin_t p> void rpac::DebouncedButton <p>::intHandler (void) {
+template <rpac::rpacPin_t p> void rpac::Button <p>::handler (void) {
   //
-  times.at(static_cast <int> (p)) = millis () ;
+  time = millis () ;
   //
 }
 //
 //  Writes to the data log
 //
-template <rpacPin_t p> unsigned long int rpac::DebouncedButton <p>::dataCB (void) {
+template <rpac::rpacPin_t p> unsigned long int rpac::Button <p>::data (void) {
   //
-  return BUTTONSTATE(counts.at(static_cast<int> (p))) ;
+  return BUTTONSTATE(count) ;
   //
 }
 //
-template <rpacPin_t p> void rpac::DebouncedButton <p>::setup (loggerCBs_t & callbacks) {
+template <rpac::rpacPin_t p> void rpac::Button <p>::setup (loggerCBs_t & lcbs) {
   //
   pinMode (static_cast<int> (p), INPUT_PULLUP) ;
   //
-  attachInterrupt(digitalPinToInterrupt(static_cast<int>(p)), & intHandler, FALLING) ;
+  attachInterrupt(digitalPinToInterrupt(static_cast<int>(p)), & handler, FALLING) ;
   //
-  callbacks.add (& dataCB, "button") ;
+  String label = String ("Button PIN") + String(static_cast<int>(p), DEC) ;
+  //
+  lcbs.add (& data, label) ;
   //
 }
 //
-template <rpacPin_t p> bool rpac::DebouncedButton <p>::loop (void) {
+template <rpac::rpacPin_t p> bool rpac::Button <p>::loop (void) {
   //
   unsigned long myTime = millis () ;
   //
@@ -58,7 +65,7 @@ template <rpacPin_t p> bool rpac::DebouncedButton <p>::loop (void) {
   //
 }
 //
-template <rpacPin_t p> bool rpac::DebouncedButton <p>::pressed (void) {
+template <rpac::rpacPin_t p> bool rpac::Button <p>::pressed (void) {
   //
   return time > last ? (last = time, true) : false ;
   //

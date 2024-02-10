@@ -8,7 +8,15 @@
 //
 #include "global.h"
 //
-extern void pressureSetup (rpacPin_t, loggerCBs_t &) ;
-extern void pressureLoop (void) ;
+namespace rpac {
+    //
+    template <rpacPin_t> class Pressure {
+        //
+        public :
+            static void setup (loggerCBs_t &) ;
+            static bool loop (void) ;
+    } ;
+    //
+} ;
 //
 #endif

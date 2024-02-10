@@ -6,7 +6,22 @@
 //
 #include "global.h"
 //
-extern void relaisSetup (rpacPin_t, loggerCBs_t &) ;
-extern bool relaisLoop (bool) ;
+namespace rpac {
+
+    template <rpac::rpacPin_t p> class Relais {
+        //
+        typedef decltype (HIGH) state_t ;
+        //
+        const static unsigned int __holdDura{100} ;
+        //
+        static unsigned long int lastTime ;
+        static bool lastTrigger ;
+        static state_t relais ;
+        //
+        public:
+            static void setup (loggerCBs_t &) ;
+            static bool loop (bool) ;
+    } ;
+}
 //
 #endif

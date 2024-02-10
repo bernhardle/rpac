@@ -8,24 +8,10 @@
 #include "logger.h"
 #include "signal.h"
 //
-const unsigned long int waitForCmd = 3000, loggerSampleInterval = 100, loggerSampleAdjust = 4 ;
-#ifdef __DEBUG__LOGGER__
-const unsigned long int loggerSampleOutput = 10 * loggerSampleInterval ;
-#endif
-//
-static unsigned long loggerNextSampleTime = 0, loggerShutdownFlushTime = 0 ;
-static uint8_t loggerMode = 5U ;
-static uint8_t loggerPin ;
-//
-static uint8_t loggerControlCB (uint8_t) {
-  //
-  Serial.println ("[INFO] loggerControlCB () for shutdown ...") ;
-  //
-  if (loggerMode == 0) loggerMode = 1 ;
-  //
-  return 0 ;
-  //
-}
+unsigned long rpac::Logger::loggerNextSampleTime{0}, rpac::Logger::loggerShutdownFlushTime{0} ;
+uint8_t rpac::Logger::mode{5U} ;
+uint8_t rpac::Logger::pin ;
+bool rpac::Logger::enable{true} ;
 //
 bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
   //
@@ -33,9 +19,13 @@ bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
     //
     cb [num] = f ;
     //
-    strcpy (hd [num], h.substring(0,mhdl).c_str ()) ;
+    strncpy (hd [num], h.substring(0,mhdl).c_str (), mhdl) ;
+    //
+    hd [num][mhdl] = static_cast <char> (0x0) ;
     //
     num ++ ;
+    //
+    Serial.println (num) ;
     //
     return true ;
   } 
@@ -51,7 +41,7 @@ const char * loggerCBs::logRow (const String & message) {
   //
   char * pos = row ;
   //
-  for (int i = 0 ; i < num ; i++) {
+  for (int i = 0 ; i < static_cast<int>(num) ; i++) {
     //
     pos += sprintf (pos, "%2lu;", (*cb [i])()) ;
     //
@@ -66,40 +56,45 @@ const char * loggerCBs::headRow (const String & stamp) {
   //
   char * pos = row ;
   //
-  for (int i = 0 ; i < num ; i++) {
+  for (int i = 0 ; i < static_cast<int> (num) ; i++) {
     //
     pos += sprintf (pos, "%2s;", hd [i]) ;
     //
   }
   //
-  sprintf (pos, "%s", stamp.substring (0,48).c_str()) ;
+  pos += sprintf (pos, "%s", stamp.substring (0,48).c_str()) ;
+  //
+  * pos = 0x0 ;
   //
   return row ;
 }
 //
-void loggerSetup (rpac::SimpleButton & button, rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs, const String & stamp) {
+uint8_t rpac::Logger::shutdown (uint8_t) {
   //
-  bool loggerCmd = true ;
+  Serial.println ("[INFO] rpac::Logger::shutdown () callback ...") ;
   //
-  pinMode ((loggerPin = static_cast <uint8_t> (pin)), OUTPUT) ;
-  digitalWrite (loggerPin, LOW) ;
+  if (mode == 0) mode = 1 ;
   //
-  button.pressed () ;
+  return 0 ;
   //
-  if (loggerFlag) {
-    //
-#ifdef __DEBUG__LOGGER__
-    Serial.println ("[INFO] Data logging has been enabled by compiled configuration.") ;
-#endif
-    //
-  } else {
-    //
-#ifdef __DEBUG__LOGGER__
-    Serial.println ("[INFO] Data logging has been disabled by compiled configuration.") ;
-#endif
-    //
-    return ;
-  }
+}
+//
+uint8_t rpac::Logger::disable (uint8_t) {
+  //
+  Serial.println ("[INFO] rpac::Logger::disable () callback ...") ;
+  //
+  enable = false ;
+  //
+  return 0 ;
+  //
+}
+//
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger::setup (rpac::rpacPin_t p, rpac::controlCBs_t & ccbs, loggerCBs_t & lcbs, const String & stamp) {
+  //
+  pinMode ((pin = static_cast <uint8_t> (p)), OUTPUT) ;
+  digitalWrite (pin, LOW) ;
+  //
+  uint8_t (*fsave)(uint8_t) = ccbs.add (& disable, 1) ;
   //
 #ifdef __DEBUG__LOGGER__
   Serial.print ("[INTERACTIVE] To disable logging enter 'n' or press button within ") ;
@@ -109,17 +104,15 @@ void loggerSetup (rpac::SimpleButton & button, rpacPin_t pin, controlCBs_t & ccb
   //
   {
     //
-    SignalHook hook (sig::scheme::blinkfast) ;
+    typename rpac::Signal <s>::Hook hook (rpac::Signal <s>::scheme::blinkslow) ;
     //
-    for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (200)) {
+    for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (5)) {
       //
-      if (button.pressed ()) {
+      if (!enable) {
         //
 #ifdef __DEBUG__LOGGER__
         Serial.println ("[INTERACTIVE] Button has been pressed ...") ;
 #endif
-        //
-        loggerCmd = false ;
         //
         break ;
         //
@@ -131,7 +124,7 @@ void loggerSetup (rpac::SimpleButton & button, rpacPin_t pin, controlCBs_t & ccb
         //
         if (msg == 'n') {
           //
-          loggerCmd = false ;
+          enable = false ;
           //
           break ;
           //
@@ -139,13 +132,16 @@ void loggerSetup (rpac::SimpleButton & button, rpacPin_t pin, controlCBs_t & ccb
         //
       }
       //
-      hook () ;
+      rpac::Signal <s>::loop (false) ;
+      rpac::Control <b, s>::loop (ccbs) ;
       //
     }
     //
   }
   //
-  if (!loggerCmd) {
+  ccbs.add (fsave, 1) ;
+  //
+  if (!enable) {
     //
 #ifdef __DEBUG__LOGGER__
     Serial.println ("[INTERACTIVE] Data logging has been disabled.") ;
@@ -153,7 +149,9 @@ void loggerSetup (rpac::SimpleButton & button, rpacPin_t pin, controlCBs_t & ccb
     Serial.println (lcbs.headRow (stamp)) ;
 #endif
     //
-    signalLaunchBlocking (sig::scheme::blinkfast, 7) ;
+    rpac::Signal <s>::blocking (rpac::Signal <s>::scheme::blinkfast, 6) ;
+    //
+    mode = 5 ;
     //
     return ;
   }
@@ -166,7 +164,7 @@ void loggerSetup (rpac::SimpleButton & button, rpacPin_t pin, controlCBs_t & ccb
   //
   delay (100) ;
   //
-  digitalWrite (loggerPin, HIGH) ;
+  digitalWrite (pin, HIGH) ;
   //
   delay (300) ;
   //
@@ -186,14 +184,14 @@ void loggerSetup (rpac::SimpleButton & button, rpacPin_t pin, controlCBs_t & ccb
     //
     if (msg.indexOf ("2<") != -1) {
       //
-      loggerMode = 0 ;
+      mode = 0 ;
       //
       Serial1.println (lcbs.headRow (stamp)) ;
       Serial1.flush () ;
       //
       //  register control callback (4 x button press -> shutdown)
       //
-      ccbs.add (loggerControlCB, 4) ;
+      ccbs.add (& shutdown, 4) ;
       //
 #ifdef __DEBUG__LOGGER__
       Serial.println ("[INFO] Data logging started per: " + stamp) ;
@@ -221,7 +219,7 @@ void loggerSetup (rpac::SimpleButton & button, rpacPin_t pin, controlCBs_t & ccb
   Serial.println ("[WARNING] Start of data logging failed. Powering off.") ;
 #endif
   //
-  digitalWrite (loggerPin, LOW) ;
+  digitalWrite (pin, LOW) ;
   //
   Serial1.end () ;
   //
@@ -229,11 +227,11 @@ void loggerSetup (rpac::SimpleButton & button, rpacPin_t pin, controlCBs_t & ccb
   //
 }
 //
-bool loggerLoop (loggerCBs_t & lcbs) {
+bool rpac::Logger::loop (loggerCBs_t & lcbs) {
   //
   unsigned long myTime = millis () ;
   //
-  switch (loggerMode) {
+  switch (mode) {
     //
     case 0 :
       //
@@ -257,7 +255,7 @@ bool loggerLoop (loggerCBs_t & lcbs) {
       Serial1.println ("*** end of data log file ***") ;
       Serial1.flush () ;
       loggerShutdownFlushTime = millis () ;
-      loggerMode = 2 ;
+      mode = 2 ;
       //
       break ;
       //
@@ -268,7 +266,7 @@ bool loggerLoop (loggerCBs_t & lcbs) {
         Serial.println ("[INFO] Logger shutdown - terminating serial connection.") ;
 #endif
         Serial1.end () ;
-        loggerMode = 3 ;
+        mode = 3 ;
       }
       break ;
       //
@@ -278,8 +276,8 @@ bool loggerLoop (loggerCBs_t & lcbs) {
 #ifdef __DEBUG__LOGGER__
         Serial.println ("[INFO] Logger shutdown - switching off logger device.") ;
 #endif
-        digitalWrite (loggerPin, LOW) ;
-        loggerMode = 4 ;
+        digitalWrite (pin, LOW) ;
+        mode = 4 ;
       }
       break ;
       //
@@ -288,7 +286,7 @@ bool loggerLoop (loggerCBs_t & lcbs) {
 #ifdef __DEBUG__LOGGER__
       Serial.println ("[INFO] Data logger shutdown completed.") ;
 #endif
-      loggerMode = 5 ;
+      mode = 5 ;
       break ;
       //
     case 5 :

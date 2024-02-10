@@ -9,7 +9,22 @@
 #include "global.h"
 #include "control.h"
 //
-extern void pulserSetup (rpacPin_t, controlCBs_t &, loggerCBs_t &) ;
-extern bool pulserLoop (bool) ;
+namespace rpac {
+    //
+    template <rpacPin_t p> class Pulser {
+        //
+        const static unsigned long __on [] ;
+        const static unsigned long __off [] ;
+        const static unsigned int __cycles [] ;
+        //
+        static unsigned long int change ;
+        static unsigned short int mode, cycle ;
+        static bool automate, pulse ;
+        //
+        public :
+            static void setup (controlCBs_t &, loggerCBs_t &) ;
+            static bool loop (bool) ;
+    } ;
+} ;
 //
 #endif

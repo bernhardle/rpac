@@ -8,40 +8,12 @@
 #include "time.h"
 #include "logger.h"
 //
-static RTC_PCF8523 rtc ;
+template <class T> T rpac::Time <T>::rtc ;
+template <class T> DateTime rpac::Time <T>::now ;
+template <class T> unsigned long rpac::Time <T>::bias{0} ;
+template <class T> char rpac::Time <T>::stamp [64]{"Time"} ;
 //
-static String timeDateTime2Stamp (const DateTime & dat) {
-  //
-  String stamp (dat.year(), DEC) ;
-  stamp.concat ('-') ;
-  stamp.concat (dat.month () > 9 ? "" :"0") ;
-  stamp.concat (String (dat.month(), DEC)) ;
-  stamp.concat ('-') ;
-  stamp.concat (dat.day () > 9 ? "" :"0") ;
-  stamp.concat (String (dat.day(), DEC)) ;
-  stamp.concat (" ") ;
-  stamp.concat (dat.hour () > 9 ? "" :"0") ;
-  stamp.concat (String (dat.hour(), DEC)) ;
-  stamp.concat (':');
-  stamp.concat (dat.minute () > 9 ? "" :"0") ;
-  stamp.concat (String (dat.minute(), DEC)) ;
-  stamp.concat (':') ;
-  stamp.concat (dat.second () > 9 ? "" :"0") ;
-  stamp.concat (String (dat.second(), DEC)) ;
-  //
-  return stamp ;
-}
-//
-static unsigned long int timeDataCB (void) {
-  //
-  return millis() ;
-  //
-}
-//
-//
-String timeSetup (loggerCBs_t & callbacks) {
-  //
-  callbacks.add (& timeDataCB, "time") ;
+template <class T> void rpac::Time <T>::setup (loggerCBs_t & lcbs) {
   //
 #ifndef ARDUINO_UBLOX_NINA_W10
   Wire.begin() ;
@@ -51,14 +23,12 @@ String timeSetup (loggerCBs_t & callbacks) {
     //
     if (rtcReady) {
       //
-      DateTime now = rtc.now () ;
+      now = rtc.now () ;
+      bias = millis () ;
       //
 #ifdef __DEBUG__RPAC__
-      Serial.print ("[INFO] RTC @ setup is ") ;
-      Serial.println (timeDateTime2Stamp (now)) ;
+      Serial.println ("[INFO] RTC successfully read.") ;
 #endif
-      //
-      return timeDateTime2Stamp (now) ;
       //
     } else {
       //
@@ -66,13 +36,16 @@ String timeSetup (loggerCBs_t & callbacks) {
       Serial.println ("[ERROR] RTC not ready for unknown reasons.") ;
 #endif
       //
-      return String ("[ERROR] RTC not ready.") ;
-      //
     }
   //
   }
-#else
-  return String ("[INFO] RTC not implemented in NINA W10.") ;
 #endif
   //
+  bias = millis () ;
+  //
+  sprintf (stamp, "%04lu-%02lu-%02lu %02lu:%02lu:%02lu [%08lu]",now.year(), now.month(), now.day(), now.hour(), now.minute (), now.second (), bias) ;
+  //
+  lcbs.add ([]() -> unsigned long { return millis () - bias ; }, String(stamp)) ;
+  //
 }
+//

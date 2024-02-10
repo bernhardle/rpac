@@ -5,86 +5,76 @@
 #include "flow.h"
 #include "logger.h"
 //
-const Array <uint8_t,10> flowCountsPerUnit = {{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U}} ;
-//
-static volatile long int flowCountsTotal = 0 ;
-static volatile short int flowCounts = 0 ; 
-static uint8_t flowCountsPerUnitPos = 0 ;
-static bool flowCountLowRes = true ;
-//
-static volatile bool flowTrigger = false ;
-static uint8_t flowMeterPin ;
+template <rpac::rpacPin_t p> const uint8_t rpac::Flow <p>::countsPerUnit [10]{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U} ;
+template <rpac::rpacPin_t p> volatile long int rpac::Flow <p>::total{0} ;
+template <rpac::rpacPin_t p> volatile short int rpac::Flow <p>::counts{0} ; 
+template <rpac::rpacPin_t p> bool rpac::Flow <p>::lowRes{false} ;
+template <rpac::rpacPin_t p> volatile bool rpac::Flow <p>::trigger{false} ;
+template <rpac::rpacPin_t p> uint8_t rpac::Flow <p>::pos{0} ;
 #ifdef __DEBUG__FLOW__
-static volatile bool flowTriggerError = false ;
+template <rpac::rpacPin_t p> volatile bool rpac::Flow <p>::error{false} ;
 #endif
 //
-static uint8_t flowControlCB (uint8_t) {
+template <rpac::rpacPin_t p> void rpac::Flow <p>::handler (void) {
   //
-  if (flowCountLowRes) {
-    //
-    flowCountLowRes = false ;
+  counts ++ ;
+  //
+  total ++ ;
+  //
+  if (counts == countsPerUnit [pos]) {
     //
 #ifdef __DEBUG__FLOW__
-  Serial.println ("[INFO] flowControlCB () switched to high resolution 1:10") ;
+    error = trigger ;  // 'trigger' should be cleared at this time otherwise flag error condition
 #endif
-    return 1U ;
     //
-  } else {
+    trigger = lowRes ? pos == 0 : true ;
     //
-    flowCountLowRes = true ;
+    counts = 0 ;
+    pos ++ ; 
+    if (pos == countsPerUnitSize) pos = 0 ;
     //
+  }
+  //
+}
+//
+template <rpac::rpacPin_t p> void rpac::Flow <p>::setup (controlCBs_t & ccbs, loggerCBs_t & lcbs) {
+  //
+  pinMode (static_cast <uint8_t> (p), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
+  //
+  attachInterrupt(digitalPinToInterrupt(static_cast <uint8_t> (p)), & handler, FALLING) ;
+  //
+  lcbs.add ([]() -> unsigned long { return total ; }, "Flow PIN" + String (static_cast <int> (p), DEC)) ;
+  //
+  ccbs.add ([](uint8_t) -> uint8_t {
+    //
+    if (lowRes) {
+      //
+      lowRes = false ;
+      //
 #ifdef __DEBUG__FLOW__
-  Serial.println ("[INFO] flowControlCB () switched to low resolution 1:1") ;
+      Serial.println ("[INFO] flowControlCB () switched to high resolution 1:10") ;
+#endif
+      return 1U ;
+      //
+    } else {
+      //
+      lowRes = true ;
+      //
+#ifdef __DEBUG__FLOW__
+    Serial.println ("[INFO] flowControlCB () switched to low resolution 1:1") ;
 #endif
     return 0U ;
-  }
+    }
+    //
+  }, 3) ;
   //
 }
 //
-static void flowIntHandler (void) {
+template <rpac::rpacPin_t p> bool rpac::Flow <p>::loop (void) {
   //
-  flowCounts ++ ;
-  //
-  flowCountsTotal ++ ;
-  //
-  if (flowCounts == flowCountsPerUnit [flowCountsPerUnitPos]) {
+  if (trigger) {
     //
-#ifdef __DEBUG__FLOW__
-    flowTriggerError = flowTrigger ;  // 'flowTrigger' should be cleared at this time otherwise flag error condition
-#endif
-    //
-    flowTrigger = flowCountLowRes ? flowCountsPerUnitPos == 0 : true ;
-    //
-    flowCounts = 0 ;
-    flowCountsPerUnitPos ++ ; 
-    if (flowCountsPerUnitPos == flowCountsPerUnit.size()) flowCountsPerUnitPos = 0 ;
-    //
-  }
-  //
-}
-//
-static unsigned long int flowDataCB (void) {
-  //
-  return flowCountsTotal ;
-  //
-}
-//
-void flowSetup (rpacPin_t pin, controlCBs_t & ccbs, loggerCBs_t & lcbs) {
-  //
-  pinMode ((flowMeterPin = static_cast <uint8_t> (pin)), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
-  //
-  attachInterrupt(digitalPinToInterrupt(flowMeterPin), flowIntHandler, FALLING) ;
-  //
-  lcbs.add (& flowDataCB, "flow") ;
-  ccbs.add (& flowControlCB, 3) ;
-  //
-}
-//
-bool flowLoop (void) {
-  //
-  if (flowTrigger) {
-    //
-    flowTrigger = false ;
+    trigger = false ;
     //
 #ifdef __DEBUG__FLOW__
     Serial.println ("[INFO] Flow meter pulsed.") ;
@@ -95,7 +85,7 @@ bool flowLoop (void) {
   }
   //
 #ifdef __DEBUG__FLOW__
-  if (flowTriggerError) {
+  if (error) {
     //
     Serial.println ("[WARNING] Flow trigger error flag set.") ;
     //

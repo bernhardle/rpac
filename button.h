@@ -8,36 +8,25 @@
 //
 namespace rpac {
     //
-    class SimpleButton {
+    template <rpacPin_t p> class Button {
         //
-        public :
-            virtual bool pressed (void) = 0 ;
-    } ;
-    //
-    template <rpacPin_t p> class DebouncedButton : public SimpleButton {
-        //
-        const static uint8_t pins = 32U ;
-        //
-        static Array <unsigned long int, pins> times ;
-        static Array <unsigned short int, pins> counts ;
-        //
-        volatile unsigned long int & time{times.at(static_cast <int> (p))} ;
-        unsigned long int last{0} ;
-        unsigned short int & count{counts.at(static_cast <int> (p))} ;
+        static volatile unsigned long int time ;
+        static unsigned long int last ;
+        static unsigned short int count ;
         //
 #ifdef __DEBUG__BUTTON__
-        bool check{false} ;
+        static bool check ;
 #endif
         //
         static inline bool BUTTONSTATE(const unsigned short int & i) { return i > 7 ? true : false ; }
         //
-        static void intHandler (void) ;
-        static unsigned long dataCB (void) ;
+        static void handler (void) ;
+        static unsigned long data (void) ;
         //
         public :
-            void setup (loggerCBs_t &) ;
-            bool loop (void) ;
-            bool pressed (void) ;
+            static void setup (loggerCBs_t &) ;
+            static bool loop (void) ;
+            static bool pressed (void) ;
         //
     } ;
     //

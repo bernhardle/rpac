@@ -10,33 +10,37 @@
 #define __switchControlMode(a)  (controlMode = a)
 #endif
 //
-static unsigned long controlButtonTimeHigh = 0, controlButtonTimeLow = 0, controlLastCmd = 0 ;
-static uint8_t controlMode = 0, controlCount = 0 ;
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long int rpac::Control <b, s>::controlButtonTimeHigh{0} ;
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long int rpac::Control <b, s>::controlButtonTimeLow{0} ; 
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long int rpac::Control <b, s>::controlLastCmd{0} ;
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> uint8_t rpac::Control <b, s>::controlMode{0} ;
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> uint8_t rpac::Control <b, s>::controlCount{0} ;
 //
-template <int n> controlCallbacks <n>::controlCallbacks (void) {
+template <int n> rpac::controlCallbacks <n>::controlCallbacks (void) {
+  //
   cbs.fill ([](uint8_t val) -> uint8_t { return val ; }) ;
-}
-//
-static unsigned long int controlDataCB (void) {
-  //
-  auto r = controlLastCmd ;
-  controlLastCmd = 0x0UL ;
-  return r ;
   //
 }
 //
-void controlSetup (controlCBs_t & ccbs, loggerCBs_t & lcbs) {
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Control <b, s>::setup (loggerCBs_t & lcbs) {
     //
     controlMode = 0 ;
     controlButtonTimeHigh = 0 ;
     controlButtonTimeLow = 0 ;
-    lcbs.add (& controlDataCB, "control") ;
+    lcbs.add ([]() -> unsigned long {
+      //
+      auto r = controlLastCmd ;
+      controlLastCmd = 0x0UL ;
+      return r ;
+      //
+    }, String ("Control PIN") + String (static_cast <int> (b), DEC)) ;
     //
 }
 //
-bool controlLoop (bool button, const controlCBs_t & ccbs) {
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> bool rpac::Control <b, s>::loop (const rpac::controlCBs_t & ccbs) {
     //
     unsigned long myTime = millis () ;
+    bool button = rpac::Button <b>::loop () ;
     //
     switch (controlMode) {
       //
@@ -57,7 +61,7 @@ bool controlLoop (bool button, const controlCBs_t & ccbs) {
         //
         if (button) {
           //
-          if (myTime > controlButtonTimeHigh + 350) {
+          if (myTime > controlButtonTimeHigh + 400) {
             //
             __switchControlMode(4) ;
             //

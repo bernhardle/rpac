@@ -3,6 +3,8 @@
 //
 #include <EEPROM.h>
 //
+#include <RTClib.h>
+//
 #include "global.h"
 #include "button.h"
 #include "control.h"
@@ -19,10 +21,8 @@ const unsigned long loopMaxDura = 12 ;
 unsigned loopCount = 0 ;
 #endif
 //
-rpac::DebouncedButton <rpacPin::button> myButton ;
-//
 loggerCBs_t loggerCallBacks ;
-controlCBs_t controlCallBacks ;
+rpac::controlCBs_t controlCallBacks ;
 //
 // the setup function runs once when you press reset or power the board
 //
@@ -30,23 +30,27 @@ void setup() {
   //
   Serial.begin (115200) ;
   //
-  signalSetup (rpacPin::signal, controlCallBacks) ;     //  NanoEvery: LED_BUILTIN || u-blow Nina W-101: LED_BLUE
+  rpac::Signal <rpac::Pin::signal>::setup (controlCallBacks) ;
   //
-  String start = timeSetup (loggerCallBacks) ;          //
+  rpac::Time <RTC_PCF8523>::setup (loggerCallBacks) ;
   //
-  pressureSetup (rpacPin::pressure, loggerCallBacks) ;  // NanoEvery: A0 || u-blow Nina W-101: A0
+  rpac::Pressure <rpac::Pin::pressure>::setup (loggerCallBacks) ;
   //
-  myButton.setup (loggerCallBacks) ;                    // NanoEvery: 16 || u-blow Nina W-101: 27 = SW01
+  rpac::Button <rpac::Pin::button>::setup (loggerCallBacks) ;
   //
-  controlSetup (controlCallBacks, loggerCallBacks) ;    //
+  rpac::Control <rpac::Pin::button, rpac::Pin::signal>::setup (loggerCallBacks) ;
   //
-  pulserSetup (rpacPin::pulser, controlCallBacks, loggerCallBacks) ;  // NanoEvery: 10 || u-blow Nina W-101: 10
+  rpac::Pulser<rpac::Pin::pulser>::setup (controlCallBacks, loggerCallBacks) ;
   //
-  relaisSetup (rpacPin::relais, loggerCallBacks) ;                    // NanoEvery: 2 || u-blow Nina W-101: 18
+  rpac::Relais <rpac::Pin::relais>::setup (loggerCallBacks) ;
   //
-  flowSetup (rpacPin::flow, controlCallBacks, loggerCallBacks) ;      // NanoEvery: 7 || u-blow Nina W-101: 33 = SW02
+  rpac::Flow <rpac::Pin::flow>::setup (controlCallBacks, loggerCallBacks) ;
   //
-  loggerSetup (myButton, rpacPin::logger, controlCallBacks, loggerCallBacks, start) ;  // NanoEvery: 15 || u-blow Nina W-101: 15
+  rpac::Logger::setup <rpac::Pin::button, rpac::Pin::signal> (rpac::Pin::logger, controlCallBacks, loggerCallBacks, "tbd") ;  // NanoEvery: 15 || u-blow Nina W-101: 15
+  //
+#ifdef __DEBUG__RPAC__
+  Serial.println ("[INFO] Setup completed.") ;
+#endif
   //
 }
 //
@@ -54,30 +58,31 @@ void setup() {
 //
 void loop() {
   //
+#ifdef __DEBUG__RPAC__
   unsigned long loopBegin = millis () ;
-  bool button = false, flow = false, pulse = false, relais = false ;
+#endif
+  bool button = false, pulse = false ;
   //
-  button = controlLoop (myButton.loop (), controlCallBacks) ;
+  button = rpac::Control <rpac::Pin::button, rpac::Pin::signal>::loop (controlCallBacks) ;
   //
-  pulse = pulserLoop (button) ;
+  pulse = rpac::Pulser<rpac::Pin::pulser>::loop (button) ;
   //
-  pressureLoop () ;
+  rpac::Pressure <rpac::Pin::pressure>::loop () ;
   //
-  flow = flowLoop () ;
+  rpac::Relais <rpac::Pin::relais>::loop (rpac::Flow <rpac::Pin::flow>::loop ()) ;
   //
-  relais = relaisLoop (flow) ;
-  //
-  loggerLoop (loggerCallBacks) ;
+  rpac::Logger::loop (loggerCallBacks) ;
   //
 #ifdef __DEBUG__RPAC__
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
 #endif
   //
-  signalLoop ((relais && ! pulse) || (pulse && ! relais)) ;
+  rpac::Signal <rpac::Pin::signal>::loop (pulse) ;
   //
 #ifdef ARDUINO_UBLOX_NINA_W10
   //  Prevent watchdog from firing ...
   delay (1) ;
+  //
 #endif
 }
 //
