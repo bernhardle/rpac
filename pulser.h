@@ -21,6 +21,8 @@ namespace rpac {
         static unsigned short int mode, cycle ;
         static bool automate, pulse ;
         //
+        Pulser () ;
+        //
         public :
             static void setup (controlCBs_t &, loggerCBs_t &) ;
             static bool loop (bool) ;

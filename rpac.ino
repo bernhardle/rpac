@@ -61,11 +61,6 @@ void loop() {
 #ifdef __DEBUG__RPAC__
   unsigned long loopBegin = millis () ;
 #endif
-  bool button = false, pulse = false ;
-  //
-  button = rpac::Control <rpac::Pin::button, rpac::Pin::signal>::loop (controlCallBacks) ;
-  //
-  pulse = rpac::Pulser<rpac::Pin::pulser>::loop (button) ;
   //
   rpac::Pressure <rpac::Pin::pressure>::loop () ;
   //
@@ -77,7 +72,7 @@ void loop() {
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
 #endif
   //
-  rpac::Signal <rpac::Pin::signal>::loop (pulse) ;
+  rpac::Signal <rpac::Pin::signal>::loop (rpac::Pulser<rpac::Pin::pulser>::loop (rpac::Control <rpac::Pin::button, rpac::Pin::signal>::loop (rpac::Button <rpac::Pin::button>::loop(), controlCallBacks))) ;
   //
 #ifdef ARDUINO_UBLOX_NINA_W10
   //  Prevent watchdog from firing ...

@@ -31,6 +31,8 @@ namespace rpac {
   //
   class Logger {
     //
+    Logger () ;
+    //
     protected :
       //
       const static unsigned short int loggerRetryDura{3000}, waitForCmd{4000}, loggerSampleInterval{100} ;

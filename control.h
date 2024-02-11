@@ -18,11 +18,11 @@ namespace rpac {
         static unsigned long controlButtonTimeHigh, controlButtonTimeLow, controlLastCmd ;
         static uint8_t controlMode, controlCount ;
         //
-        static unsigned long int data (void) ;
+        Control () ;
         //
         public :
             static void setup (loggerCBs_t &) ;
-            static bool loop (const rpac::controlCBs_t &) ;
+            static bool loop (bool, const rpac::controlCBs_t &) ;
     } ;
     //
 } ;

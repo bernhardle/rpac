@@ -50,6 +50,8 @@ namespace rpac {
       static uint8_t cycles, counter, head, tail ;
       static bool led ;
       //
+      Signal () ;
+      //
     public :
       //
       static void setup (controlCBs_t &) ;

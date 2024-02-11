@@ -37,10 +37,9 @@ template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Control <b, s>::setup
     //
 }
 //
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> bool rpac::Control <b, s>::loop (const rpac::controlCBs_t & ccbs) {
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> bool rpac::Control <b, s>::loop (bool button, const rpac::controlCBs_t & ccbs) {
     //
     unsigned long myTime = millis () ;
-    bool button = rpac::Button <b>::loop () ;
     //
     switch (controlMode) {
       //

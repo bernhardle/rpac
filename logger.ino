@@ -133,7 +133,7 @@ template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger::setup (rpac::
       }
       //
       rpac::Signal <s>::loop (false) ;
-      rpac::Control <b, s>::loop (ccbs) ;
+      rpac::Control <b, s>::loop (rpac::Button <b>::loop (), ccbs) ;
       //
     }
     //

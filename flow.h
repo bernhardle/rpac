@@ -26,6 +26,8 @@ namespace rpac {
         static volatile bool error ;
 #endif
         //
+        Flow () ;
+        //
         public :
             static void setup (controlCBs_t &, loggerCBs_t &) ;
             static bool loop (void) ;

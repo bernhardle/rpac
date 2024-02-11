@@ -18,6 +18,8 @@ namespace rpac {
         static bool lastTrigger ;
         static state_t relais ;
         //
+        Relais () ;
+        //
         public:
             static void setup (loggerCBs_t &) ;
             static bool loop (bool) ;

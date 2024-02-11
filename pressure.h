@@ -12,6 +12,8 @@ namespace rpac {
     //
     template <rpacPin_t> class Pressure {
         //
+        Pressure () ;
+        //
         public :
             static void setup (loggerCBs_t &) ;
             static bool loop (void) ;
