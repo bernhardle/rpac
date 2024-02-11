@@ -65,8 +65,3 @@ template <rpac::rpacPin_t p> bool rpac::Button <p>::loop (void) {
   //
 }
 //
-template <rpac::rpacPin_t p> bool rpac::Button <p>::pressed (void) {
-  //
-  return time > last ? (last = time, true) : false ;
-  //
-}

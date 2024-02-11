@@ -69,32 +69,24 @@ const char * loggerCBs::headRow (const String & stamp) {
   return row ;
 }
 //
-uint8_t rpac::Logger::shutdown (uint8_t) {
-  //
-  Serial.println ("[INFO] rpac::Logger::shutdown () callback ...") ;
-  //
-  if (mode == 0) mode = 1 ;
-  //
-  return 0 ;
-  //
-}
-//
-uint8_t rpac::Logger::disable (uint8_t) {
-  //
-  Serial.println ("[INFO] rpac::Logger::disable () callback ...") ;
-  //
-  enable = false ;
-  //
-  return 0 ;
-  //
-}
-//
 template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger::setup (rpac::rpacPin_t p, rpac::controlCBs_t & ccbs, loggerCBs_t & lcbs, const String & stamp) {
   //
   pinMode ((pin = static_cast <uint8_t> (p)), OUTPUT) ;
   digitalWrite (pin, LOW) ;
   //
-  uint8_t (*fsave)(uint8_t) = ccbs.add (& disable, 1) ;
+  //  register control callback (1 x button press -> disable data logging)
+  //
+  uint8_t (*fsave)(uint8_t) = ccbs.add ([](uint8_t) -> uint8_t {
+    //
+#ifdef __DEBUG__LOGGER__
+    Serial.println ("[INFO] rpac::Logger::disable () callback ...") ;
+#endif
+    //
+    enable = false ;
+    //
+    return 0 ;
+    //
+  }, 1) ;
   //
 #ifdef __DEBUG__LOGGER__
   Serial.print ("[INTERACTIVE] To disable logging enter 'n' or press button within ") ;
@@ -138,6 +130,8 @@ template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger::setup (rpac::
     }
     //
   }
+  //
+  //  restore control callback (1 x button press)
   //
   ccbs.add (fsave, 1) ;
   //
@@ -191,7 +185,17 @@ template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger::setup (rpac::
       //
       //  register control callback (4 x button press -> shutdown)
       //
-      ccbs.add (& shutdown, 4) ;
+      ccbs.add ([](uint8_t) -> uint8_t {
+        //
+#ifdef __DEBUG__LOGGER__
+        Serial.println ("[INFO] rpac::Logger::shutdown () callback ...") ;
+#endif
+        //
+        if (mode == 0) mode = 1 ;
+        //
+        return 0 ;
+        //
+      }, 4) ;
       //
 #ifdef __DEBUG__LOGGER__
       Serial.println ("[INFO] Data logging started per: " + stamp) ;

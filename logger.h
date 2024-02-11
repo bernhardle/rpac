@@ -45,9 +45,6 @@ namespace rpac {
       static uint8_t pin ;
       static bool enable ;
       //
-      static uint8_t disable (uint8_t) ;
-      static uint8_t shutdown (uint8_t) ;
-      //
     public :
       //
       template <rpac::rpacPin_t p, rpac::rpacPin_t s> static void setup (rpacPin_t, rpac::controlCBs_t & a, loggerCBs_t & b, const String & = "No start time argument.") ;

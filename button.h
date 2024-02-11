@@ -26,7 +26,6 @@ namespace rpac {
         public :
             static void setup (loggerCBs_t &) ;
             static bool loop (void) ;
-            static bool pressed (void) ;
         //
     } ;
     //
