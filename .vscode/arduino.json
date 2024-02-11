@@ -1,8 +1,0 @@
-{
-    "board": "esp32:esp32:nina_w10",
-    "sketch": "rpac.ino",
-    "output": "C:\\Users\\Bernhard\\Documents\\Arduino\\buildspace",
-    "configuration": "UploadSpeed=921600,FlashSize=2M,FlashFreq=80,PartitionScheme=minimal,CPUFreq=240,LoopCore=0,EventsCore=1,DebugLevel=error,EraseFlash=none",
-    "programmer": "esptool",
-    "port": "COM7"
-}
