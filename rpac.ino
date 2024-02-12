@@ -1,7 +1,9 @@
 //
 //  (c) Bernhard Schupp, Frankfurt (2024)
 //
-// #include <EEPROM.h>
+#ifndef ARDUINO_UBLOX_NINA_W10
+#include <EEPROM.h>
+#endif
 //
 #include <RTClib.h>
 //
@@ -23,6 +25,7 @@ unsigned loopCount = 0 ;
 //
 loggerCBs_t loggerCallBacks ;
 rpac::controlCBs_t controlCallBacks ;
+rpac::Logger <rpac::Pin::logger> myLog (loggerCallBacks, 100, 3) ;
 //
 // the setup function runs once when you press reset or power the board
 //
@@ -46,7 +49,7 @@ void setup() {
   //
   rpac::Flow <rpac::Pin::flow>::setup (controlCallBacks, loggerCallBacks) ;
   //
-  rpac::Logger::setup <rpac::Pin::button, rpac::Pin::signal> (rpac::Pin::logger, controlCallBacks, loggerCallBacks, "tbd") ;  // NanoEvery: 15 || u-blow Nina W-101: 15
+  rpac::Logger <rpac::Pin::logger>::setup <rpac::Pin::button, rpac::Pin::signal> (controlCallBacks) ;
   //
 #ifdef __DEBUG__RPAC__
   Serial.println ("[INFO] Setup completed.") ;
@@ -66,7 +69,7 @@ void loop() {
   //
   rpac::Relais <rpac::Pin::relais>::loop (rpac::Flow <rpac::Pin::flow>::loop ()) ;
   //
-  rpac::Logger::loop (loggerCallBacks) ;
+  rpac::Logger <rpac::Pin::logger>::loop (loggerCallBacks) ;
   //
 #ifdef __DEBUG__RPAC__
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;

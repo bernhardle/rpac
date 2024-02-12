@@ -8,10 +8,11 @@
 #include "logger.h"
 #include "signal.h"
 //
-unsigned long rpac::Logger::loggerNextSampleTime{0}, rpac::Logger::loggerShutdownFlushTime{0} ;
-uint8_t rpac::Logger::mode{5U} ;
-uint8_t rpac::Logger::pin ;
-bool rpac::Logger::enable{true} ;
+template <rpac::rpacPin_t p> rpac::Logger <p> *rpac::Logger <p>::instances[10]{nullptr} ;
+template <rpac::rpacPin_t p> unsigned long rpac::Logger <p>::loggerShutdownFlushTime{0} ;
+template <rpac::rpacPin_t p> uint8_t rpac::Logger <p>::mode{5U} ;
+template <rpac::rpacPin_t p> uint8_t rpac::Logger <p>::pin ;
+template <rpac::rpacPin_t p> bool rpac::Logger <p>::enable{true} ;
 //
 bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
   //
@@ -25,8 +26,6 @@ bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
     //
     num ++ ;
     //
-    Serial.println (num) ;
-    //
     return true ;
   } 
   //
@@ -37,42 +36,36 @@ bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
 //
 }
 //
-const char * loggerCBs::logRow (const String & message) {
+const char * loggerCBs::logRow (void) {
   //
   char * pos = row ;
   //
   for (int i = 0 ; i < static_cast<int>(num) ; i++) {
     //
-    pos += sprintf (pos, "%2lu;", (*cb [i])()) ;
+    pos += sprintf (pos, (i == 0 ? "%2lu": ";%2lu"), (*cb [i])()) ;
     //
   }
-  //
-  sprintf (pos, "%s", message.substring (0,16).c_str()) ;
   //
   return row ;
 }
 //
-const char * loggerCBs::headRow (const String & stamp) {
+const char * loggerCBs::headRow (void) {
   //
   char * pos = row ;
   //
   for (int i = 0 ; i < static_cast<int> (num) ; i++) {
     //
-    pos += sprintf (pos, "%2s;", hd [i]) ;
+    pos += sprintf (pos, (i == 0 ? "%2s" : ";%2s"), hd [i]) ;
     //
   }
-  //
-  pos += sprintf (pos, "%s", stamp.substring (0,48).c_str()) ;
-  //
-  * pos = 0x0 ;
   //
   return row ;
 }
 //
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger::setup (rpac::rpacPin_t p, rpac::controlCBs_t & ccbs, loggerCBs_t & lcbs, const String & stamp) {
+template <rpac::rpacPin_t p> template<rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger <p>::setup (rpac::controlCBs_t & ccbs) {
   //
-  pinMode ((pin = static_cast <uint8_t> (p)), OUTPUT) ;
-  digitalWrite (pin, LOW) ;
+  pinMode (static_cast <uint8_t> (p), OUTPUT) ;
+  digitalWrite (static_cast <uint8_t> (p), LOW) ;
   //
   //  register control callback (1 x button press -> disable data logging)
   //
@@ -140,7 +133,7 @@ template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger::setup (rpac::
 #ifdef __DEBUG__LOGGER__
     Serial.println ("[INTERACTIVE] Data logging has been disabled.") ;
     //
-    Serial.println (lcbs.headRow (stamp)) ;
+    for (int i{0} ; instances [i] != nullptr ; instances [i++]->writeHead (Serial)) ;
 #endif
     //
     rpac::Signal <s>::blocking (rpac::Signal <s>::scheme::blinkfast, 6) ;
@@ -180,7 +173,8 @@ template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger::setup (rpac::
       //
       mode = 0 ;
       //
-      Serial1.println (lcbs.headRow (stamp)) ;
+      for (int i{0} ; instances [i] != nullptr ; instances [i++]->writeHead (Serial1)) ;
+      //
       Serial1.flush () ;
       //
       //  register control callback (4 x button press -> shutdown)
@@ -198,7 +192,7 @@ template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger::setup (rpac::
       }, 4) ;
       //
 #ifdef __DEBUG__LOGGER__
-      Serial.println ("[INFO] Data logging started per: " + stamp) ;
+      Serial.println ("[INFO] Data logging started.") ;
 #endif
       //
       return ;
@@ -227,11 +221,15 @@ template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger::setup (rpac::
   //
   Serial1.end () ;
   //
+#ifdef __DEBUG__LOGGER__
+  for (int i{0} ; instances [i] != nullptr ; instances [i++]->writeHead (Serial)) ;
+#endif
+  //
   return ;
   //
 }
 //
-bool rpac::Logger::loop (loggerCBs_t & lcbs) {
+template <rpac::rpacPin_t p> bool rpac::Logger <p>::loop (loggerCBs_t & lcbs) {
   //
   unsigned long myTime = millis () ;
   //
@@ -239,17 +237,15 @@ bool rpac::Logger::loop (loggerCBs_t & lcbs) {
     //
     case 0 :
       //
-      while (myTime > loggerNextSampleTime) loggerNextSampleTime += loggerSampleInterval ;
-      //
-      if (myTime < loggerNextSampleTime - loggerSampleAdjust) { return false ; }
-      //
-      delay (loggerNextSampleTime - myTime) ;
-      //
-      loggerNextSampleTime += loggerSampleInterval ;
-      //
-      Serial1.println (lcbs.logRow ("")) ;
-      //
-      return true ;
+      {
+        //
+        bool b{true} ;
+        //
+        for (int i{0} ; instances [i] != nullptr ; b &= instances [i++]->writeLog (myTime)) ;
+        //
+        return b ;
+        //
+      }
       //
     case 1 :
       //
@@ -297,14 +293,7 @@ bool rpac::Logger::loop (loggerCBs_t & lcbs) {
       //
 #ifdef __DEBUG__LOGGER__
       //
-      while (myTime > loggerNextSampleTime + loggerSampleOutput) loggerNextSampleTime += loggerSampleOutput ;
-      //
-      if (myTime > loggerNextSampleTime) {
-        //
-        loggerNextSampleTime += loggerSampleOutput ;
-        Serial.println (lcbs.logRow ("")) ;
-        //
-      }
+      for (int i{0} ; instances [i] != nullptr ; instances [i++]->writeDebug (myTime)) ;
       //
 #endif
       break ;
@@ -319,3 +308,47 @@ bool rpac::Logger::loop (loggerCBs_t & lcbs) {
   return false ;
   //
 }
+//
+template <rpac::rpacPin_t p> rpac::Logger <p>::Logger (loggerCBs_t & l, unsigned int a, unsigned int b) : callbacks (l), loggerSampleInterval{a}, loggerSampleAdjust{b}, loggerSampleOutput{10 * a} {
+  //
+  for (int i{0}; instances[i] != nullptr ? true : (instances [i] = this , false) ; i++ ) ;
+  //
+}
+//
+template <rpac::rpacPin_t p> void rpac::Logger <p>::writeHead (HardwareSerial & out) {
+  //
+  out.println (callbacks.headRow ()) ;
+  //
+}
+//
+template <rpac::rpacPin_t p> bool rpac::Logger <p>::writeLog (unsigned long int myTime) {
+  //
+  while (myTime > loggerNextSampleTime) loggerNextSampleTime += loggerSampleInterval ;
+  //
+  if (myTime < loggerNextSampleTime - loggerSampleAdjust) { return false ; }
+  //
+  delay (loggerNextSampleTime - myTime) ;
+  //
+  loggerNextSampleTime += loggerSampleInterval ;
+  //
+  Serial1.println (callbacks.logRow ()) ;
+  //
+  return true ;
+  //
+}
+//
+#ifdef __DEBUG__LOGGER__
+template <rpac::rpacPin_t p> void rpac::Logger <p>::writeDebug (unsigned long int myTime) {
+  //
+  while (myTime > loggerNextSampleTime + loggerSampleOutput) loggerNextSampleTime += loggerSampleOutput ;
+  //
+  if (myTime > loggerNextSampleTime) {
+    //
+    loggerNextSampleTime += loggerSampleOutput ;
+    //
+    Serial.println (callbacks.logRow ()) ;
+    //
+  }
+  //
+}
+#endif

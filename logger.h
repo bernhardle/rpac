@@ -21,34 +21,45 @@ class loggerCBs {
   public :
     loggerCBs () : num (0) {}
     bool add (unsigned long (*)(void), const String &) ;
-    const char * logRow (const String &) ;
-    const char * headRow (const String &) ;
+    const char * logRow (void) ;
+    const char * headRow (void) ;
     inline unsigned long (*operator [](int i) const)(void) { return cb [i] ; }
   //
 } ;
 //
 namespace rpac {
   //
-  class Logger {
+  template <rpac::rpacPin_t p> class Logger {
     //
-    Logger () ;
-    //
-    protected :
-      //
-      const static unsigned short int loggerRetryDura{3000}, waitForCmd{4000}, loggerSampleInterval{100} ;
-      const static uint8_t  loggerSampleAdjust{4} ;
+    const static unsigned short int loggerRetryDura{3000}, waitForCmd{4000} ;
 #ifdef __DEBUG__LOGGER__
-      const static unsigned short int loggerSampleOutput{10 * loggerSampleInterval} ;
+    // const static unsigned short int loggerSampleOutput{10 * loggerSampleInterval} ;
 #endif
-      static unsigned long loggerNextSampleTime, loggerShutdownFlushTime ;
-      static uint8_t mode ;
-      static uint8_t pin ;
-      static bool enable ;
+    static Logger *instances[10] ;
+    static unsigned long loggerShutdownFlushTime ;
+    static uint8_t mode ;
+    static uint8_t pin ;
+    static bool enable ;
+    //
+    public :
+      //
+      template <rpac::rpacPin_t b, rpac::rpacPin_t s> static void setup (rpac::controlCBs_t &) ;
+      static bool loop (loggerCBs_t &) ;
+      //
+    private : // non-static
+      //
+      unsigned int loggerSampleInterval{100}, loggerSampleOutput{1000}, loggerSampleAdjust{4} ;
+      unsigned long int loggerNextSampleTime{0} ;
+      loggerCBs_t & callbacks ;
       //
     public :
       //
-      template <rpac::rpacPin_t p, rpac::rpacPin_t s> static void setup (rpacPin_t, rpac::controlCBs_t & a, loggerCBs_t & b, const String & = "No start time argument.") ;
-      static bool loop (loggerCBs_t &) ;
+      Logger (loggerCBs_t &, unsigned int a = 100, unsigned int b = 4) ;
+      void writeHead (HardwareSerial &) ;
+      bool writeLog (unsigned long int) ;
+#ifdef __DEBUG__LOGGER__
+      void writeDebug (unsigned long int) ;
+#endif
       //
   } ;
   //
