@@ -14,7 +14,7 @@ namespace rpac {
         //
         const static unsigned int __holdDura{100} ;
         //
-        static unsigned long int lastTime ;
+        static unsigned long lastTime ;
         static bool lastTrigger ;
         static state_t relais ;
         //

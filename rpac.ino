@@ -43,7 +43,7 @@ void setup() {
   //
   rpac::Control <rpac::Pin::button, rpac::Pin::signal>::setup (loggerCallBacks) ;
   //
-  rpac::Pulser<rpac::Pin::pulser>::setup (controlCallBacks, loggerCallBacks) ;
+  rpac::Pulser<rpac::Pin::pulser, rpac::Pin::signal>::setup (controlCallBacks, loggerCallBacks) ;
   //
   rpac::Relais <rpac::Pin::relais>::setup (loggerCallBacks) ;
   //
@@ -75,7 +75,7 @@ void loop() {
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
 #endif
   //
-  rpac::Signal <rpac::Pin::signal>::loop (rpac::Pulser<rpac::Pin::pulser>::loop (rpac::Control <rpac::Pin::button, rpac::Pin::signal>::loop (rpac::Button <rpac::Pin::button>::loop(), controlCallBacks))) ;
+  rpac::Signal <rpac::Pin::signal>::loop (rpac::Pulser<rpac::Pin::pulser, rpac::Pin::signal>::loop (rpac::Control <rpac::Pin::button, rpac::Pin::signal>::loop (rpac::Button <rpac::Pin::button>::loop(), controlCallBacks))) ;
   //
 #ifdef ARDUINO_UBLOX_NINA_W10
   //  Prevent watchdog from firing ...

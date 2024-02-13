@@ -18,7 +18,7 @@ template <rpac::rpacPin_t p> void rpac::Pressure <p>::setup (loggerCBs_t & lcbs)
   //
   pinMode (static_cast <uint8_t> (p), INPUT) ;
   //
-  lcbs.add ([](void) -> unsigned long int { return analogRead (static_cast <uint8_t> (p)) ; }, "Pressure PIN" + String (static_cast <int> (p))) ;
+  lcbs.add ([](void) -> unsigned long { return analogRead (static_cast <uint8_t> (p)) ; }, "Pressure PIN" + String (static_cast <int> (p))) ;
   //
 }
 //

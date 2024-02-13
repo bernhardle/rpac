@@ -44,10 +44,9 @@ namespace rpac {
       //
       static void switchLED (bool) ;
       //
-      static unsigned long int timeOut ;
+      static unsigned long end, timeOut, counter, head, tail ;
       static status modus ;
       static scheme pattern ;
-      static uint8_t cycles, counter, head, tail ;
       static bool led ;
       //
       Signal () ;
@@ -55,8 +54,8 @@ namespace rpac {
     public :
       //
       static void setup (controlCBs_t &) ;
-      static void async (scheme, uint8_t) ;
-      static void blocking (scheme, uint8_t) ;
+      static void async (scheme, unsigned short) ;
+      static void blocking (scheme, unsigned short) ;
       static bool loop (bool) ;
       //
     } ;

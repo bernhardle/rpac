@@ -11,14 +11,14 @@
 //
 namespace rpac {
     //
-    template <rpacPin_t p> class Pulser {
+    template <rpacPin_t p, rpacPin_t s> class Pulser {
         //
         const static unsigned long __on [] ;
         const static unsigned long __off [] ;
         const static unsigned int __cycles [] ;
         //
-        static unsigned long int change ;
-        static unsigned short int mode, cycle ;
+        static unsigned long change ;
+        static unsigned short mode, cycle ;
         static bool automate, pulse ;
         //
         Pulser () ;
@@ -26,6 +26,8 @@ namespace rpac {
         public :
             static void setup (controlCBs_t &, loggerCBs_t &) ;
             static bool loop (bool) ;
+            static void autox (void) ;
+            static void autox (bool) ;
     } ;
 } ;
 //

@@ -20,14 +20,6 @@ template <rpac::rpacPin_t p> void rpac::Button <p>::handler (void) {
   //
 }
 //
-//  Writes to the data log
-//
-template <rpac::rpacPin_t p> unsigned long int rpac::Button <p>::data (void) {
-  //
-  return BUTTONSTATE(count) ;
-  //
-}
-//
 template <rpac::rpacPin_t p> void rpac::Button <p>::setup (loggerCBs_t & lcbs) {
   //
   pinMode (static_cast<int> (p), INPUT_PULLUP) ;
@@ -36,7 +28,7 @@ template <rpac::rpacPin_t p> void rpac::Button <p>::setup (loggerCBs_t & lcbs) {
   //
   String label = String ("Button PIN") + String(static_cast<int>(p), DEC) ;
   //
-  lcbs.add (& data, label) ;
+  lcbs.add ([]() -> unsigned long { return BUTTONSTATE(count) ; }, label) ;
   //
 }
 //

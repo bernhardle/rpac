@@ -16,7 +16,7 @@ namespace rpac {
         //  s ... signal pin
         //
         static unsigned long controlButtonTimeHigh, controlButtonTimeLow, controlLastCmd ;
-        static uint8_t controlMode, controlCount ;
+        static unsigned int controlMode, controlCount ;
         //
         Control () ;
         //

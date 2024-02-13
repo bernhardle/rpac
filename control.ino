@@ -10,11 +10,11 @@
 #define __switchControlMode(a)  (controlMode = a)
 #endif
 //
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long int rpac::Control <b, s>::controlButtonTimeHigh{0} ;
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long int rpac::Control <b, s>::controlButtonTimeLow{0} ; 
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long int rpac::Control <b, s>::controlLastCmd{0} ;
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> uint8_t rpac::Control <b, s>::controlMode{0} ;
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> uint8_t rpac::Control <b, s>::controlCount{0} ;
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long rpac::Control <b, s>::controlButtonTimeHigh{0} ;
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long rpac::Control <b, s>::controlButtonTimeLow{0} ; 
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long rpac::Control <b, s>::controlLastCmd{0} ;
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned int rpac::Control <b, s>::controlMode{0} ;
+template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned int rpac::Control <b, s>::controlCount{0} ;
 //
 template <int n> rpac::controlCallbacks <n>::controlCallbacks (void) {
   //
@@ -31,7 +31,7 @@ template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Control <b, s>::setup
       //
       auto r = controlLastCmd ;
       controlLastCmd = 0x0UL ;
-      return r ;
+      return static_cast <unsigned short> (r) ;
       //
     }, String ("Control PIN") + String (static_cast <int> (b), DEC)) ;
     //

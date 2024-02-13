@@ -17,11 +17,11 @@ namespace rpac {
         //
         static void handler (void) ;
         //
-        static volatile long int total ;
-        static volatile short int counts ; 
+        static volatile unsigned long total ;
+        static volatile unsigned short counts ;
         static bool lowRes ;
         static volatile bool trigger ;
-        static uint8_t pos ;
+        static unsigned int pos ;
 #ifdef __DEBUG__FLOW__
         static volatile bool error ;
 #endif

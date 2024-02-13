@@ -136,7 +136,7 @@ template <rpac::rpacPin_t p> template<rpac::rpacPin_t b, rpac::rpacPin_t s> void
     for (int i{0} ; instances [i] != nullptr ; instances [i++]->writeHead (Serial)) ;
 #endif
     //
-    rpac::Signal <s>::blocking (rpac::Signal <s>::scheme::blinkfast, 6) ;
+    rpac::Signal <s>::blocking (rpac::Signal <s>::scheme::blinkfast, 2000) ;
     //
     mode = 5 ;
     //

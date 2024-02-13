@@ -6,11 +6,11 @@
 #include "logger.h"
 //
 template <rpac::rpacPin_t p> const uint8_t rpac::Flow <p>::countsPerUnit [10]{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U} ;
-template <rpac::rpacPin_t p> volatile long int rpac::Flow <p>::total{0} ;
-template <rpac::rpacPin_t p> volatile short int rpac::Flow <p>::counts{0} ; 
+template <rpac::rpacPin_t p> volatile unsigned long rpac::Flow <p>::total{0} ;
+template <rpac::rpacPin_t p> volatile unsigned short rpac::Flow <p>::counts{0} ; 
 template <rpac::rpacPin_t p> bool rpac::Flow <p>::lowRes{false} ;
 template <rpac::rpacPin_t p> volatile bool rpac::Flow <p>::trigger{false} ;
-template <rpac::rpacPin_t p> uint8_t rpac::Flow <p>::pos{0} ;
+template <rpac::rpacPin_t p> unsigned int rpac::Flow <p>::pos{0} ;
 #ifdef __DEBUG__FLOW__
 template <rpac::rpacPin_t p> volatile bool rpac::Flow <p>::error{false} ;
 #endif

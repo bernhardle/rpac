@@ -10,9 +10,9 @@ namespace rpac {
     //
     template <rpacPin_t p> class Button {
         //
-        static volatile unsigned long int time ;
-        static unsigned long int last ;
-        static unsigned short int count ;
+        static volatile unsigned long  time ;
+        static unsigned long last ;
+        static unsigned short count ;
         //
 #ifdef __DEBUG__BUTTON__
         static bool check ;

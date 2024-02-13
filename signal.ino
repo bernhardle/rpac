@@ -6,13 +6,13 @@
 #include "control.h"
 //
 template <rpac::rpacPin_t p> const uint16_t rpac::Signal <p>::__sigseq [4]{__pack(0U,100U), __pack (100U,0U), __pack(20U, 20U), __pack (255U,255U)} ;
-template <rpac::rpacPin_t p> unsigned long int rpac::Signal <p>::timeOut{0} ;
+template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::timeOut{0} ;
 template <rpac::rpacPin_t p> typename rpac::Signal <p>::status rpac::Signal <p>::modus{status::uninitialized} ;
 template <rpac::rpacPin_t p> typename rpac::Signal <p>::scheme rpac::Signal <p>::pattern{scheme::dark} ;
-template <rpac::rpacPin_t p> uint8_t rpac::Signal <p>::cycles{0} ;
-template <rpac::rpacPin_t p> uint8_t rpac::Signal <p>::counter{0} ; 
-template <rpac::rpacPin_t p> uint8_t rpac::Signal <p>::head{0} ; 
-template <rpac::rpacPin_t p> uint8_t rpac::Signal <p>::tail{0} ;
+template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::end{0} ;
+template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::counter{0} ; 
+template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::head{0} ; 
+template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::tail{0} ;
 template <rpac::rpacPin_t p> bool rpac::Signal <p>::led{false} ;
 //
 template <rpac::rpacPin_t p> void rpac::Signal <p>::switchLED (bool s) {
@@ -31,7 +31,7 @@ template <rpac::rpacPin_t p> void rpac::Signal <p>::switchLED (bool s) {
 //
 template <rpac::rpacPin_t p> rpac::Signal <p>::Hook::Hook (Signal<p>::scheme s) {
   //
-  async (s, UCHAR_MAX) ;
+  async (s, 0) ;
   //
 }
 //
@@ -68,24 +68,24 @@ template <rpac::rpacPin_t p> void rpac::Signal <p>::setup (controlCBs_t & ccbs) 
   //
 }
 //
-template <rpac::rpacPin_t p> void rpac::Signal <p>::async (scheme s, uint8_t i) {
+template <rpac::rpacPin_t p> void rpac::Signal <p>::async (scheme schema, unsigned short duration) {
   //
   if (modus == status::uninitialized) {
     //
 #ifdef __DEBUG__SIGNAL__
-  Serial.println ("[INFO] signalLaunchAsync () called before signalSetup () ...") ;
+    Serial.println ("[INFO] signalLaunchAsync () called before signalSetup () ...") ;
 #endif
     //
     return ;
   }
   //
-  cycles = i ;
-  pattern = s ;
+  end = duration == 0 ? ULONG_MAX : millis () + duration ;
+  pattern = schema ;
   modus = status::start ;
   //
 }
 //
-template <rpac::rpacPin_t p> void rpac::Signal <p>::blocking (scheme s, uint8_t n) {
+template <rpac::rpacPin_t p> void rpac::Signal <p>::blocking (scheme s, unsigned short n) {
   //
   for (async (s, n) ; modus != status::idle ; loop (false)) ;
   //
@@ -99,8 +99,8 @@ template <rpac::rpacPin_t p> bool rpac::Signal <p>::loop (bool ext) {
     //
     case status::start :
       //
-      head = __head (__sigseq [static_cast <uint8_t> (pattern)]) ;
-      tail = __tail (__sigseq [static_cast <uint8_t> (pattern)]) ;
+      head = __head (__sigseq [static_cast <int> (pattern)]) ;
+      tail = __tail (__sigseq [static_cast <int> (pattern)]) ;
       counter = 0 ;
       timeOut = myTime + head ;
       modus = status::bright ;
@@ -115,7 +115,7 @@ template <rpac::rpacPin_t p> bool rpac::Signal <p>::loop (bool ext) {
         modus = status::cycle ;
         if (tail > 0) switchLED (false) ;
         //
-        if (++ counter > cycles) {
+        if (myTime > end) {
           //
           modus = status::idle ;
           //
