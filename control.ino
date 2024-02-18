@@ -5,138 +5,135 @@
 #include "control.h"
 //
 #ifdef __DEBUG_CONTROL__
-#define __switchControlMode(a)  (Serial.println ("[Debug] Control " + String (controlMode, DEC) + " -> " + String (a, DEC)), controlMode = a)
+#define __switchControlMode(a)  (Serial.println ("[Debug] Control " + String (mode, DEC) + " -> " + String (a, DEC)), mode = a)
 #else
-#define __switchControlMode(a)  (controlMode = a)
+#define __switchControlMode(a)  (mode = a)
 #endif
 //
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long rpac::Control <b, s>::controlButtonTimeHigh{0} ;
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long rpac::Control <b, s>::controlButtonTimeLow{0} ; 
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned long rpac::Control <b, s>::controlLastCmd{0} ;
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned int rpac::Control <b, s>::controlMode{0} ;
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> unsigned int rpac::Control <b, s>::controlCount{0} ;
+template <rpac::rpacPin_t b> unsigned long rpac::Control <b>::timeHigh{0} ;
+template <rpac::rpacPin_t b> unsigned long rpac::Control <b>::timeLow{0} ;
+template <rpac::rpacPin_t b> unsigned long rpac::Control <b>::lastCmd{0} ;
+template <rpac::rpacPin_t b> unsigned int rpac::Control <b>::mode{0} ;
+template <rpac::rpacPin_t b> unsigned int rpac::Control <b>::count{0} ;
+template <rpac::rpacPin_t b> unsigned int rpac::Control <b>::minimal{50} ;
+template <rpac::rpacPin_t b> unsigned int rpac::Control <b>::maximal{350} ; 
+template <rpac::rpacPin_t b> unsigned int rpac::Control <b>::recover{500} ; 
 //
-template <int n> rpac::controlCallbacks <n>::controlCallbacks (void) {
-  //
-  cbs.fill ([](uint8_t val) -> uint8_t { return val ; }) ;
-  //
-}
-//
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Control <b, s>::setup (loggerCBs_t & lcbs) {
+template <rpac::rpacPin_t b> void rpac::Control <b>::setup (loggerCBs_t & lcbs, unsigned int max, unsigned int min, unsigned int rec) {
     //
-    controlMode = 0 ;
-    controlButtonTimeHigh = 0 ;
-    controlButtonTimeLow = 0 ;
+    mode = 0 ;
+    timeHigh = 0 ;
+    timeLow = 0 ;
     lcbs.add ([]() -> unsigned long {
       //
-      auto r = controlLastCmd ;
-      controlLastCmd = 0x0UL ;
+      auto r = lastCmd ;
+      lastCmd = 0x0UL ;
       return static_cast <unsigned short> (r) ;
       //
     }, String ("Control PIN") + String (static_cast <int> (b), DEC)) ;
     //
 }
 //
-template <rpac::rpacPin_t b, rpac::rpacPin_t s> bool rpac::Control <b, s>::loop (bool button, const rpac::controlCBs_t & ccbs) {
+template <rpac::rpacPin_t b> typename rpac::Control<b>::ctrl_t rpac::Control <b>::loop (const bool button, unsigned int maxi) {
     //
     unsigned long myTime = millis () ;
     //
-    switch (controlMode) {
+    switch (mode) {
       //
       case 0 :
         //
         if (button) {
           //
           __switchControlMode(1) ;
-          controlButtonTimeHigh = myTime ;
-          controlCount = 1 ;
-          button = false ;
+          timeHigh = myTime ;
+          count = 1 ;
           //
         }
         //
-        break ;
+        return static_cast <ctrl_t> (0x00U) ;
         //
       case 1 :
         //
         if (button) {
           //
-          if (myTime > controlButtonTimeHigh + 400) {
+          if (myTime > timeHigh + maximal) {
             //
             __switchControlMode(4) ;
             //
           }
           //
-          button = false ;
-          //
         } else {
           //
-          if (myTime < controlButtonTimeHigh + 50) {
+          if (myTime < timeHigh + minimal) {
             //
             __switchControlMode(0) ;
             //
           } else {
             //
             __switchControlMode(2) ;
-            controlButtonTimeLow = myTime ;
+            //
+            timeLow = myTime ;
             //
           }
           //
         }
         //
-        break ;
+        return static_cast <ctrl_t> (0x00U) ;
         //
       case 2 :
         //
         if (button) {
           //
-          if(controlCount + 2 > ccbs.size ()) {
+          if(count + 2 > maxi) {
             //
             __switchControlMode(4) ;
-            button = false ;
             //
           } else {
             //
             __switchControlMode(1) ;
-            button = false ;
-            controlCount ++ ;
-            controlButtonTimeHigh = myTime ;
+            //
+            count ++ ;
+            timeHigh = myTime ;
             //
           }
           //
         } else {
           //
-          if (myTime > controlButtonTimeLow + 500) {
+          if (myTime > timeLow + maximal) {
             //
             __switchControlMode(3) ;
             //
           } 
         }
-        break ;
+        //
+        return static_cast <ctrl_t> (0x00U) ;
         //
       case 3:
         //
 #ifdef __DEBUG_CONTROL__
         Serial.print ("[Debug] Control command # ") ;
-        Serial.println (String (controlCount, DEC)) ;
+        Serial.println (String (count, DEC)) ;
 #endif
-        controlLastCmd = ccbs [controlCount](controlCount) << 8 | controlCount ;
+        lastCmd = count ;
         __switchControlMode(0) ;
         //
-        break ;
+        return static_cast <ctrl_t> (button ? count << 1 | 0x01U : count << 1) ;
         //
       case 4:
         //
         if (!button) {
           //
           __switchControlMode(5) ;
-          controlButtonTimeLow = myTime ;
+          //
+          timeLow = myTime ;
+          //
+          return 0x0 ;
           //
         } else {
           //
-          if (controlCount > 1) button = false ;
+          return static_cast <ctrl_t> (count > 1 ? 0x00U : 0x01U) ;
           //
         }
-        break ;
         //
       case 5 :
         //
@@ -144,21 +141,20 @@ template <rpac::rpacPin_t b, rpac::rpacPin_t s> bool rpac::Control <b, s>::loop 
           //
           __switchControlMode(4) ;
           //
-          if (controlCount > 1) button = false ;
+          return static_cast <ctrl_t> (count > 1 ? 0x00U : 0x01U) ;
           //
-        } else if (! button && myTime > controlButtonTimeLow + 500) {
+        } else if (! button && myTime > timeLow + recover) {
           //
           __switchControlMode(0) ;
           //
+          return static_cast <ctrl_t> (0x00U) ;
+          //
         }
-        break ;
         //
       default :
         //
-        break ;
+        return static_cast <ctrl_t> (0x00U) ;
     }
-    //
-    return button ;
     //
   }
   //

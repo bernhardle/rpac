@@ -3,7 +3,6 @@
 //
 #include "global.h"
 #include "signal.h"
-#include "control.h"
 //
 template <rpac::rpacPin_t p> const uint16_t rpac::Signal <p>::__sigseq [4]{__pack(0U,100U), __pack (100U,0U), __pack(20U, 20U), __pack (255U,255U)} ;
 template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::timeOut{0} ;
@@ -41,7 +40,7 @@ template <rpac::rpacPin_t p> rpac::Signal <p>::Hook::~Hook () {
   //
 }
 //
-template <rpac::rpacPin_t p> void rpac::Signal <p>::setup (controlCBs_t & ccbs) {
+template <rpac::rpacPin_t p> void rpac::Signal <p>::setup (void) {
   //
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   //
@@ -50,19 +49,6 @@ template <rpac::rpacPin_t p> void rpac::Signal <p>::setup (controlCBs_t & ccbs) 
 #else
   digitalWrite (static_cast <uint8_t> (p), (led = false)) ;
 #endif
-  //
-  ccbs.add ([](uint8_t cmd) -> uint8_t {
-    //
-    static uint8_t cnt = 0 ;
-    //
-#ifdef __DEBUG__SIGNAL__
-    Serial.println ("[INFO] signalControlCB () ...") ;
-#endif
-    async (static_cast <Signal::scheme> (cnt++ % 4), 10) ;
-    //
-    return cmd ;
-    //
-  }, 1) ;
   //
   modus = status::idle ;
   //

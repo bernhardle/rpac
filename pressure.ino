@@ -24,6 +24,9 @@ template <rpac::rpacPin_t p> void rpac::Pressure <p>::setup (loggerCBs_t & lcbs)
 //
 template <rpac::rpacPin_t p> bool rpac::Pressure <p>::loop (void) {
   //
+  //  Dummy routine for the moment. Maybe, we wish to add a
+  //  sliding window mean value or the like at a later time.
+  //
   return false ;
   //
 }

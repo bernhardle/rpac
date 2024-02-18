@@ -5,7 +5,6 @@
 #define __logger_h_included__
 //
 #include "button.h"
-#include "control.h"
 //
 class loggerCBs {
     //  
@@ -31,10 +30,8 @@ namespace rpac {
   //
   template <rpac::rpacPin_t p> class Logger {
     //
-    const static unsigned short loggerRetryDura{3000}, waitForCmd{4000} ;
-#ifdef __DEBUG__LOGGER__
-    // const static unsigned short int loggerSampleOutput{10 * loggerSampleInterval} ;
-#endif
+    const static unsigned short loggerRetryDura{3000} ;
+    //
     static Logger *instances[10] ;
     static unsigned long loggerShutdownFlushTime ;
     static uint8_t mode ;
@@ -43,8 +40,9 @@ namespace rpac {
     //
     public :
       //
-      template <rpac::rpacPin_t b, rpac::rpacPin_t s> static void setup (rpac::controlCBs_t &) ;
+      static void setup (bool) ;
       static bool loop (loggerCBs_t &) ;
+      static void shutdown (void) ;
       //
     private : // non-static
       //
@@ -52,14 +50,17 @@ namespace rpac {
       unsigned long int loggerNextSampleTime{0} ;
       loggerCBs_t & callbacks ;
       //
-    public :
+    protected :
       //
-      Logger (loggerCBs_t &, unsigned int a = 100, unsigned int b = 4) ;
       void writeHead (HardwareSerial &) ;
       bool writeLog (unsigned long int) ;
 #ifdef __DEBUG__LOGGER__
       void writeDebug (unsigned long int) ;
 #endif
+      //
+    public :
+      //
+      Logger (loggerCBs_t &, unsigned int a = 100, unsigned int b = 4) ;
       //
   } ;
   //

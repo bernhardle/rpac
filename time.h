@@ -5,7 +5,6 @@
 #define __time_h_included__
 //
 #include "global.h"
-#include "control.h"
 //
 class DateTime ;
 //

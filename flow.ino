@@ -37,36 +37,37 @@ template <rpac::rpacPin_t p> void rpac::Flow <p>::handler (void) {
   //
 }
 //
-template <rpac::rpacPin_t p> void rpac::Flow <p>::setup (controlCBs_t & ccbs, loggerCBs_t & lcbs) {
+template <rpac::rpacPin_t p> uint8_t rpac::Flow <p>::resox (void) {
+  //
+  if (lowRes) {
+    //
+    lowRes = false ;
+    //
+#ifdef __DEBUG__FLOW__
+    Serial.println ("[INFO] flowControlCB () switched to high resolution 1:10") ;
+#endif
+    return 1U ;
+    //
+  } else {
+    //
+    lowRes = true ;
+    //
+#ifdef __DEBUG__FLOW__
+    Serial.println ("[INFO] flowControlCB () switched to low resolution 1:1") ;
+#endif
+    return 0U ;
+    //
+  }
+  //
+}
+//
+template <rpac::rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   //
   pinMode (static_cast <uint8_t> (p), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
   //
   attachInterrupt(digitalPinToInterrupt(static_cast <uint8_t> (p)), & handler, FALLING) ;
   //
   lcbs.add ([]() -> unsigned long { return total ; }, "Flow PIN" + String (static_cast <int> (p), DEC)) ;
-  //
-  ccbs.add ([](uint8_t) -> uint8_t {
-    //
-    if (lowRes) {
-      //
-      lowRes = false ;
-      //
-#ifdef __DEBUG__FLOW__
-      Serial.println ("[INFO] flowControlCB () switched to high resolution 1:10") ;
-#endif
-      return 1U ;
-      //
-    } else {
-      //
-      lowRes = true ;
-      //
-#ifdef __DEBUG__FLOW__
-    Serial.println ("[INFO] flowControlCB () switched to low resolution 1:1") ;
-#endif
-    return 0U ;
-    }
-    //
-  }, 3) ;
   //
 }
 //

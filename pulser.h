@@ -7,11 +7,10 @@
 #include <String.h>
 //
 #include "global.h"
-#include "control.h"
 //
 namespace rpac {
     //
-    template <rpacPin_t p, rpacPin_t s> class Pulser {
+    template <rpacPin_t p> class Pulser {
         //
         const static unsigned long __on [] ;
         const static unsigned long __off [] ;
@@ -21,13 +20,15 @@ namespace rpac {
         static unsigned short mode, cycle ;
         static bool automate, pulse ;
         //
+        inline static void __nextCycle (void) ;
+        //
         Pulser () ;
         //
         public :
-            static void setup (controlCBs_t &, loggerCBs_t &) ;
+            static void setup (loggerCBs_t &) ;
             static bool loop (bool) ;
-            static void autox (void) ;
-            static void autox (bool) ;
+            static bool autox (void) ;
+            static bool autox (bool) ;
     } ;
 } ;
 //

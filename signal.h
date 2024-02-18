@@ -53,7 +53,7 @@ namespace rpac {
       //
     public :
       //
-      static void setup (controlCBs_t &) ;
+      static void setup (void) ;
       static void async (scheme, unsigned short) ;
       static void blocking (scheme, unsigned short) ;
       static bool loop (bool) ;

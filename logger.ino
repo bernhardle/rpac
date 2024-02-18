@@ -4,9 +4,7 @@
 #include <RTClib.h>
 //
 #include "global.h"
-#include "button.h"
 #include "logger.h"
-#include "signal.h"
 //
 template <rpac::rpacPin_t p> rpac::Logger <p> *rpac::Logger <p>::instances[10]{nullptr} ;
 template <rpac::rpacPin_t p> unsigned long rpac::Logger <p>::loggerShutdownFlushTime{0} ;
@@ -62,71 +60,22 @@ const char * loggerCBs::headRow (void) {
   return row ;
 }
 //
-template <rpac::rpacPin_t p> template<rpac::rpacPin_t b, rpac::rpacPin_t s> void rpac::Logger <p>::setup (rpac::controlCBs_t & ccbs) {
+template <rpac::rpacPin_t p> void rpac::Logger <p>::shutdown (void) {
+  //
+#ifdef __DEBUG__LOGGER__
+  Serial.println ("[INFO] rpac::Logger::shutdown () ...") ;
+#endif
+  //
+  if (mode == 0) mode = 1 ;
+  //
+}
+//
+template <rpac::rpacPin_t p> void rpac::Logger <p>::setup (bool e) {
   //
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   digitalWrite (static_cast <uint8_t> (p), LOW) ;
   //
-  //  register control callback (1 x button press -> disable data logging)
-  //
-  uint8_t (*fsave)(uint8_t) = ccbs.add ([](uint8_t) -> uint8_t {
-    //
-#ifdef __DEBUG__LOGGER__
-    Serial.println ("[INFO] rpac::Logger::disable () callback ...") ;
-#endif
-    //
-    enable = false ;
-    //
-    return 0 ;
-    //
-  }, 1) ;
-  //
-#ifdef __DEBUG__LOGGER__
-  Serial.print ("[INTERACTIVE] To disable logging enter 'n' or press button within ") ;
-  Serial.print (String (waitForCmd / 1000, DEC)) ;
-  Serial.println (" sec.") ;
-#endif
-  //
-  {
-    //
-    typename rpac::Signal <s>::Hook hook (rpac::Signal <s>::scheme::blinkslow) ;
-    //
-    for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (5)) {
-      //
-      if (!enable) {
-        //
-#ifdef __DEBUG__LOGGER__
-        Serial.println ("[INTERACTIVE] Button has been pressed ...") ;
-#endif
-        //
-        break ;
-        //
-      }
-      //
-      if (Serial.available () > 0) {
-        //
-        int msg = Serial.read () ;
-        //
-        if (msg == 'n') {
-          //
-          enable = false ;
-          //
-          break ;
-          //
-        }
-        //
-      }
-      //
-      rpac::Signal <s>::loop (false) ;
-      rpac::Control <b, s>::loop (rpac::Button <b>::loop (), ccbs) ;
-      //
-    }
-    //
-  }
-  //
-  //  restore control callback (1 x button press)
-  //
-  ccbs.add (fsave, 1) ;
+  enable = e ;
   //
   if (!enable) {
     //
@@ -135,8 +84,6 @@ template <rpac::rpacPin_t p> template<rpac::rpacPin_t b, rpac::rpacPin_t s> void
     //
     for (int i{0} ; instances [i] != nullptr ; instances [i++]->writeHead (Serial)) ;
 #endif
-    //
-    rpac::Signal <s>::blocking (rpac::Signal <s>::scheme::blinkfast, 2000) ;
     //
     mode = 5 ;
     //
@@ -176,20 +123,6 @@ template <rpac::rpacPin_t p> template<rpac::rpacPin_t b, rpac::rpacPin_t s> void
       for (int i{0} ; instances [i] != nullptr ; instances [i++]->writeHead (Serial1)) ;
       //
       Serial1.flush () ;
-      //
-      //  register control callback (4 x button press -> shutdown)
-      //
-      ccbs.add ([](uint8_t) -> uint8_t {
-        //
-#ifdef __DEBUG__LOGGER__
-        Serial.println ("[INFO] rpac::Logger::shutdown () callback ...") ;
-#endif
-        //
-        if (mode == 0) mode = 1 ;
-        //
-        return 0 ;
-        //
-      }, 4) ;
       //
 #ifdef __DEBUG__LOGGER__
       Serial.println ("[INFO] Data logging started.") ;
@@ -303,6 +236,7 @@ template <rpac::rpacPin_t p> bool rpac::Logger <p>::loop (loggerCBs_t & lcbs) {
       Serial.println ("[WARNING] Data logger shutdown state error.") ;
 #endif
       break ;
+      //
   }
   //
   return false ;

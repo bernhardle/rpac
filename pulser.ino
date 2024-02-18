@@ -4,29 +4,65 @@
 #include "global.h"
 #include "pulser.h"
 #include "logger.h"
-#include "signal.h"
-#include "control.h"
 //
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> unsigned long rpac::Pulser<p,s>::change{0} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> unsigned short rpac::Pulser<p,s>::mode{0} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> unsigned short rpac::Pulser<p,s>::cycle{0} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> bool rpac::Pulser<p,s>::pulse{false} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> bool rpac::Pulser<p,s>::automate{true} ;
+template <rpac::rpacPin_t p> unsigned long rpac::Pulser<p>::change{0} ;
+template <rpac::rpacPin_t p> unsigned short rpac::Pulser<p>::mode{0} ;
+template <rpac::rpacPin_t p> unsigned short rpac::Pulser<p>::cycle{0} ;
+template <rpac::rpacPin_t p> bool rpac::Pulser<p>::pulse{false} ;
+template <rpac::rpacPin_t p> bool rpac::Pulser<p>::automate{true} ;
 
 //
 #if 0
 constexpr int vars{1} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned long __on [vars] = {0} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned long __off [vars] = {10000} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned int __cycles [vars] = {1} ;
+template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned long __on [vars]{0} ;
+template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned long __off [vars]{10000} ;
+template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned int __cycles [vars]{1} ;
 #else
 constexpr int vars{6} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned long rpac::Pulser <p,s>::__on [vars]{0, 2000, 3000, 4000, 5000, 6000} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned long rpac::Pulser <p,s>::__off [vars]{10000, 6000, 5000, 4000, 3000, 2500} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned int rpac::Pulser <p,s>::__cycles [vars]{1, 6, 8, 14, 20, 25} ;
+template <rpac::rpacPin_t p> const unsigned long rpac::Pulser <p>::__on [vars]{0, 2000, 3000, 4000, 5000, 6000} ;
+template <rpac::rpacPin_t p> const unsigned long rpac::Pulser <p>::__off [vars]{10000, 6000, 5000, 4000, 3000, 2500} ;
+template <rpac::rpacPin_t p> const unsigned int rpac::Pulser <p>::__cycles [vars]{1, 6, 8, 14, 20, 25} ;
 #endif
 //
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> void rpac::Pulser <p,s>::autox (void) {
+template <rpac::rpacPin_t p> inline void rpac::Pulser <p>::__nextCycle (void) {
+  //
+  if (++ cycle > __cycles [mode]) {
+    //
+    if (mode < vars - 1) {
+      //
+      mode ++ ;
+      cycle = 0 ;
+      //
+#ifdef __DEBUG__PULSER__
+      Serial.print ("[INFO] Switching auto pulse to mode ") ;
+      Serial.print (String(mode, DEC)) ;
+      Serial.print ("/") ;
+      Serial.print (String(vars - 1, DEC)) ;
+      Serial.print (" ... ON = ") ;
+      Serial.print (String(__on [mode], DEC)) ;
+      Serial.print ("ms, OFF = ") ;
+      Serial.print (String(__off [mode], DEC)) ;
+      Serial.print ("ms.") ;
+      Serial.print (", CYCLES = ") ;
+      Serial.println (String (__cycles [mode], DEC)) ;
+#endif
+      //
+    } else {
+      //
+      automate = false ;
+      mode = 0 ;
+      //
+#ifdef __DEBUG__PULSER__
+      Serial.println ("[INFO] Disabeling auto pulse.") ;
+#endif
+      //
+    }
+  //
+  }
+  //
+}
+//
+template <rpac::rpacPin_t p> bool rpac::Pulser <p>::autox (void) {
   //
   if (automate) {
     //
@@ -35,7 +71,7 @@ template <rpac::rpacPin_t p, rpac::rpacPin_t s> void rpac::Pulser <p,s>::autox (
     Serial.println ("[INFO] rpac::Pulser::autox () disabled autopulse") ;
 #endif
     //
-    rpac::Signal <s>::async (rpac::Signal <s>::scheme::blinkfast, 300) ;
+    return false ;
     //
   } else {
     //
@@ -44,17 +80,19 @@ template <rpac::rpacPin_t p, rpac::rpacPin_t s> void rpac::Pulser <p,s>::autox (
     Serial.println ("[INFO] rpac::Pulser::autox () enabled autopulse") ;
 #endif
     //
+    return true ;
+    //
   }
   //
 }
 //
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> void rpac::Pulser <p,s>::autox (bool b) {
+template <rpac::rpacPin_t p> bool rpac::Pulser <p>::autox (bool b) {
   //
-  automate = b ;
+  return (automate = b) ;
   //
 }
 //
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> void rpac::Pulser <p,s>::setup (controlCBs_t & ccbs, loggerCBs_t & lcbs) {
+template <rpac::rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
   //
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   digitalWrite (static_cast <uint8_t> (p), LOW) ;
@@ -62,7 +100,6 @@ template <rpac::rpacPin_t p, rpac::rpacPin_t s> void rpac::Pulser <p,s>::setup (
   String label = String ("Pulse PIN") + String (static_cast<int> (p), DEC) ;
   //
   lcbs.add ([](void) -> unsigned long { return static_cast <unsigned long> (pulse) ; }, label) ;
-  ccbs.add ([](uint8_t) -> uint8_t {autox () ; return 1U; }, 2) ;
   //
   mode = 0 ;
   pulse = false ;
@@ -75,11 +112,11 @@ template <rpac::rpacPin_t p, rpac::rpacPin_t s> void rpac::Pulser <p,s>::setup (
   for (int i = 0 ; i < vars ; i++) {
     //
     Serial.print ("\tMode ") ;
+    Serial.print (", OFF = ") ;
+    Serial.print (String (__off [i], DEC)) ;
     Serial.print (String (i, DEC)) ;
     Serial.print (", ON = ") ;
     Serial.print (String (__on [i], DEC)) ;
-    Serial.print (", OFF = ") ;
-    Serial.print (String (__off [i], DEC)) ;
     Serial.print (", CYCLES = ") ;
     Serial.print (String (__cycles [i], DEC)) ;
     Serial.println (".") ;
@@ -88,7 +125,7 @@ template <rpac::rpacPin_t p, rpac::rpacPin_t s> void rpac::Pulser <p,s>::setup (
 #endif
 }
 //
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> bool rpac::Pulser <p,s>::loop (bool trigger) {
+template <rpac::rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
   //
   if (automate) {
     //
@@ -98,42 +135,13 @@ template <rpac::rpacPin_t p, rpac::rpacPin_t s> bool rpac::Pulser <p,s>::loop (b
       //
       if (myTime > change + __on [mode]) {
         //
+        change = myTime ;
+        //
         digitalWrite (static_cast <uint8_t> (p), LOW) ;
         //
-        change = myTime ;
         pulse = false ;
         //
-        if (++ cycle > __cycles [mode]) {
-          //
-          if (mode < vars - 1) {
-            //
-            mode ++ ;
-            cycle = 0 ;
-            //
-#ifdef __DEBUG__PULSER__
-            Serial.print ("[INFO] Switching auto pulse to mode ") ;
-            Serial.print (String(mode, DEC)) ;
-            Serial.print ("/") ;
-            Serial.print (String(vars - 1, DEC)) ;
-            Serial.print (" ... ON=") ;
-            Serial.print (String(__on [mode], DEC)) ;
-            Serial.print ("ms, OFF=") ;
-            Serial.print (String(__off [mode], DEC)) ;
-            Serial.println ("ms.") ;
-#endif
-            //
-          } else {
-            //
-            automate = false ;
-            mode = 0 ;
-            //
-#ifdef __DEBUG__PULSER__
-            Serial.println ("[INFO] Disabeling auto pulse.") ;
-#endif
-            //
-          }
-          //
-        }
+        __nextCycle () ;
         //
       }
       //
@@ -141,10 +149,23 @@ template <rpac::rpacPin_t p, rpac::rpacPin_t s> bool rpac::Pulser <p,s>::loop (b
       //
       if (myTime > change + __off [mode]) {
         //
-        digitalWrite (static_cast <uint8_t> (p), HIGH) ;
-        //
         change = myTime ;
-        pulse = true ;
+        //
+        //  To manage with 0% modes: __nextCycle () is called at 
+        //  the end of pulse in regular cycles where ratio > 0%
+        //  but needs to be called here in cycles where ratio = 0%
+        //
+        if (0 == __on [mode]) {
+          //
+          __nextCycle () ;
+          //
+        } else {
+          //
+          digitalWrite (static_cast <uint8_t> (p), HIGH) ;
+          //
+          pulse = true ;
+          //
+        }
         //
       }
       //

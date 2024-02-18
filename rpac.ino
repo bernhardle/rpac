@@ -20,12 +20,20 @@
 //
 #ifdef __DEBUG__RPAC__
 const unsigned long loopMaxDura = 12 ;
-unsigned loopCount = 0 ;
 #endif
 //
+using Time = rpac::Time <RTC_PCF8523> ;
+using Flow = rpac::Flow <rpac::Pin::flow> ;
+using Button = rpac::Button <rpac::Pin::button> ;
+using Logger = rpac::Logger <rpac::Pin::logger> ;
+using Pulser = rpac::Pulser <rpac::Pin::pulser> ;
+using Signal = rpac::Signal <rpac::Pin::signal> ;
+using Relais = rpac::Relais <rpac::Pin::relais> ;
+using Control = rpac::Control <rpac::Pin::button> ;
+using Pressure = rpac::Pressure <rpac::Pin::pressure> ;
+//
 loggerCBs_t loggerCallBacks ;
-rpac::controlCBs_t controlCallBacks ;
-rpac::Logger <rpac::Pin::logger> myLog (loggerCallBacks, 100, 3) ;
+Logger myLog (loggerCallBacks, 100, 3) ;
 //
 // the setup function runs once when you press reset or power the board
 //
@@ -33,23 +41,56 @@ void setup() {
   //
   Serial.begin (115200) ;
   //
-  rpac::Signal <rpac::Pin::signal>::setup (controlCallBacks) ;
+  Signal::setup () ;
   //
-  rpac::Time <RTC_PCF8523>::setup (loggerCallBacks) ;
+  Time::setup (loggerCallBacks) ;
   //
-  rpac::Pressure <rpac::Pin::pressure>::setup (loggerCallBacks) ;
+  Pressure::setup (loggerCallBacks) ;
   //
-  rpac::Button <rpac::Pin::button>::setup (loggerCallBacks) ;
+  Button::setup (loggerCallBacks) ;
   //
-  rpac::Control <rpac::Pin::button, rpac::Pin::signal>::setup (loggerCallBacks) ;
+  Control::setup (loggerCallBacks) ;
   //
-  rpac::Pulser<rpac::Pin::pulser, rpac::Pin::signal>::setup (controlCallBacks, loggerCallBacks) ;
+  Pulser::setup (loggerCallBacks) ;
   //
-  rpac::Relais <rpac::Pin::relais>::setup (loggerCallBacks) ;
+  Relais::setup (loggerCallBacks) ;
   //
-  rpac::Flow <rpac::Pin::flow>::setup (controlCallBacks, loggerCallBacks) ;
+  Flow::setup (loggerCallBacks) ;
   //
-  rpac::Logger <rpac::Pin::logger>::setup <rpac::Pin::button, rpac::Pin::signal> (controlCallBacks) ;
+  {
+    typename Signal::Hook hook (Signal::scheme::blinkslow) ;
+    const unsigned int waitForCmd{3000} ;
+    bool enable{true} ;
+    //
+#ifdef __DEBUG__LOGGER__
+    Serial.print ("[INTERACTIVE] To disable logging button within ") ;
+    Serial.print (String (waitForCmd / 1000, DEC)) ;
+    Serial.println (" sec.") ;
+#endif
+    //
+    for (unsigned long mytime = millis () ; mytime + waitForCmd > millis () ; delay (5)) {
+      //
+      Signal::loop (false) ;
+      //
+      if (Control::command (Control::loop (Button::loop (), 1)) == 1) {
+        //
+        enable = false ;
+        //
+#ifdef __DEBUG__LOGGER__
+        Serial.println ("[INTERACTIVE] Button has been pressed ...") ;
+#endif
+        //
+        Signal::blocking (Signal::scheme::blinkfast, 1000) ;
+        //
+        break ;
+        //
+      }
+      //
+    }
+    //
+    Logger::setup (enable) ;
+    //
+  }
   //
 #ifdef __DEBUG__RPAC__
   Serial.println ("[INFO] Setup completed.") ;
@@ -61,24 +102,58 @@ void setup() {
 //
 void loop() {
   //
+  typename Control::ctrl_t control ;
+  //
 #ifdef __DEBUG__RPAC__
   unsigned long loopBegin = millis () ;
 #endif
   //
-  rpac::Pressure <rpac::Pin::pressure>::loop () ;
+  control = Control::loop (Button::loop(), 4U) ;
   //
-  rpac::Relais <rpac::Pin::relais>::loop (rpac::Flow <rpac::Pin::flow>::loop ()) ;
+  switch (Control::command (control)) {
+    //
+    case 1 :
+      //
+      Signal::async (Signal::scheme::blinkfast, 40) ;
+      //
+      break ;
+      //
+    case 2 :
+      //
+      Pulser::autox () ;
+      //
+      break ;
+      //
+    case 3 :
+      //
+      Flow::resox () ;
+      //
+      Signal::async (Signal::scheme::blinkfast, 120) ;
+      //
+      break ;
+      //
+    case 4 :
+      //
+      Logger::shutdown () ;
+      //
+      break ;
+      //
+  }
   //
-  rpac::Logger <rpac::Pin::logger>::loop (loggerCallBacks) ;
+  Pressure::loop () ;
+  //
+  Relais::loop (Flow::loop ()) ;
+  //
+  Logger::loop (loggerCallBacks) ;
   //
 #ifdef __DEBUG__RPAC__
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
 #endif
   //
-  rpac::Signal <rpac::Pin::signal>::loop (rpac::Pulser<rpac::Pin::pulser, rpac::Pin::signal>::loop (rpac::Control <rpac::Pin::button, rpac::Pin::signal>::loop (rpac::Button <rpac::Pin::button>::loop(), controlCallBacks))) ;
+  Signal::loop (Pulser::loop (Control::trigger(control))) ;
   //
 #ifdef ARDUINO_UBLOX_NINA_W10
-  //  Prevent watchdog from firing ...
+  //  Prevent on RTOS watchdog from firing ...
   delay (1) ;
   //
 #endif

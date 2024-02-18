@@ -6,7 +6,6 @@
 //
 #include "global.h"
 #include "logger.h"
-#include "control.h"
 //
 namespace rpac {
     //
@@ -29,8 +28,9 @@ namespace rpac {
         Flow () ;
         //
         public :
-            static void setup (controlCBs_t &, loggerCBs_t &) ;
+            static void setup (loggerCBs_t &) ;
             static bool loop (void) ;
+            static uint8_t resox (void) ;
     } ;
 //
 } ;

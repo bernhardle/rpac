@@ -4,25 +4,33 @@
 #ifndef __control_h_included__
 #define __control_h_included__
 //
-// #include <forward_list>
 #include "global.h"
 //
 namespace rpac {
     //
-    template <rpac::rpacPin_t b, rpac::rpacPin_t s> class Control {
+    template <rpac::rpacPin_t b> class Control {
         //
         //  template params:
-        //  b ... button pin
-        //  s ... signal pin
+        //  b ... button pin (pro forma)
         //
-        static unsigned long controlButtonTimeHigh, controlButtonTimeLow, controlLastCmd ;
-        static unsigned int controlMode, controlCount ;
+        //  __mint ... trigger minimum separation [ms]
+        //  __maxt ... trigger maximum separation [ms]
+        //  __reco ... trigger recover time [ms]
+        //
+        static unsigned long timeHigh, timeLow, lastCmd ;
+        static unsigned int mode, count, minimal, maximal, recover ;
         //
         Control () ;
         //
         public :
-            static void setup (loggerCBs_t &) ;
-            static bool loop (bool, const rpac::controlCBs_t &) ;
+            //
+            typedef uint8_t ctrl_t ;
+            //
+            static void setup (loggerCBs_t &, unsigned int = 350, unsigned int = 50, unsigned int = 500) ;
+            static ctrl_t loop (bool, unsigned int) ;
+            //
+            inline static bool trigger (ctrl_t c) { return c & 0x1 ; }
+            inline static int command (ctrl_t c) { return c >> 1 ; }
     } ;
     //
 } ;

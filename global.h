@@ -38,40 +38,6 @@ namespace rpac {
     //
     typedef rpac::Pin rpacPin_t ;
     //
-    template <int n> class controlCallbacks {
-        private :
-            Array <uint8_t (*)(uint8_t), n> cbs ;
-        public :
-            controlCallbacks (void) ;
-            inline uint8_t (*operator[](int i) const)(uint8_t) {
-                return cbs.at(i) ;
-            }
-            //
-            inline uint8_t (*add (uint8_t (*f)(uint8_t), int i))(uint8_t) {
-                uint8_t (*g)(uint8_t) = cbs.at(i) ;
-                cbs.at(i) = f ;
-                return g ;
-            }
-            //
-            inline int size (void) const {
-                return cbs.size() ;
-            }
-    } ;
-    //
-    typedef controlCallbacks <8> controlCBs_t ;
-    //
-    class Async {
-        //
-        protected :
-            //
-            Async (void) {}
-            //
-        public :
-            virtual ~Async () {}
-            virtual void setup (controlCBs_t &, loggerCBs_t &) = 0 ;
-            virtual bool loop (bool) = 0 ;
-    } ;
-    //
 } ;
 //
 #endif
