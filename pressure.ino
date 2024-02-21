@@ -14,7 +14,7 @@
 //  Scaling term: float (max (dgs - 33, 0)) * float (1.47 * 5.0 / 1024 / 0.9) ;
 //
 //
-template <rpac::rpacPin_t p> void rpac::Pressure <p>::setup (loggerCBs_t & lcbs) {
+template <rpacPin_t p> void rpac::Pressure <p>::setup (loggerCBs_t & lcbs) {
   //
   pinMode (static_cast <uint8_t> (p), INPUT) ;
   //
@@ -22,7 +22,7 @@ template <rpac::rpacPin_t p> void rpac::Pressure <p>::setup (loggerCBs_t & lcbs)
   //
 }
 //
-template <rpac::rpacPin_t p> bool rpac::Pressure <p>::loop (void) {
+template <rpacPin_t p> bool rpac::Pressure <p>::loop (void) {
   //
   //  Dummy routine for the moment. Maybe, we wish to add a
   //  sliding window mean value or the like at a later time.

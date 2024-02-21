@@ -10,11 +10,11 @@ inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r == HIGH ? LOW
 inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r) ; }
 #endif
 //
-template <rpac::rpacPin_t p> unsigned long rpac::Relais <p>::lastTime{0} ;
-template <rpac::rpacPin_t p> bool rpac::Relais <p>::lastTrigger{false} ;
-template <rpac::rpacPin_t p> typename rpac::Relais <p>::state_t rpac::Relais <p>::relais{LOW} ;
+template <rpacPin_t p> unsigned long rpac::Relais <p>::lastTime{0} ;
+template <rpacPin_t p> bool rpac::Relais <p>::lastTrigger{false} ;
+template <rpacPin_t p> typename rpac::Relais <p>::state_t rpac::Relais <p>::relais{LOW} ;
 //
-template <rpac::rpacPin_t p> void rpac::Relais <p>::setup (loggerCBs_t & lcbs) {
+template <rpacPin_t p> void rpac::Relais <p>::setup (loggerCBs_t & lcbs) {
   //
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   //
@@ -24,7 +24,7 @@ template <rpac::rpacPin_t p> void rpac::Relais <p>::setup (loggerCBs_t & lcbs) {
   //
 }
 //
-template <rpac::rpacPin_t p> bool rpac::Relais <p>::loop (bool trigger) {
+template <rpacPin_t p> bool rpac::Relais <p>::loop (bool trigger) {
   //
   if (relais == HIGH) {
     //

@@ -1,10 +1,6 @@
 //
 //  (c) Bernhard Schupp, Frankfurt (2024)
 //
-#ifndef ARDUINO_UBLOX_NINA_W10
-#include <EEPROM.h>
-#endif
-//
 #include <RTClib.h>
 //
 #include "global.h"
@@ -23,17 +19,21 @@ const unsigned long loopMaxDura = 12 ;
 #endif
 //
 using Time = rpac::Time <RTC_PCF8523> ;
-using Flow = rpac::Flow <rpac::Pin::flow> ;
-using Button = rpac::Button <rpac::Pin::button> ;
-using Logger = rpac::Logger <rpac::Pin::logger> ;
-using Pulser = rpac::Pulser <rpac::Pin::pulser> ;
-using Signal = rpac::Signal <rpac::Pin::signal> ;
-using Relais = rpac::Relais <rpac::Pin::relais> ;
-using Control = rpac::Control <rpac::Pin::button> ;
-using Pressure = rpac::Pressure <rpac::Pin::pressure> ;
+using Flow = rpac::Flow <rpacPin_t::flow> ;
+using Button = rpac::Button <rpacPin_t::button> ;
+using Logger = rpac::Logger <10,10> ;
+using Pulser = rpac::Pulser <rpacPin_t::pulser> ;
+using Signal = rpac::Signal <rpacPin_t::signal> ;
+using Relais = rpac::Relais <rpacPin_t::relais> ;
+using Control = rpac::Control <rpacPin_t::button> ;
+using Pressure = rpac::Pressure <rpacPin_t::pressure> ;
 //
 loggerCBs_t loggerCallBacks ;
-Logger myLog (loggerCallBacks, 100, 3) ;
+Logger myLog (loggerCallBacks, 100, 8) ;
+#ifdef __DEBUG__RPAC__
+using Debug = rpac::Logger <11,11> ;
+Debug yourLog (loggerCallBacks, 1000, 8) ;
+#endif
 //
 // the setup function runs once when you press reset or power the board
 //
@@ -58,11 +58,11 @@ void setup() {
   Flow::setup (loggerCallBacks) ;
   //
   {
-    typename Signal::Hook hook (Signal::scheme::blinkslow) ;
+    Signal::Hook hook (Signal::scheme::blinkslow) ;
     const unsigned int waitForCmd{3000} ;
     bool enable{true} ;
     //
-#ifdef __DEBUG__LOGGER__
+#ifdef __DEBUG__RPAC__
     Serial.print ("[INTERACTIVE] To disable logging button within ") ;
     Serial.print (String (waitForCmd / 1000, DEC)) ;
     Serial.println (" sec.") ;
@@ -76,7 +76,7 @@ void setup() {
         //
         enable = false ;
         //
-#ifdef __DEBUG__LOGGER__
+#ifdef __DEBUG__RPAC__
         Serial.println ("[INTERACTIVE] Button has been pressed ...") ;
 #endif
         //
@@ -88,12 +88,16 @@ void setup() {
       //
     }
     //
-    Logger::setup (enable) ;
+    if (enable) Logger::setup (rpacPin_t::logger, Serial1) ;
     //
   }
   //
 #ifdef __DEBUG__RPAC__
+  //
+  Debug::setup (Serial) ;
+  //
   Serial.println ("[INFO] Setup completed.") ;
+  //
 #endif
   //
 }
@@ -102,25 +106,25 @@ void setup() {
 //
 void loop() {
   //
-  typename Control::ctrl_t control ;
-  //
 #ifdef __DEBUG__RPAC__
   unsigned long loopBegin = millis () ;
 #endif
   //
-  control = Control::loop (Button::loop(), 4U) ;
+  Control::ctrl_t control = Control::loop (Button::loop(), 4U) ;
   //
   switch (Control::command (control)) {
     //
     case 1 :
       //
-      Signal::async (Signal::scheme::blinkfast, 40) ;
+      Pulser::autox () ;
+      //
+      Signal::async (Signal::scheme::blinkfast, 100) ;
       //
       break ;
       //
     case 2 :
       //
-      Pulser::autox () ;
+      Signal::async (Signal::scheme::blinkfast, 200) ;
       //
       break ;
       //
@@ -128,13 +132,15 @@ void loop() {
       //
       Flow::resox () ;
       //
-      Signal::async (Signal::scheme::blinkfast, 120) ;
+      Signal::async (Signal::scheme::blinkfast, 300) ;
       //
       break ;
       //
     case 4 :
       //
       Logger::shutdown () ;
+      //
+      Signal::async (Signal::scheme::blinkfast, 400) ;
       //
       break ;
       //
@@ -147,7 +153,11 @@ void loop() {
   Logger::loop (loggerCallBacks) ;
   //
 #ifdef __DEBUG__RPAC__
-  if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Outer loop exceeded " + String (loopMaxDura) + " ms.") ;
+  //
+  Debug::loop (loggerCallBacks) ;
+  //
+  if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Loop exceeded " + String (loopMaxDura) + " ms.") ;
+  //
 #endif
   //
   Signal::loop (Pulser::loop (Control::trigger(control))) ;

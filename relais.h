@@ -8,7 +8,7 @@
 //
 namespace rpac {
 
-    template <rpac::rpacPin_t p> class Relais {
+    template <rpacPin_t p> class Relais {
         //
         typedef decltype (HIGH) state_t ;
         //

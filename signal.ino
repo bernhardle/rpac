@@ -4,17 +4,17 @@
 #include "global.h"
 #include "signal.h"
 //
-template <rpac::rpacPin_t p> const uint16_t rpac::Signal <p>::__sigseq [4]{__pack(0U,100U), __pack (100U,0U), __pack(20U, 20U), __pack (255U,255U)} ;
-template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::timeOut{0} ;
-template <rpac::rpacPin_t p> typename rpac::Signal <p>::status rpac::Signal <p>::modus{status::uninitialized} ;
-template <rpac::rpacPin_t p> typename rpac::Signal <p>::scheme rpac::Signal <p>::pattern{scheme::dark} ;
-template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::end{0} ;
-template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::counter{0} ; 
-template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::head{0} ; 
-template <rpac::rpacPin_t p> unsigned long rpac::Signal <p>::tail{0} ;
-template <rpac::rpacPin_t p> bool rpac::Signal <p>::led{false} ;
+template <rpacPin_t p> const uint16_t rpac::Signal <p>::__sigseq [4]{__pack(0U,100U), __pack (100U,0U), __pack(50U, 50U), __pack (255U,255U)} ;
+template <rpacPin_t p> unsigned long rpac::Signal <p>::timeOut{0} ;
+template <rpacPin_t p> typename rpac::Signal <p>::status rpac::Signal <p>::modus{status::uninitialized} ;
+template <rpacPin_t p> typename rpac::Signal <p>::scheme rpac::Signal <p>::pattern{scheme::dark} ;
+template <rpacPin_t p> unsigned long rpac::Signal <p>::end{0} ;
+template <rpacPin_t p> unsigned long rpac::Signal <p>::counter{0} ; 
+template <rpacPin_t p> unsigned long rpac::Signal <p>::head{0} ; 
+template <rpacPin_t p> unsigned long rpac::Signal <p>::tail{0} ;
+template <rpacPin_t p> bool rpac::Signal <p>::led{false} ;
 //
-template <rpac::rpacPin_t p> void rpac::Signal <p>::switchLED (bool s) {
+template <rpacPin_t p> void rpac::Signal <p>::switchLED (bool s) {
     //
     if (led != s) {
       //
@@ -28,19 +28,19 @@ template <rpac::rpacPin_t p> void rpac::Signal <p>::switchLED (bool s) {
     //
   }
 //
-template <rpac::rpacPin_t p> rpac::Signal <p>::Hook::Hook (Signal<p>::scheme s) {
+template <rpacPin_t p> rpac::Signal <p>::Hook::Hook (Signal<p>::scheme s) {
   //
   async (s, 0) ;
   //
 }
 //
-template <rpac::rpacPin_t p> rpac::Signal <p>::Hook::~Hook () {
+template <rpacPin_t p> rpac::Signal <p>::Hook::~Hook () {
   //
   async (Signal::scheme::dark, 1) ;
   //
 }
 //
-template <rpac::rpacPin_t p> void rpac::Signal <p>::setup (void) {
+template <rpacPin_t p> void rpac::Signal <p>::setup (void) {
   //
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   //
@@ -54,7 +54,7 @@ template <rpac::rpacPin_t p> void rpac::Signal <p>::setup (void) {
   //
 }
 //
-template <rpac::rpacPin_t p> void rpac::Signal <p>::async (scheme schema, unsigned short duration) {
+template <rpacPin_t p> void rpac::Signal <p>::async (scheme schema, unsigned short duration) {
   //
   if (modus == status::uninitialized) {
     //
@@ -71,13 +71,13 @@ template <rpac::rpacPin_t p> void rpac::Signal <p>::async (scheme schema, unsign
   //
 }
 //
-template <rpac::rpacPin_t p> void rpac::Signal <p>::blocking (scheme s, unsigned short n) {
+template <rpacPin_t p> void rpac::Signal <p>::blocking (scheme s, unsigned short n) {
   //
   for (async (s, n) ; modus != status::idle ; loop (false)) ;
   //
 }
 //
-template <rpac::rpacPin_t p> bool rpac::Signal <p>::loop (bool ext) {
+template <rpacPin_t p> bool rpac::Signal <p>::loop (bool ext) {
   //
   unsigned long int myTime = millis () ;
   //
@@ -101,7 +101,7 @@ template <rpac::rpacPin_t p> bool rpac::Signal <p>::loop (bool ext) {
         modus = status::cycle ;
         if (tail > 0) switchLED (false) ;
         //
-        if (myTime > end) {
+        if (timeOut > end) {
           //
           modus = status::idle ;
           //

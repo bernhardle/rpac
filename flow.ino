@@ -5,17 +5,17 @@
 #include "flow.h"
 #include "logger.h"
 //
-template <rpac::rpacPin_t p> const uint8_t rpac::Flow <p>::countsPerUnit [10]{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U} ;
-template <rpac::rpacPin_t p> volatile unsigned long rpac::Flow <p>::total{0} ;
-template <rpac::rpacPin_t p> volatile unsigned short rpac::Flow <p>::counts{0} ; 
-template <rpac::rpacPin_t p> bool rpac::Flow <p>::lowRes{false} ;
-template <rpac::rpacPin_t p> volatile bool rpac::Flow <p>::trigger{false} ;
-template <rpac::rpacPin_t p> unsigned int rpac::Flow <p>::pos{0} ;
+template <rpacPin_t p> const uint8_t rpac::Flow <p>::countsPerUnit [10]{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U} ;
+template <rpacPin_t p> volatile unsigned long rpac::Flow <p>::total{0} ;
+template <rpacPin_t p> volatile unsigned short rpac::Flow <p>::counts{0} ; 
+template <rpacPin_t p> bool rpac::Flow <p>::lowRes{false} ;
+template <rpacPin_t p> volatile bool rpac::Flow <p>::trigger{false} ;
+template <rpacPin_t p> unsigned int rpac::Flow <p>::pos{0} ;
 #ifdef __DEBUG__FLOW__
-template <rpac::rpacPin_t p> volatile bool rpac::Flow <p>::error{false} ;
+template <rpacPin_t p> volatile bool rpac::Flow <p>::error{false} ;
 #endif
 //
-template <rpac::rpacPin_t p> void rpac::Flow <p>::handler (void) {
+template <rpacPin_t p> void rpac::Flow <p>::handler (void) {
   //
   counts ++ ;
   //
@@ -37,7 +37,7 @@ template <rpac::rpacPin_t p> void rpac::Flow <p>::handler (void) {
   //
 }
 //
-template <rpac::rpacPin_t p> uint8_t rpac::Flow <p>::resox (void) {
+template <rpacPin_t p> uint8_t rpac::Flow <p>::resox (void) {
   //
   if (lowRes) {
     //
@@ -61,7 +61,7 @@ template <rpac::rpacPin_t p> uint8_t rpac::Flow <p>::resox (void) {
   //
 }
 //
-template <rpac::rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
+template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   //
   pinMode (static_cast <uint8_t> (p), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
   //
@@ -71,7 +71,7 @@ template <rpac::rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   //
 }
 //
-template <rpac::rpacPin_t p> bool rpac::Flow <p>::loop (void) {
+template <rpacPin_t p> bool rpac::Flow <p>::loop (void) {
   //
   if (trigger) {
     //

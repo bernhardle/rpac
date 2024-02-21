@@ -4,23 +4,23 @@
 #include "button.h"
 #include "logger.h"
 //
-template <rpac::rpacPin_t p> volatile unsigned long int rpac::Button <p>::time{0} ;
-template <rpac::rpacPin_t p> unsigned long int rpac::Button <p>::last{0} ;
-template <rpac::rpacPin_t p> unsigned short int rpac::Button <p>::count{0} ;
+template <rpacPin_t p> volatile unsigned long int rpac::Button <p>::time{0} ;
+template <rpacPin_t p> unsigned long int rpac::Button <p>::last{0} ;
+template <rpacPin_t p> unsigned short int rpac::Button <p>::count{0} ;
         //
 #ifdef __DEBUG__BUTTON__
-template <rpac::rpacPin_t p> bool rpac::Button <p>::check{false} ;
+template <rpacPin_t p> bool rpac::Button <p>::check{false} ;
 #endif
 //
 //  Handles the falling edge interrupt caused by switch closing contacts
 //
-template <rpac::rpacPin_t p> void rpac::Button <p>::handler (void) {
+template <rpacPin_t p> void rpac::Button <p>::handler (void) {
   //
   time = millis () ;
   //
 }
 //
-template <rpac::rpacPin_t p> void rpac::Button <p>::setup (loggerCBs_t & lcbs) {
+template <rpacPin_t p> void rpac::Button <p>::setup (loggerCBs_t & lcbs) {
   //
   pinMode (static_cast<int> (p), INPUT_PULLUP) ;
   //
@@ -32,7 +32,7 @@ template <rpac::rpacPin_t p> void rpac::Button <p>::setup (loggerCBs_t & lcbs) {
   //
 }
 //
-template <rpac::rpacPin_t p> bool rpac::Button <p>::loop (void) {
+template <rpacPin_t p> bool rpac::Button <p>::loop (void) {
   //
   unsigned long myTime = millis () ;
   //

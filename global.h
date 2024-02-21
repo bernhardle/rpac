@@ -20,24 +20,16 @@
 //
 typedef class loggerCBs loggerCBs_t ;
 //
-#ifdef ARDUINO_UBLOX_NINA_W10
-#include <array>
-template <typename A, int n> using Array = std::array <A, n> ;
-using size_t = std::size_t ;
-#else
-#include <Array.h>
-#endif
-//
 namespace rpac {
     //
 #ifdef ARDUINO_UBLOX_NINA_W10
-    enum struct Pin {logger = 15, button = 27, flow = 33, pressure = A0, pulser = 10, relais = LED_RED, signal = LED_BLUE, max = 36U} ;
+    enum struct Pin {none = 0, logger = 15, button = 27, flow = 33, pressure = A0, pulser = 10, relais = LED_RED, signal = LED_BLUE} ;
 #else
-    enum struct Pin {logger = 15, button= 16, flow = 7, pressure = A0, pulser = 10, relais = 2, signal = LED_BUILTIN, max = 16U} ;
+    enum struct Pin {none = 0, logger = 15, button= 16, flow = 7, pressure = A0, pulser = 10, relais = 2, signal = LED_BUILTIN} ;
 #endif
     //
-    typedef rpac::Pin rpacPin_t ;
-    //
 } ;
+//
+typedef rpac::Pin rpacPin_t ;
 //
 #endif

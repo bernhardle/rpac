@@ -28,35 +28,34 @@ class loggerCBs {
 //
 namespace rpac {
   //
-  template <rpac::rpacPin_t p> class Logger {
+  template <int n, int m> class Logger {
     //
-    const static unsigned short loggerRetryDura{3000} ;
+    const static unsigned short __retry {3000} ;
     //
-    static Logger *instances[10] ;
-    static unsigned long loggerShutdownFlushTime ;
+    static decltype(std::ref(Serial)) log ;
+    static Logger *instances [m] ;
+    static unsigned long flushTime ;
     static uint8_t mode ;
     static uint8_t pin ;
-    static bool enable ;
+    // static bool enable ;
     //
     public :
       //
-      static void setup (bool) ;
+      static bool setup (HardwareSerial &) ;
+      static bool setup (rpacPin_t, HardwareSerial &) ;
       static bool loop (loggerCBs_t &) ;
       static void shutdown (void) ;
       //
     private : // non-static
       //
-      unsigned int loggerSampleInterval{100}, loggerSampleOutput{1000}, loggerSampleAdjust{4} ;
+      unsigned int loggerSampleInterval{100}, loggerSampleAdjust{3} ;
       unsigned long int loggerNextSampleTime{0} ;
       loggerCBs_t & callbacks ;
       //
     protected :
       //
-      void writeHead (HardwareSerial &) ;
-      bool writeLog (unsigned long int) ;
-#ifdef __DEBUG__LOGGER__
-      void writeDebug (unsigned long int) ;
-#endif
+      void writeHead (void) ;
+      bool writeLine (unsigned long int) ;
       //
     public :
       //

@@ -5,26 +5,26 @@
 #include "pulser.h"
 #include "logger.h"
 //
-template <rpac::rpacPin_t p> unsigned long rpac::Pulser<p>::change{0} ;
-template <rpac::rpacPin_t p> unsigned short rpac::Pulser<p>::mode{0} ;
-template <rpac::rpacPin_t p> unsigned short rpac::Pulser<p>::cycle{0} ;
-template <rpac::rpacPin_t p> bool rpac::Pulser<p>::pulse{false} ;
-template <rpac::rpacPin_t p> bool rpac::Pulser<p>::automate{true} ;
+template <rpacPin_t p> unsigned long rpac::Pulser<p>::change{0} ;
+template <rpacPin_t p> unsigned short rpac::Pulser<p>::mode{0} ;
+template <rpacPin_t p> unsigned short rpac::Pulser<p>::cycle{0} ;
+template <rpacPin_t p> bool rpac::Pulser<p>::pulse{false} ;
+template <rpacPin_t p> bool rpac::Pulser<p>::automate{true} ;
 
 //
 #if 0
 constexpr int vars{1} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned long __on [vars]{0} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned long __off [vars]{10000} ;
-template <rpac::rpacPin_t p, rpac::rpacPin_t s> const unsigned int __cycles [vars]{1} ;
+template <rpacPin_t p, rpac::rpacPin_t s> const unsigned long __on [vars]{0} ;
+template <rpacPin_t p, rpac::rpacPin_t s> const unsigned long __off [vars]{10000} ;
+template <rpacPin_t p, rpac::rpacPin_t s> const unsigned int __cycles [vars]{1} ;
 #else
 constexpr int vars{6} ;
-template <rpac::rpacPin_t p> const unsigned long rpac::Pulser <p>::__on [vars]{0, 2000, 3000, 4000, 5000, 6000} ;
-template <rpac::rpacPin_t p> const unsigned long rpac::Pulser <p>::__off [vars]{10000, 6000, 5000, 4000, 3000, 2500} ;
-template <rpac::rpacPin_t p> const unsigned int rpac::Pulser <p>::__cycles [vars]{1, 6, 8, 14, 20, 25} ;
+template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__on [vars]{0, 2000, 3000, 4000, 5000, 6000} ;
+template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__off [vars]{10000, 6000, 5000, 4000, 3000, 2500} ;
+template <rpacPin_t p> const unsigned int rpac::Pulser <p>::__cycles [vars]{1, 6, 8, 14, 20, 25} ;
 #endif
 //
-template <rpac::rpacPin_t p> inline void rpac::Pulser <p>::__nextCycle (void) {
+template <rpacPin_t p> inline void rpac::Pulser <p>::__nextCycle (void) {
   //
   if (++ cycle > __cycles [mode]) {
     //
@@ -62,7 +62,7 @@ template <rpac::rpacPin_t p> inline void rpac::Pulser <p>::__nextCycle (void) {
   //
 }
 //
-template <rpac::rpacPin_t p> bool rpac::Pulser <p>::autox (void) {
+template <rpacPin_t p> bool rpac::Pulser <p>::autox (void) {
   //
   if (automate) {
     //
@@ -86,13 +86,13 @@ template <rpac::rpacPin_t p> bool rpac::Pulser <p>::autox (void) {
   //
 }
 //
-template <rpac::rpacPin_t p> bool rpac::Pulser <p>::autox (bool b) {
+template <rpacPin_t p> bool rpac::Pulser <p>::autox (bool b) {
   //
   return (automate = b) ;
   //
 }
 //
-template <rpac::rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
+template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
   //
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   digitalWrite (static_cast <uint8_t> (p), LOW) ;
@@ -125,7 +125,7 @@ template <rpac::rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
 #endif
 }
 //
-template <rpac::rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
+template <rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
   //
   if (automate) {
     //
