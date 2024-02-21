@@ -6,11 +6,11 @@
 #include "global.h"
 #include "logger.h"
 //
-template <int n, int m> decltype(std::ref(Serial)) rpac::Logger <n,m>::log {std::ref(Serial)} ;
-template <int n, int m> rpac::Logger <n,m> * rpac::Logger <n,m>::instances [m] {nullptr} ;
-template <int n, int m> unsigned long rpac::Logger <n,m>::flushTime {0U} ;
-template <int n, int m> uint8_t rpac::Logger <n,m>::mode {5U} ;
-template <int n, int m> uint8_t rpac::Logger <n,m>::pin {static_cast <uint8_t> (rpacPin_t::none)} ;
+template <int n> decltype(std::ref(Serial)) rpac::Logger <n>::log {std::ref(Serial)} ;
+template <int n> rpac::Logger <n> * rpac::Logger <n>::instances [n] {nullptr} ;
+template <int n> unsigned long rpac::Logger <n>::flushTime {0U} ;
+template <int n> uint8_t rpac::Logger <n>::mode {5U} ;
+template <int n> uint8_t rpac::Logger <n>::pin {static_cast <uint8_t> (rpacPin_t::none)} ;
 //
 bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
   //
@@ -60,7 +60,7 @@ const char * loggerCBs::headRow (void) {
   return row ;
 }
 //
-template <int n, int m> void rpac::Logger <n,m>::shutdown (void) {
+template <int n> void rpac::Logger <n>::shutdown (void) {
   //
 #ifdef __DEBUG__LOGGER__
   Serial.println ("[INFO] rpac::Logger::shutdown () ...") ;
@@ -70,7 +70,7 @@ template <int n, int m> void rpac::Logger <n,m>::shutdown (void) {
   //
 }
 //
-template <int n, int m> bool rpac::Logger <n,m>::setup (HardwareSerial & s) {
+template <int n> bool rpac::Logger <n>::setup (HardwareSerial & s) {
   //
   log = std::ref(s) ;
   //
@@ -90,7 +90,7 @@ template <int n, int m> bool rpac::Logger <n,m>::setup (HardwareSerial & s) {
   //
 }
 //
-template <int n, int m> bool rpac::Logger <n,m>::setup (rpacPin_t p, HardwareSerial & s) {
+template <int n> bool rpac::Logger <n>::setup (rpacPin_t p, HardwareSerial & s) {
   //
   log = std::ref(s) ;
   //
@@ -165,7 +165,7 @@ template <int n, int m> bool rpac::Logger <n,m>::setup (rpacPin_t p, HardwareSer
   //
 }
 //
-template <int n, int m> bool rpac::Logger <n,m>::loop (loggerCBs_t & lcbs) {
+template <int n> bool rpac::Logger <n>::loop (loggerCBs_t & lcbs) {
   //
   unsigned long myTime = millis () ;
   //
@@ -253,19 +253,19 @@ template <int n, int m> bool rpac::Logger <n,m>::loop (loggerCBs_t & lcbs) {
   //
 }
 //
-template <int n, int m> rpac::Logger <n,m>::Logger (loggerCBs_t & l, unsigned int a, unsigned int b) : callbacks (l), loggerSampleInterval{a}, loggerSampleAdjust{b} {
+template <int n> rpac::Logger <n>::Logger (loggerCBs_t & l, unsigned int a, unsigned int b) : callbacks (l), loggerSampleInterval{a}, loggerSampleAdjust{b} {
   //
   for (int i {0}; instances [i] != nullptr ? true : (instances [i] = this , false) ; i++ ) ;
   //
 }
 //
-template <int n, int m> void rpac::Logger <n,m>::writeHead (void) {
+template <int n> void rpac::Logger <n>::writeHead (void) {
   //
   log.get().println (callbacks.headRow ()) ;
   //
 }
 //
-template <int n, int m> bool rpac::Logger <n,m>::writeLine (unsigned long int myTime) {
+template <int n> bool rpac::Logger <n>::writeLine (unsigned long int myTime) {
   //
   while (myTime > loggerNextSampleTime) loggerNextSampleTime += loggerSampleInterval ;
   //

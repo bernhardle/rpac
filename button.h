@@ -10,7 +10,7 @@ namespace rpac {
     //
     template <rpacPin_t p> class Button {
         //
-        static volatile unsigned long  time ;
+        static volatile unsigned long time ;
         static unsigned long last ;
         static unsigned short count ;
         //
@@ -18,7 +18,7 @@ namespace rpac {
         static bool check ;
 #endif
         //
-        static inline bool BUTTONSTATE(const unsigned short int & i) { return i > 7 ? true : false ; }
+        static inline bool BUTTONSTATE(const unsigned short & i) { return i > 7 ? true : false ; }
         //
         static void handler (void) ;
         static unsigned long data (void) ;

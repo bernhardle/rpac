@@ -15,24 +15,24 @@
 #include "time.h"
 //
 #ifdef __DEBUG__RPAC__
-const unsigned long loopMaxDura = 12 ;
+const unsigned long loopMaxDura {12} ;
 #endif
 //
 using Time = rpac::Time <RTC_PCF8523> ;
 using Flow = rpac::Flow <rpacPin_t::flow> ;
 using Button = rpac::Button <rpacPin_t::button> ;
-using Logger = rpac::Logger <10,10> ;
+using Logger = rpac::Logger <10> ;
 using Pulser = rpac::Pulser <rpacPin_t::pulser> ;
 using Signal = rpac::Signal <rpacPin_t::signal> ;
 using Relais = rpac::Relais <rpacPin_t::relais> ;
 using Control = rpac::Control <rpacPin_t::button> ;
 using Pressure = rpac::Pressure <rpacPin_t::pressure> ;
 //
-loggerCBs_t loggerCallBacks ;
-Logger myLog (loggerCallBacks, 100, 8) ;
+loggerCBs_t callBacks ;
+Logger myLog (callBacks, 100, 8) ;
 #ifdef __DEBUG__RPAC__
-using Debug = rpac::Logger <11,11> ;
-Debug yourLog (loggerCallBacks, 1000, 8) ;
+using Debug = rpac::Logger <2> ;
+Debug yourLog (callBacks, 1000, 8) ;
 #endif
 //
 // the setup function runs once when you press reset or power the board
@@ -43,24 +43,24 @@ void setup() {
   //
   Signal::setup () ;
   //
-  Time::setup (loggerCallBacks) ;
+  Time::setup (callBacks) ;
   //
-  Pressure::setup (loggerCallBacks) ;
+  Pressure::setup (callBacks) ;
   //
-  Button::setup (loggerCallBacks) ;
+  Button::setup (callBacks) ;
   //
-  Control::setup (loggerCallBacks) ;
+  Control::setup (callBacks) ;
   //
-  Pulser::setup (loggerCallBacks) ;
+  Pulser::setup (callBacks) ;
   //
-  Relais::setup (loggerCallBacks) ;
+  Relais::setup (callBacks) ;
   //
-  Flow::setup (loggerCallBacks) ;
+  Flow::setup (callBacks) ;
   //
   {
     Signal::Hook hook (Signal::scheme::blinkslow) ;
-    const unsigned int waitForCmd{3000} ;
-    bool enable{true} ;
+    const unsigned int waitForCmd {3000} ;
+    bool enable {true} ;
     //
 #ifdef __DEBUG__RPAC__
     Serial.print ("[INTERACTIVE] To disable logging button within ") ;
@@ -150,11 +150,11 @@ void loop() {
   //
   Relais::loop (Flow::loop ()) ;
   //
-  Logger::loop (loggerCallBacks) ;
+  Logger::loop (callBacks) ;
   //
 #ifdef __DEBUG__RPAC__
   //
-  Debug::loop (loggerCallBacks) ;
+  Debug::loop (callBacks) ;
   //
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Loop exceeded " + String (loopMaxDura) + " ms.") ;
   //

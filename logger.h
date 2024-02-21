@@ -14,7 +14,7 @@ class loggerCBs {
     //
     char row [rowl]{0} ;
     unsigned int num{0} ;
-    unsigned long (*cb[mcbs])(void) ;
+    unsigned long (*cb[mcbs])(void){nullptr} ;
     char hd [mcbs][mhdl + 1]{0} ;
     //
   public :
@@ -28,16 +28,15 @@ class loggerCBs {
 //
 namespace rpac {
   //
-  template <int n, int m> class Logger {
+  template <int n> class Logger {
     //
     const static unsigned short __retry {3000} ;
     //
     static decltype(std::ref(Serial)) log ;
-    static Logger *instances [m] ;
+    static Logger *instances [n] ;
     static unsigned long flushTime ;
     static uint8_t mode ;
     static uint8_t pin ;
-    // static bool enable ;
     //
     public :
       //

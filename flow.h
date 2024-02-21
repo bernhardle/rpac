@@ -11,7 +11,7 @@ namespace rpac {
     //
     template <rpacPin_t p> class Flow {
         //
-        const static uint8_t countsPerUnitSize = 10 ;
+        const static uint8_t countsPerUnitSize {10} ;
         const static uint8_t countsPerUnit [countsPerUnitSize] ;
         //
         static void handler (void) ;
@@ -30,7 +30,7 @@ namespace rpac {
         public :
             static void setup (loggerCBs_t &) ;
             static bool loop (void) ;
-            static uint8_t resox (void) ;
+            static bool resox (void) ;
     } ;
 //
 } ;

@@ -4,9 +4,9 @@
 #include "button.h"
 #include "logger.h"
 //
-template <rpacPin_t p> volatile unsigned long int rpac::Button <p>::time{0} ;
-template <rpacPin_t p> unsigned long int rpac::Button <p>::last{0} ;
-template <rpacPin_t p> unsigned short int rpac::Button <p>::count{0} ;
+template <rpacPin_t p> volatile unsigned long int rpac::Button <p>::time {0} ;
+template <rpacPin_t p> unsigned long int rpac::Button <p>::last {0} ;
+template <rpacPin_t p> unsigned short int rpac::Button <p>::count {0} ;
         //
 #ifdef __DEBUG__BUTTON__
 template <rpacPin_t p> bool rpac::Button <p>::check{false} ;
@@ -34,11 +34,11 @@ template <rpacPin_t p> void rpac::Button <p>::setup (loggerCBs_t & lcbs) {
 //
 template <rpacPin_t p> bool rpac::Button <p>::loop (void) {
   //
-  unsigned long myTime = millis () ;
+  unsigned long myTime {millis ()} ;
   //
   if (myTime > time + 20) {
     //
-    count = digitalRead (static_cast<int>(p)) ? max (count - 1, 0) : min (count + 1, 15) ;
+    count = digitalRead (static_cast <int> (p)) ? max (count - 1, 0) : min (count + 1, 16) ;
     //
   } 
   //

@@ -37,7 +37,7 @@ template <rpacPin_t p> void rpac::Flow <p>::handler (void) {
   //
 }
 //
-template <rpacPin_t p> uint8_t rpac::Flow <p>::resox (void) {
+template <rpacPin_t p> bool rpac::Flow <p>::resox (void) {
   //
   if (lowRes) {
     //
@@ -46,7 +46,7 @@ template <rpacPin_t p> uint8_t rpac::Flow <p>::resox (void) {
 #ifdef __DEBUG__FLOW__
     Serial.println ("[INFO] flowControlCB () switched to high resolution 1:10") ;
 #endif
-    return 1U ;
+    return true ;
     //
   } else {
     //
@@ -55,7 +55,7 @@ template <rpacPin_t p> uint8_t rpac::Flow <p>::resox (void) {
 #ifdef __DEBUG__FLOW__
     Serial.println ("[INFO] flowControlCB () switched to low resolution 1:1") ;
 #endif
-    return 0U ;
+    return false ;
     //
   }
   //

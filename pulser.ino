@@ -21,7 +21,7 @@ template <rpacPin_t p, rpac::rpacPin_t s> const unsigned int __cycles [vars]{1} 
 constexpr int vars{6} ;
 template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__on [vars]{0, 2000, 3000, 4000, 5000, 6000} ;
 template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__off [vars]{10000, 6000, 5000, 4000, 3000, 2500} ;
-template <rpacPin_t p> const unsigned int rpac::Pulser <p>::__cycles [vars]{1, 6, 8, 14, 20, 25} ;
+template <rpacPin_t p> const unsigned int rpac::Pulser <p>::__cycles [vars]{1, 8, 12, 16, 20, 30} ;
 #endif
 //
 template <rpacPin_t p> inline void rpac::Pulser <p>::__nextCycle (void) {

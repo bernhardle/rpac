@@ -12,7 +12,7 @@ namespace rpac {
         //
         typedef decltype (HIGH) state_t ;
         //
-        const static unsigned int __holdDura{100} ;
+        const static unsigned int __holdDura {100} ;
         //
         static unsigned long lastTime ;
         static bool lastTrigger ;
