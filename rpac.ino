@@ -37,7 +37,7 @@ Debug yourLog (callBacks, 1000, 8) ;
 //
 // the setup function runs once when you press reset or power the board
 //
-void setup() {
+void setup () {
   //
   Serial.begin (115200) ;
   //
@@ -104,7 +104,7 @@ void setup() {
 //
 // the loop function runs over and over again forever
 //
-void loop() {
+void loop () {
   //
 #ifdef __DEBUG__RPAC__
   unsigned long loopBegin = millis () ;

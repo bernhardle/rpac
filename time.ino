@@ -43,9 +43,9 @@ template <class T> void rpac::Time <T>::setup (loggerCBs_t & lcbs) {
   //
   bias = millis () ;
   //
-  sprintf (stamp, "%04lu-%02lu-%02lu %02lu:%02lu:%02lu [%08lu]",now.year(), now.month(), now.day(), now.hour(), now.minute (), now.second (), bias) ;
+  sprintf (stamp, "%04lu-%02lu-%02lu %02lu:%02lu:%02lu [%08lu]", now.year(), now.month(), now.day(), now.hour(), now.minute (), now.second (), bias) ;
   //
-  lcbs.add ([]() -> unsigned long { return millis () - bias ; }, String(stamp)) ;
+  lcbs.add ([]() -> unsigned long { return millis () - bias ; }, String (stamp)) ;
   //
 }
 //
