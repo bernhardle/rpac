@@ -24,24 +24,27 @@ class loggerCBs {
     const char * headRow (void) ;
     inline unsigned long (*operator [](int i) const)(void) { return cb [i] ; }
   //
-} ;
+} ; 
 //
 namespace rpac {
   //
-  template <int n> class Logger {
+  template <class A, int n> class SerialLogger {
+    //
+    typedef A serial_t ;
     //
     const static unsigned short __retry {3000} ;
     //
-    static decltype(std::ref(Serial)) log ;
-    static Logger *instances [n] ;
+    // static byte space [sizeof (std::reference_wrapper <A>)] ;
+    static std::reference_wrapper <A> * log ;
+    static SerialLogger *instances [n] ;
     static unsigned long flushTime ;
     static uint8_t mode ;
     static uint8_t pin ;
     //
     public :
       //
-      static bool setup (HardwareSerial &) ;
-      static bool setup (rpacPin_t, HardwareSerial &) ;
+      static bool setup (serial_t &) ;
+      static bool setup (rpacPin_t, serial_t &) ;
       static bool loop (loggerCBs_t &) ;
       static void shutdown (void) ;
       //
@@ -58,9 +61,10 @@ namespace rpac {
       //
     public :
       //
-      Logger (loggerCBs_t &, unsigned int a = 100, unsigned int b = 4) ;
+      SerialLogger (loggerCBs_t &, unsigned int a = 100, unsigned int b = 4) ;
       //
   } ;
   //
 } ;
+//
 #endif

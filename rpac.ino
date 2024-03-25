@@ -20,8 +20,11 @@ const unsigned long loopMaxDura {12} ;
 //
 using Time = rpac::Time <RTC_PCF8523> ;
 using Flow = rpac::Flow <rpacPin_t::flow> ;
+using Logger = rpac::SerialLogger <decltype(Serial1), 10> ;
+#ifdef __DEBUG__RPAC__
+using Debug = rpac::SerialLogger <decltype (Serial), 5> ;
+#endif
 using Button = rpac::Button <rpacPin_t::button> ;
-using Logger = rpac::Logger <10> ;
 using Pulser = rpac::Pulser <rpacPin_t::pulser> ;
 using Signal = rpac::Signal <rpacPin_t::signal> ;
 using Relais = rpac::Relais <rpacPin_t::relais> ;
@@ -29,17 +32,16 @@ using Control = rpac::Control <rpacPin_t::button> ;
 using Pressure = rpac::Pressure <rpacPin_t::pressure> ;
 //
 loggerCBs_t callBacks ;
-Logger myLog (callBacks, 100, 8) ;
-#ifdef __DEBUG__RPAC__
-using Debug = rpac::Logger <2> ;
-Debug yourLog (callBacks, 1000, 8) ;
-#endif
 //
 // the setup function runs once when you press reset or power the board
 //
 void setup () {
   //
   Serial.begin (115200) ;
+  //
+#if defined(__DEBUG__RPAC__) && defined(ARDUINO_SEEED_XIAO_RP2040)
+  while (!Serial) ;
+#endif
   //
   Signal::setup () ;
   //
@@ -59,7 +61,7 @@ void setup () {
   //
   {
     Signal::Hook hook (Signal::scheme::blinkslow) ;
-    const unsigned int waitForCmd {3000} ;
+    const unsigned int waitForCmd {4000} ;
     bool enable {true} ;
     //
 #ifdef __DEBUG__RPAC__

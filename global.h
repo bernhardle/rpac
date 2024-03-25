@@ -22,9 +22,11 @@ typedef class loggerCBs loggerCBs_t ;
 //
 namespace rpac {
     //
-#ifdef ARDUINO_UBLOX_NINA_W10
+#if defined(ARDUINO_UBLOX_NINA_W10) 
     enum struct Pin {none = 0, logger = 15, button = 27, flow = 33, pressure = A0, pulser = 10, relais = LED_RED, signal = LED_BLUE} ;
-#else
+#elif defined(ARDUINO_SEEED_XIAO_RP2040)
+    enum struct Pin {none = 0u, logger = 2u, button = 3u, flow = 4u, pressure = 29u, pulser = 27u, relais = PIN_LED_G, signal = LED_BUILTIN} ;
+#else 
     enum struct Pin {none = 0, logger = 15, button= 16, flow = 7, pressure = A0, pulser = 10, relais = 2, signal = LED_BUILTIN} ;
 #endif
     //

@@ -8,7 +8,7 @@
 template <rpacPin_t p> const uint8_t rpac::Flow <p>::countsPerUnit [10]{12U,11U,12U,11U,12U,11U,12U,11U,12U,12U} ;
 template <rpacPin_t p> volatile unsigned long rpac::Flow <p>::total{0} ;
 template <rpacPin_t p> volatile unsigned short rpac::Flow <p>::counts{0} ; 
-template <rpacPin_t p> bool rpac::Flow <p>::lowRes{false} ;
+template <rpacPin_t p> bool rpac::Flow <p>::lowRes{true} ;
 template <rpacPin_t p> volatile bool rpac::Flow <p>::trigger{false} ;
 template <rpacPin_t p> unsigned int rpac::Flow <p>::pos{0} ;
 #ifdef __DEBUG__FLOW__

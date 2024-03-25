@@ -9,7 +9,7 @@ template <rpacPin_t p> unsigned long rpac::Pulser<p>::change{0} ;
 template <rpacPin_t p> unsigned short rpac::Pulser<p>::mode{0} ;
 template <rpacPin_t p> unsigned short rpac::Pulser<p>::cycle{0} ;
 template <rpacPin_t p> bool rpac::Pulser<p>::pulse{false} ;
-template <rpacPin_t p> bool rpac::Pulser<p>::automate{true} ;
+template <rpacPin_t p> bool rpac::Pulser<p>::automate{false} ;
 
 //
 #if 0

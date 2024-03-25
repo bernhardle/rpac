@@ -4,15 +4,15 @@
 #include "relais.h"
 #include "logger.h"
 //
-#ifdef ARDUINO_UBLOX_NINA_W10
+#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040)
 inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r == HIGH ? LOW : HIGH) ; }
 #else
 inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r) ; }
 #endif
 //
-template <rpacPin_t p> unsigned long rpac::Relais <p>::lastTime{0} ;
-template <rpacPin_t p> bool rpac::Relais <p>::lastTrigger{false} ;
-template <rpacPin_t p> typename rpac::Relais <p>::state_t rpac::Relais <p>::relais{LOW} ;
+template <rpacPin_t p> unsigned long rpac::Relais <p>::lastTime {0} ;
+template <rpacPin_t p> bool rpac::Relais <p>::lastTrigger {false} ;
+template <rpacPin_t p> typename rpac::Relais <p>::state_t rpac::Relais <p>::relais {LOW} ;
 //
 template <rpacPin_t p> void rpac::Relais <p>::setup (loggerCBs_t & lcbs) {
   //
