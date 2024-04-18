@@ -10,7 +10,7 @@
 //
 namespace rpac {
     //
-    template <int n> class FlashLogger : public Logger <n> {
+    class FlashLogger : public Logger {
         //
         private :
             //
@@ -31,7 +31,7 @@ namespace rpac {
             //
             FlashLogger (loggerCBs_t &, unsigned int = 100, unsigned int = 4) ;
             //
-            static bool loop () { return Logger <n>::loop () ; }
+            static bool loop () { return Logger::loop () ; }
             //
     } ;
     //

@@ -23,17 +23,16 @@ using Time = rpac::Time <RTC_PCF8523> ;
 using Flow = rpac::Flow <rpacPin_t::flow> ;
 //
 #if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
-using Logger = rpac::FlashLogger <10> ;
+using Logger = rpac::FlashLogger ;
 #elif defined(ARDUINO_AVR_NANO_EVERY)
-using Logger = rpac::OpenLogSerialLogger <10> ;
+using Logger = rpac::OpenLogSerialLogger ;
 #else
-using Logger = rpac::SerialLogger <5, decltype (Serial)> ;
+using Logger = rpac::SerialLogger <decltype (Serial)> ;
 #endif
 Logger * dataLog = nullptr ;
 //
 #ifdef __DEBUG__RPAC__
-using Debug = rpac::SerialLogger <5, decltype (Serial)> ;
-Debug * dbgLog = nullptr ;
+using Debug = rpac::SerialLogger <decltype (Serial)> ;
 #endif
 using Button = rpac::Button <rpacPin_t::button> ;
 using Pulser = rpac::Pulser <rpacPin_t::pulser> ;
@@ -105,7 +104,7 @@ void setup () {
     //
     if (enable) {
       //
-      dataLog = new Logger (callBacks, Serial1) ;
+      dataLog = new Logger (callBacks, Serial) ;
       //  Logger::setup (callBacks, Serial1) ;
       // 
     }
@@ -115,8 +114,8 @@ void setup () {
 #ifdef __DEBUG__RPAC__
   //
   {
-      dbgLog = new Debug (callBacks, Serial, 1000, 4) ;
-      // Debug::setup (callBacks, Serial, 1000, 4) ;
+      // dbgLog = new Debug (callBacks, Serial, 1000, 4) ;
+      Debug::setup (callBacks, Serial, 1000, 4) ;
   }
   //
   Serial.println ("[INFO] Setup completed.") ;
@@ -133,7 +132,7 @@ void loop () {
   unsigned long loopBegin = millis () ;
 #endif
   //
-  Control::ctrl_t control = Control::loop (Button::loop(), 4U) ;
+  Control::ctrl_t control = Control::loop (Button::loop (), 4U) ;
   //
   switch (Control::command (control)) {
     //
@@ -147,13 +146,13 @@ void loop () {
       //
     case 2 :
       //
+      Flow::resox () ;
+      //
       Signal::async (Signal::scheme::blinkfast, 200) ;
       //
       break ;
       //
     case 3 :
-      //
-      Flow::resox () ;
       //
       Signal::async (Signal::scheme::blinkfast, 300) ;
       //
@@ -183,7 +182,7 @@ void loop () {
   //
 #endif
   //
-  Signal::loop (Pulser::loop (Control::trigger(control))) ;
+  Signal::loop (Pulser::loop (Control::trigger (control))) ;
   //
 #ifdef ARDUINO_UBLOX_NINA_W10
   //  Prevent on RTOS watchdog from firing ...

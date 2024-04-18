@@ -28,11 +28,11 @@ class loggerCBs {
 //
 namespace rpac {
   //
-  template <int n> class Logger {
+  class Logger {
     //
     protected :
       //
-      static Logger *instances [n] ;
+      static Logger * instances [] ;
       loggerCBs_t & callbacks ;
       //
       Logger (loggerCBs_t & c) : callbacks(c) {}
@@ -49,7 +49,7 @@ namespace rpac {
       //
   } ;
 
-  template <int n, class A = HardwareSerial> class SerialLogger : public Logger <n> {
+  template <class A = HardwareSerial> class SerialLogger : public Logger {
     //
     protected :
       //
@@ -62,6 +62,8 @@ namespace rpac {
       unsigned int loggerSampleInterval {100}, loggerSampleAdjust {3} ;
       unsigned long int loggerNextSampleTime {0} ;
       //
+      static bool initialized ;
+      //
     protected :
       //
       bool loop (unsigned long int) ;
@@ -73,13 +75,28 @@ namespace rpac {
       //
       typedef A serial_t ;
       //
-      static bool loop () { return Logger <n>::loop () ; }
+      static bool loop () { return Logger::loop () ; }
+      static void setup (loggerCBs_t & c, serial_t & s, unsigned int a = 100, unsigned int b = 4) {
+        //
+        if (!initialized) {
+          //
+          if (new SerialLogger (c, s, a, b)) {
+            //
+            initialized = true ;
+            //
+          }
+          //
+        }
+        //
+      }
       //
-      SerialLogger (loggerCBs_t &, serial_t &, unsigned int a = 100, unsigned int b = 4) ;
+    protected :
+      //
+      SerialLogger (loggerCBs_t &, serial_t &, unsigned int = 100, unsigned int = 4) ;
       //
   } ;
   //
-  template <int n> class OpenLogSerialLogger : public SerialLogger <n> {
+  class OpenLogSerialLogger : public SerialLogger <HardwareSerial> {
     //
     static const unsigned long int __retry {3000} ;
     //
@@ -87,9 +104,10 @@ namespace rpac {
     //
     public :
       //
-      typedef typename SerialLogger <n>::serial_t serial_t ;
+      typedef typename SerialLogger::serial_t serial_t ;
       //
-      static bool loop () { return Logger <n>::loop () ; }
+      static bool loop () { return Logger::loop () ; }
+      static void setup (loggerCBs_t &, serial_t &, rpacPin_t = rpac::Pin::logger, unsigned int a = 100, unsigned int b = 4) ;
       //
     public :
       //

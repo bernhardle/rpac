@@ -7,9 +7,9 @@
 #include <LittleFS.h>
 #include <EEPROM.h>
 //
-template <int n> bool rpac::FlashLogger <n>::enable {false} ;
+bool rpac::FlashLogger::enable {false} ;
 //
-template <int n> void rpac::FlashLogger <n>::listFolder (const String & folder) {
+void rpac::FlashLogger::listFolder (const String & folder) {
   //
   Dir d = LittleFS.openDir (folder.c_str()) ;
   //
@@ -25,7 +25,7 @@ template <int n> void rpac::FlashLogger <n>::listFolder (const String & folder) 
   //
 }
 //
-template <int n> bool rpac::FlashLogger <n>::loop (unsigned long int myTime) {
+bool rpac::FlashLogger::loop (unsigned long int myTime) {
   //
   switch (mode) {
     //
@@ -60,11 +60,11 @@ template <int n> bool rpac::FlashLogger <n>::loop (unsigned long int myTime) {
   //
 }
 //
-template <int n> void rpac::FlashLogger <n>::writeHead (void) { }
+void rpac::FlashLogger::writeHead (void) { }
 //
-template <int n> bool rpac::FlashLogger <n>::writeLine (unsigned long int) { return true ; }
+bool rpac::FlashLogger::writeLine (unsigned long int) { return true ; }
 //
-template <int n> rpac::FlashLogger <n>::FlashLogger (loggerCBs_t & c, unsigned int a, unsigned int b) : Logger <n> (c) {
+rpac::FlashLogger::FlashLogger (loggerCBs_t & c, unsigned int a, unsigned int b) : Logger (c) {
     //
     EEPROM.begin (64) ;
     //
