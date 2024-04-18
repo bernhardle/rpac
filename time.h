@@ -11,7 +11,7 @@ class DateTime ;
 namespace rpac {
     //
     template <class T> class Time {
-#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040)
+#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
         static_assert(std::is_base_of<RTC_I2C,T>::value, "[ERROR] RTC driver class must be derived from RTC_I2C") ;
 #endif
         static T rtc ;

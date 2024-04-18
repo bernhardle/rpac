@@ -11,6 +11,7 @@
 #include "pressure.h"
 #include "relais.h"
 #include "logger.h"
+#include "fslogger.h"
 #include "signal.h"
 #include "time.h"
 //
@@ -20,9 +21,19 @@ const unsigned long loopMaxDura {12} ;
 //
 using Time = rpac::Time <RTC_PCF8523> ;
 using Flow = rpac::Flow <rpacPin_t::flow> ;
-using Logger = rpac::SerialLogger <decltype(Serial1), 10> ;
+//
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
+using Logger = rpac::FlashLogger <10> ;
+#elif defined(ARDUINO_AVR_NANO_EVERY)
+using Logger = rpac::OpenLogSerialLogger <10> ;
+#else
+using Logger = rpac::SerialLogger <5, decltype (Serial)> ;
+#endif
+Logger * dataLog = nullptr ;
+//
 #ifdef __DEBUG__RPAC__
-using Debug = rpac::SerialLogger <decltype (Serial), 5> ;
+using Debug = rpac::SerialLogger <5, decltype (Serial)> ;
+Debug * dbgLog = nullptr ;
 #endif
 using Button = rpac::Button <rpacPin_t::button> ;
 using Pulser = rpac::Pulser <rpacPin_t::pulser> ;
@@ -39,8 +50,10 @@ void setup () {
   //
   Serial.begin (115200) ;
   //
-#if defined(__DEBUG__RPAC__) && defined(ARDUINO_SEEED_XIAO_RP2040)
-  while (!Serial) ;
+#if defined(__DEBUG__RPAC__) && (defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040))
+  for (unsigned long mytime = millis () ; mytime + 10000u > millis () ; delay (100)) {
+    if (Serial) break ;
+  }
 #endif
   //
   Signal::setup () ;
@@ -62,7 +75,7 @@ void setup () {
   {
     Signal::Hook hook (Signal::scheme::blinkslow) ;
     const unsigned int waitForCmd {4000} ;
-    bool enable {true} ;
+    bool enable {__LOG_BY_DEFAULT__} ;
     //
 #ifdef __DEBUG__RPAC__
     Serial.print ("[INTERACTIVE] To disable logging button within ") ;
@@ -76,7 +89,7 @@ void setup () {
       //
       if (Control::command (Control::loop (Button::loop (), 1)) == 1) {
         //
-        enable = false ;
+        enable = enable ? false : true ;
         //
 #ifdef __DEBUG__RPAC__
         Serial.println ("[INTERACTIVE] Button has been pressed ...") ;
@@ -90,13 +103,21 @@ void setup () {
       //
     }
     //
-    if (enable) Logger::setup (rpacPin_t::logger, Serial1) ;
+    if (enable) {
+      //
+      dataLog = new Logger (callBacks, Serial1) ;
+      //  Logger::setup (callBacks, Serial1) ;
+      // 
+    }
     //
   }
   //
 #ifdef __DEBUG__RPAC__
   //
-  Debug::setup (Serial) ;
+  {
+      dbgLog = new Debug (callBacks, Serial, 1000, 4) ;
+      // Debug::setup (callBacks, Serial, 1000, 4) ;
+  }
   //
   Serial.println ("[INFO] Setup completed.") ;
   //
@@ -140,7 +161,7 @@ void loop () {
       //
     case 4 :
       //
-      Logger::shutdown () ;
+      // Logger::shutdown () ;
       //
       Signal::async (Signal::scheme::blinkfast, 400) ;
       //
@@ -152,11 +173,11 @@ void loop () {
   //
   Relais::loop (Flow::loop ()) ;
   //
-  Logger::loop (callBacks) ;
+  Logger::loop () ;
+  //
+  Debug::loop () ;
   //
 #ifdef __DEBUG__RPAC__
-  //
-  Debug::loop (callBacks) ;
   //
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Loop exceeded " + String (loopMaxDura) + " ms.") ;
   //

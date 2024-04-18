@@ -28,40 +28,72 @@ class loggerCBs {
 //
 namespace rpac {
   //
-  template <class A, int n> class SerialLogger {
+  template <int n> class Logger {
     //
-    typedef A serial_t ;
-    //
-    const static unsigned short __retry {3000} ;
-    //
-    // static byte space [sizeof (std::reference_wrapper <A>)] ;
-    static std::reference_wrapper <A> * log ;
-    static SerialLogger *instances [n] ;
-    static unsigned long flushTime ;
-    static uint8_t mode ;
-    static uint8_t pin ;
-    //
+    protected :
+      //
+      static Logger *instances [n] ;
+      loggerCBs_t & callbacks ;
+      //
+      Logger (loggerCBs_t & c) : callbacks(c) {}
+      //
+    public:
+      //
+      virtual bool loop (unsigned long int) = 0 ;
+      virtual void writeHead (void) = 0 ;
+      virtual bool writeLine (unsigned long int) = 0 ;
+      //
     public :
       //
-      static bool setup (serial_t &) ;
-      static bool setup (rpacPin_t, serial_t &) ;
-      static bool loop (loggerCBs_t &) ;
-      static void shutdown (void) ;
+      static bool loop () ;
+      //
+  } ;
+
+  template <int n, class A = HardwareSerial> class SerialLogger : public Logger <n> {
+    //
+    protected :
+      //
+      A & log ;
+      unsigned long flushTime {500} ;
+      uint8_t mode {5u} ;
       //
     private : // non-static
       //
-      unsigned int loggerSampleInterval{100}, loggerSampleAdjust{3} ;
-      unsigned long int loggerNextSampleTime{0} ;
-      loggerCBs_t & callbacks ;
+      unsigned int loggerSampleInterval {100}, loggerSampleAdjust {3} ;
+      unsigned long int loggerNextSampleTime {0} ;
       //
     protected :
       //
+      bool loop (unsigned long int) ;
       void writeHead (void) ;
       bool writeLine (unsigned long int) ;
+      void shutdown (void) ;
       //
     public :
       //
-      SerialLogger (loggerCBs_t &, unsigned int a = 100, unsigned int b = 4) ;
+      typedef A serial_t ;
+      //
+      static bool loop () { return Logger <n>::loop () ; }
+      //
+      SerialLogger (loggerCBs_t &, serial_t &, unsigned int a = 100, unsigned int b = 4) ;
+      //
+  } ;
+  //
+  template <int n> class OpenLogSerialLogger : public SerialLogger <n> {
+    //
+    static const unsigned long int __retry {3000} ;
+    //
+    uint8_t pin {static_cast <uint8_t> (rpac::Pin::none)} ;
+    //
+    public :
+      //
+      typedef typename SerialLogger <n>::serial_t serial_t ;
+      //
+      static bool loop () { return Logger <n>::loop () ; }
+      //
+    public :
+      //
+      OpenLogSerialLogger (loggerCBs_t &, serial_t &, rpacPin_t = rpac::Pin::logger, unsigned int a = 100, unsigned int b = 4) ;
       //
   } ;
   //

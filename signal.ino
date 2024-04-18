@@ -30,17 +30,24 @@ template <rpacPin_t p> void rpac::Signal <p>::switchLED (bool s) {
       digitalWrite (static_cast <uint8_t> (p), (led = s)) ;
 #endif
       //
-#if defined(ARDUINO_SEEED_XIAO_RP2040)
+
       if (led) {
+        //
+#if defined(ARDUINO_SEEED_XIAO_RP2040)
         pixels.setPixelColor (0, pixels.Color (245, 185, 0)) ;
         pixels.show () ;
         pixels.clear () ;
+#endif
+        //
       } else {
+        //
+#if defined(ARDUINO_SEEED_XIAO_RP2040)
         pixels.setPixelColor (0, pixels.Color (5, 5, 5)) ;
         pixels.show () ;
         pixels.clear () ;
-      }
 #endif
+        //
+      }
       //
     }
     //
