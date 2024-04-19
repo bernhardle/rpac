@@ -10,16 +10,16 @@
 #define __switchControlMode(a)  (mode = a)
 #endif
 //
-template <rpacPin_t b> unsigned long rpac::Control <b>::timeHigh {0} ;
-template <rpacPin_t b> unsigned long rpac::Control <b>::timeLow {0} ;
-template <rpacPin_t b> unsigned long rpac::Control <b>::lastCmd {0} ;
-template <rpacPin_t b> unsigned int rpac::Control <b>::mode {0} ;
-template <rpacPin_t b> unsigned int rpac::Control <b>::count {0} ;
-template <rpacPin_t b> unsigned int rpac::Control <b>::minimal {50} ;
-template <rpacPin_t b> unsigned int rpac::Control <b>::maximal {350} ; 
-template <rpacPin_t b> unsigned int rpac::Control <b>::recover {500} ; 
+unsigned long rpac::Control::timeHigh {0} ;
+unsigned long rpac::Control::timeLow {0} ;
+unsigned long rpac::Control::lastCmd {0} ;
+unsigned int rpac::Control::mode {0} ;
+unsigned int rpac::Control::count {0} ;
+unsigned int rpac::Control::minimal {50} ;
+unsigned int rpac::Control::maximal {350} ; 
+unsigned int rpac::Control::recover {500} ; 
 //
-template <rpacPin_t b> void rpac::Control <b>::setup (loggerCBs_t & lcbs, unsigned int max, unsigned int min, unsigned int rec) {
+void rpac::Control::setup (loggerCBs_t & lcbs, unsigned int max, unsigned int min, unsigned int rec) {
     //
     mode = 0 ;
     timeHigh = 0 ;
@@ -30,11 +30,11 @@ template <rpacPin_t b> void rpac::Control <b>::setup (loggerCBs_t & lcbs, unsign
       lastCmd = 0x0UL ;
       return static_cast <unsigned short> (r) ;
       //
-    }, String ("Control PIN") + String (static_cast <int> (b), DEC)) ;
+    }, String ("Control")) ;
     //
 }
 //
-template <rpacPin_t b> typename rpac::Control<b>::ctrl_t rpac::Control <b>::loop (const bool button, unsigned int maxi) {
+rpac::Control::ctrl_t rpac::Control::loop (const bool button, unsigned int maxi) {
     //
     unsigned long myTime {millis ()} ;
     //

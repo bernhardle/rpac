@@ -8,7 +8,7 @@
 //
 namespace rpac {
     //
-    template <rpacPin_t b> class Control {
+    class Control {
         //
         //  template params:
         //  b ... button pin (pro forma)
