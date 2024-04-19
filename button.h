@@ -12,7 +12,7 @@ namespace rpac {
         //
         static volatile unsigned long time ;
         static unsigned long last ;
-        static unsigned short count ;
+        static signed short count ;
         //
 #ifdef __DEBUG__BUTTON__
         static bool check ;

@@ -6,10 +6,10 @@
 //
 template <rpacPin_t p> volatile unsigned long int rpac::Button <p>::time {0} ;
 template <rpacPin_t p> unsigned long int rpac::Button <p>::last {0} ;
-template <rpacPin_t p> unsigned short int rpac::Button <p>::count {0} ;
+template <rpacPin_t p> signed short int rpac::Button <p>::count {0} ;
         //
 #ifdef __DEBUG__BUTTON__
-template <rpacPin_t p> bool rpac::Button <p>::check{false} ;
+template <rpacPin_t p> bool rpac::Button <p>::check {false} ;
 #endif
 //
 //  Handles the falling edge interrupt caused by switch closing contacts

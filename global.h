@@ -31,7 +31,7 @@ namespace rpac {
 #elif defined(ARDUINO_ARCH_RP2040)
     enum struct Pin {none = 0u, logger = 2u, button = D12, flow = D20, pressure = A0, pulser = D11, relais = D8, signal = LED_BUILTIN} ;
 #else 
-    enum struct Pin {none = 0u, logger = 15u, button= 16u, flow = 7u, pressure = A0, pulser = 10, relais = 2u, signal = LED_BUILTIN} ;
+    enum struct Pin {none = 0u, logger = 15u, button= 16u, flow = 7u, pressure = A0, pulser = 10u, relais = 2u, signal = LED_BUILTIN} ;
 #endif
     //
 } ;
