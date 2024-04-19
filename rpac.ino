@@ -22,18 +22,18 @@ const unsigned long loopMaxDura {12} ;
 using Time = rpac::Time <RTC_PCF8523> ;
 using Flow = rpac::Flow <rpacPin_t::flow> ;
 //
-#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
-using Logger = rpac::FlashLogger ;
-#elif defined(ARDUINO_AVR_NANO_EVERY)
-using Logger = rpac::OpenLogSerialLogger ;
+#if defined(ARDUINO_SEEED_XIAO_RP2040)
+using Data = rpac::FlashLogger ;
+#elif defined(ARDUINO_AVR_NANO_EVERY) || defined(ARDUINO_ARCH_RP2040)
+using Data = rpac::OpenLogSerialLogger ;
 #else
-using Logger = rpac::SerialLogger <decltype (Serial)> ;
+using Data = rpac::SerialLogger <decltype (Serial)> ;
 #endif
-Logger * dataLog = nullptr ;
 //
 #ifdef __DEBUG__RPAC__
 using Debug = rpac::SerialLogger <decltype (Serial)> ;
 #endif
+using Logger = rpac::Logger ;
 using Button = rpac::Button <rpacPin_t::button> ;
 using Pulser = rpac::Pulser <rpacPin_t::pulser> ;
 using Signal = rpac::Signal <rpacPin_t::signal> ;
@@ -104,8 +104,7 @@ void setup () {
     //
     if (enable) {
       //
-      // dataLog = new Logger (callBacks, Serial) ;
-      Logger::setup (callBacks, Serial1) ;
+      Data::setup (callBacks, Serial1) ;
       // 
     }
     //
@@ -114,7 +113,6 @@ void setup () {
 #ifdef __DEBUG__RPAC__
   //
   {
-      // dbgLog = new Debug (callBacks, Serial, 1000, 4) ;
       Debug::setup (callBacks, Serial, 1000, 4) ;
   }
   //
@@ -160,7 +158,7 @@ void loop () {
       //
     case 4 :
       //
-      // Logger::shutdown () ;
+      Data::stop () ;
       //
       Signal::async (Signal::scheme::blinkfast, 400) ;
       //
@@ -174,8 +172,6 @@ void loop () {
   //
   Logger::loop () ;
   //
-  Debug::loop () ;
-  //
 #ifdef __DEBUG__RPAC__
   //
   if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Loop exceeded " + String (loopMaxDura) + " ms.") ;
@@ -185,7 +181,7 @@ void loop () {
   Signal::loop (Pulser::loop (Control::trigger (control))) ;
   //
 #ifdef ARDUINO_UBLOX_NINA_W10
-  //  Prevent on RTOS watchdog from firing ...
+  //  Prevent on RTOS operating systems the default watchdog from firing ...
   delay (1) ;
   //
 #endif

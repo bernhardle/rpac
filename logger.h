@@ -20,8 +20,8 @@ class loggerCBs {
   public :
     loggerCBs () : num {0} {}
     bool add (unsigned long (*)(void), const String &) ;
-    const char * logRow (void) ;
-    const char * headRow (void) ;
+    const char * data (void) ;
+    const char * head (void) ;
     inline unsigned long (*operator [](int i) const)(void) { return cb [i] ; }
   //
 } ; 
@@ -33,73 +33,89 @@ namespace rpac {
     protected :
       //
       static Logger * instances [] ;
-      loggerCBs_t & callbacks ;
       //
-      Logger (loggerCBs_t & c) : callbacks(c) {}
-      //
-    public:
-      //
-      virtual bool loop (unsigned long int) = 0 ;
-      virtual void writeHead (void) = 0 ;
-      virtual bool writeLine (unsigned long int) = 0 ;
+      static void stop () {}
       //
     public :
       //
       static bool loop () ;
       //
-  } ;
-
-  template <class A = HardwareSerial> class SerialLogger : public Logger {
-    //
-    protected :
-      //
-      A & log ;
-      unsigned long flushTime {500} ;
-      uint8_t mode {5u} ;
-      //
     private : // non-static
       //
-      unsigned int loggerSampleInterval {100}, loggerSampleAdjust {3} ;
-      unsigned long int loggerNextSampleTime {0} ;
+      loggerCBs_t & callbacks ;
       //
+      virtual operator bool () const = 0 ;
+      //
+    protected : // non-static
+      //
+      Logger (loggerCBs_t &) ;
+      virtual bool loop (unsigned long int) = 0 ;
+      inline const char * headLine () { return callbacks.head () ; }
+      inline const char * dataLine () { return callbacks.data () ; }
+      virtual void shutdown () {}
+      //
+  } ;
+  //
+  template <class A = HardwareSerial> class SerialLogger : public Logger {
+      //
+    private :
+      //
+      static SerialLogger <A> * instance ;
       static bool initialized ;
-      //
-    protected :
-      //
-      bool loop (unsigned long int) ;
-      void writeHead (void) ;
-      bool writeLine (unsigned long int) ;
-      void shutdown (void) ;
       //
     public :
       //
       typedef A serial_t ;
       //
-      static bool loop () { return Logger::loop () ; }
       static void setup (loggerCBs_t &, serial_t &, unsigned int = 100, unsigned int = 4) ;
+      static void stop (void) { if (instance != nullptr) instance->shutdown () ; }
       //
-    protected :
+    private : // non-static
+      //
+      unsigned int loggerSampleInterval {100}, loggerSampleAdjust {3} ;
+      unsigned long int loggerNextSampleTime {0} ;
+      uint8_t mode {5u} ;
+      //
+    protected : // non-static
+      //
+      A & log ;
+      unsigned long flushTime {500} ;
       //
       SerialLogger (loggerCBs_t &, serial_t &, unsigned int = 100, unsigned int = 4) ;
+      bool loop (unsigned long int) ;
+      void shutdown (void) ;
+      operator bool () const { return mode == 0u ; }
       //
   } ;
   //
-  class OpenLogSerialLogger : public SerialLogger <HardwareSerial> {
-    //
-    static const unsigned long int __retry {3000} ;
-    //
-    uint8_t pin {static_cast <uint8_t> (rpac::Pin::none)} ;
-    //
+  class OpenLogSerialLogger {
+      //
+    private :
+      //
+      static const unsigned long int __retry {3000} ;
+      static OpenLogSerialLogger * instance ;
+      static bool initialized ;
+      //
     public :
       //
-      typedef typename SerialLogger::serial_t serial_t ;
+      typedef typename SerialLogger <HardwareSerial>::serial_t serial_t ;
       //
-      static bool loop () { return Logger::loop () ; }
-      static void setup (loggerCBs_t &, serial_t &, rpacPin_t = rpac::Pin::logger, unsigned int a = 100, unsigned int b = 4) ;
+      static void setup (loggerCBs_t &, serial_t &, rpacPin_t = rpac::Pin::logger, unsigned int = 100, unsigned int = 4) ;
+      static void stop (void) ;
       //
-    protected :
+    private : // non-static
       //
-      OpenLogSerialLogger (loggerCBs_t &, serial_t &, rpacPin_t = rpac::Pin::logger, unsigned int a = 100, unsigned int b = 4) ;
+      uint8_t pin {static_cast <uint8_t> (rpac::Pin::none)} ;
+      SerialLogger <HardwareSerial> * serial {nullptr} ;
+      uint8_t mode {5u} ;
+      //
+      operator bool () { return mode == 0u ; } 
+      //
+    protected : // non-static
+      //
+      OpenLogSerialLogger (loggerCBs_t &, serial_t &, rpacPin_t, unsigned int, unsigned int) ;
+      bool loop (unsigned long int) ;
+      void shutdown (void) ;
       //
   } ;
   //

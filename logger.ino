@@ -7,7 +7,10 @@
 #include "logger.h"
 //
 rpac::Logger * rpac::Logger::instances [64] {nullptr} ;
+template <class A> rpac::SerialLogger <A> * rpac::SerialLogger <A>::instance {nullptr} ;
 template <class A> bool rpac::SerialLogger <A>::initialized {false} ;
+rpac::OpenLogSerialLogger * rpac::OpenLogSerialLogger::instance {nullptr} ;
+bool rpac::OpenLogSerialLogger::initialized {false} ;
 //
 bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
   //
@@ -31,7 +34,7 @@ bool loggerCBs::add (unsigned long (*f)(void), const String & h) {
 //
 }
 //
-const char * loggerCBs::logRow (void) {
+const char * loggerCBs::data (void) {
   //
   char * pos = row ;
   //
@@ -44,7 +47,7 @@ const char * loggerCBs::logRow (void) {
   return row ;
 }
 //
-const char * loggerCBs::headRow (void) {
+const char * loggerCBs::head (void) {
   //
   char * pos = row ;
   //
@@ -57,16 +60,11 @@ const char * loggerCBs::headRow (void) {
   return row ;
 }
 //
-template <class A> void rpac::SerialLogger <A>::shutdown (void) {
+rpac::Logger::Logger (loggerCBs_t & c) : callbacks(c) {
   //
-#ifdef __DEBUG__LOGGER__
-  Serial.println ("[INFO] rpac::Logger::shutdown () ...") ;
-#endif
-  //
-  if (mode == 0) mode = 1 ;
+  for (int i {0}; instances [i] != nullptr ? true : (instances [i] = this , false) ; i++ ) ; 
   //
 }
-//
 //
 bool rpac::Logger::loop () {
   //
@@ -84,7 +82,9 @@ template <class A> void rpac::SerialLogger <A>::setup (loggerCBs_t & c, serial_t
   //
   if (!initialized) {
     //
-    if (new SerialLogger <A> (c, s, a, b)) {
+    instance = new SerialLogger <A> (c, s, a, b) ;
+    //
+    if (*instance) {
       //
       initialized = true ;
       //
@@ -94,18 +94,38 @@ template <class A> void rpac::SerialLogger <A>::setup (loggerCBs_t & c, serial_t
   //
 }
 //
+template <class A> void rpac::SerialLogger <A>::shutdown (void) {
+  //
+#ifdef __DEBUG__LOGGER__
+  Serial.println ("[INFO] rpac::SeriaLogger::shutdown () ...") ;
+#endif
+  //
+  if (mode == 0) mode = 1 ;
+  //
+}
+//
 template <class A> bool rpac::SerialLogger <A>::loop (unsigned long myTime) {
   //
   switch (mode) {
     //
     case 0 :
       //
-      return writeLine (myTime) ;
+      while (myTime > loggerNextSampleTime) loggerNextSampleTime += loggerSampleInterval ;
+      //
+      if (myTime < loggerNextSampleTime - loggerSampleAdjust) { return false ; }
+      //
+      delay (loggerNextSampleTime - myTime) ;
+      //
+      loggerNextSampleTime += loggerSampleInterval ;
+      //
+      log.println (Logger::dataLine ()) ;
+      //
+      return true ;
       //
     case 1 :
       //
 #ifdef __DEBUG__LOGGER__
-      Serial.println ("[INFO] Logger shutdown - flushing serial connection") ;
+      Serial.println ("[INFO] Shutdown - flushing serial connection") ;
 #endif
       log.println ("*** end of data log file ***") ;
       log.flush () ;
@@ -138,8 +158,6 @@ template <class A> bool rpac::SerialLogger <A>::loop (unsigned long myTime) {
 #ifdef __DEBUG__LOGGER__
         Serial.println ("[INFO] Logger shutdown - switching off logger device.") ;
 #endif
-        //
-// ***        digitalWrite (pin, LOW) ;
         //
         mode = 4 ;
         //
@@ -178,11 +196,10 @@ template <class A> rpac::SerialLogger <A>::SerialLogger (::loggerCBs_t & c, seri
     //
     mode = 0 ;
     //
-    for (int i {0}; Logger::instances [i] != nullptr ? true : (Logger::instances [i] = this , false) ; i++ ) ;
-    //
 #ifdef __DEBUG__LOGGER__
-      Serial.println ("[INFO] Data logging to serial port started.") ;
+    Serial.println ("[INFO] Data logging to serial port started.") ;
 #endif
+    log.println (Logger::headLine ()) ;
     //
   } else {
     //
@@ -194,7 +211,33 @@ template <class A> rpac::SerialLogger <A>::SerialLogger (::loggerCBs_t & c, seri
   //
 }
 //
-rpac::OpenLogSerialLogger::OpenLogSerialLogger (::loggerCBs_t & l, serial_t & s, rpacPin_t p, unsigned int a, unsigned int b) : SerialLogger <HardwareSerial> (l, s, a, b) {
+void rpac::OpenLogSerialLogger::setup (loggerCBs_t & c, serial_t & s, rpacPin_t p, unsigned int a, unsigned int b) {
+  //
+  if (!initialized) {
+    //
+    instance = new OpenLogSerialLogger (c, s, p, a, b) ;
+    //
+    if (*instance) {
+      //
+      initialized = true ;
+      //
+    }
+    //
+  }
+  //
+}
+//
+void rpac::OpenLogSerialLogger::stop (void) { 
+  //
+#ifdef __DEBUG__LOGGER__
+  Serial.println ("[INFO] OpenLog data logging stop initiated ...") ;
+#endif
+  //
+  if (instance != nullptr) instance->shutdown () ;
+  //
+}
+//
+rpac::OpenLogSerialLogger::OpenLogSerialLogger (::loggerCBs_t & l, serial_t & s, rpacPin_t p, unsigned int a, unsigned int b) {
   //
   pinMode (pin = static_cast <uint8_t> (p), OUTPUT) ;
   digitalWrite (pin, LOW) ;
@@ -203,7 +246,7 @@ rpac::OpenLogSerialLogger::OpenLogSerialLogger (::loggerCBs_t & l, serial_t & s,
   //  Allow the logger to boot before opening
   //  serial connection and awaiting response.
   //
-  SerialLogger <HardwareSerial>::log.begin (57600) ;
+  s.begin (57600) ;
   //
   delay (100) ;
   //
@@ -213,34 +256,30 @@ rpac::OpenLogSerialLogger::OpenLogSerialLogger (::loggerCBs_t & l, serial_t & s,
   //
   for (unsigned long start = millis (), now = start ; now < start + __retry; now = millis ()) {
     //
-    if (SerialLogger <HardwareSerial>::log.available ()) break ;
+    if (s.available ()) break ;
     //
     delay (100) ;
     //
   }
   //
-  if (SerialLogger <HardwareSerial>::log.available ()) {
+  if (s.available ()) {
     //
-    String msg = SerialLogger <HardwareSerial>::log.readString () ;
+    String msg = s.readString () ;
     //
     msg.trim () ;
     //
     if (msg.indexOf ("2<") != -1) {
       //
-      SerialLogger <HardwareSerial>::mode = 0 ;
-      //
-      for (int i{0} ; Logger::instances [i] != nullptr ; Logger::instances [i++]->writeHead ()) ;
-      //
-      SerialLogger <HardwareSerial>::log.flush () ;
+      SerialLogger <HardwareSerial> ::setup (l, s, a, b) ;
       //
 #ifdef __DEBUG__LOGGER__
-      Serial.println ("[INFO] Data logging started.") ;
+      Serial.println ("[INFO] OpenLog data logging started.") ;
 #endif
       //
     } else {
       //
 #ifdef __DEBUG__LOGGER__
-      Serial.println ("[WARNING] Logger unit reported error: " + msg) ;
+      Serial.println ("[WARNING] OpenLog data logger reported error: " + msg) ;
 #endif
       //
     }
@@ -248,39 +287,28 @@ rpac::OpenLogSerialLogger::OpenLogSerialLogger (::loggerCBs_t & l, serial_t & s,
   } else {
     //
 #ifdef __DEBUG__LOGGER__
-    Serial.println ("[WARNING] Logger unit not responing.") ;
+    Serial.println ("[ERROR] OpenLog data logger not responing.") ;
 #endif
     //
   }
   //
 #ifdef __DEBUG__LOGGER__
-  Serial.println ("[WARNING] Start of data logging failed. Powering off.") ;
+  Serial.println ("[ERROR] Start of data logging failed. Powering off OpenLog data logger.") ;
 #endif
   //
   digitalWrite (pin, LOW) ;
   //
-  SerialLogger <HardwareSerial>::log.end () ;
+  s.end () ;
   //
 }
 //
-template <class A> void rpac::SerialLogger <A>::writeHead (void) {
+void rpac::OpenLogSerialLogger::shutdown (void) {
   //
-  log.println (Logger::callbacks.headRow ()) ;
-  //
-}
-//
-template <class A> bool rpac::SerialLogger <A>::writeLine (unsigned long int myTime) {
-  //
-  while (myTime > loggerNextSampleTime) loggerNextSampleTime += loggerSampleInterval ;
-  //
-  if (myTime < loggerNextSampleTime - loggerSampleAdjust) { return false ; }
-  //
-  delay (loggerNextSampleTime - myTime) ;
-  //
-  loggerNextSampleTime += loggerSampleInterval ;
-  //
-  log.println (Logger::callbacks.logRow ()) ;
-  //
-  return true ;
+#ifdef __DEBUG__LOGGER__
+    Serial.println ("[INFO] OpenLog data logger shutdown.") ;
+#endif
+  SerialLogger <HardwareSerial>::stop () ;
+  // ***        digitalWrite (pin, LOW) ;
   //
 }
+
