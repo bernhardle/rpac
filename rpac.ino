@@ -38,7 +38,7 @@ using Button = rpac::Button <rpacPin_t::button> ;
 using Pulser = rpac::Pulser <rpacPin_t::pulser> ;
 using Signal = rpac::Signal <rpacPin_t::signal> ;
 using Relais = rpac::Relais <rpacPin_t::relais> ;
-using Control = rpac::Control <rpacPin_t::button> ;
+using Control = rpac::Control ;
 using Pressure = rpac::Pressure <rpacPin_t::pressure> ;
 //
 loggerCBs_t callBacks ;
@@ -104,8 +104,8 @@ void setup () {
     //
     if (enable) {
       //
-      dataLog = new Logger (callBacks, Serial) ;
-      //  Logger::setup (callBacks, Serial1) ;
+      // dataLog = new Logger (callBacks, Serial) ;
+      Logger::setup (callBacks, Serial1) ;
       // 
     }
     //

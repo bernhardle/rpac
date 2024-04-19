@@ -76,19 +76,7 @@ namespace rpac {
       typedef A serial_t ;
       //
       static bool loop () { return Logger::loop () ; }
-      static void setup (loggerCBs_t & c, serial_t & s, unsigned int a = 100, unsigned int b = 4) {
-        //
-        if (!initialized) {
-          //
-          if (new SerialLogger (c, s, a, b)) {
-            //
-            initialized = true ;
-            //
-          }
-          //
-        }
-        //
-      }
+      static void setup (loggerCBs_t &, serial_t &, unsigned int = 100, unsigned int = 4) ;
       //
     protected :
       //
@@ -109,7 +97,7 @@ namespace rpac {
       static bool loop () { return Logger::loop () ; }
       static void setup (loggerCBs_t &, serial_t &, rpacPin_t = rpac::Pin::logger, unsigned int a = 100, unsigned int b = 4) ;
       //
-    public :
+    protected :
       //
       OpenLogSerialLogger (loggerCBs_t &, serial_t &, rpacPin_t = rpac::Pin::logger, unsigned int a = 100, unsigned int b = 4) ;
       //

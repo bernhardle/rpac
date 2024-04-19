@@ -80,6 +80,20 @@ bool rpac::Logger::loop () {
   //
 }
 //
+template <class A> void rpac::SerialLogger <A>::setup (loggerCBs_t & c, serial_t & s, unsigned int a, unsigned int b) {
+  //
+  if (!initialized) {
+    //
+    if (new SerialLogger <A> (c, s, a, b)) {
+      //
+      initialized = true ;
+      //
+    }
+    //
+  }
+  //
+}
+//
 template <class A> bool rpac::SerialLogger <A>::loop (unsigned long myTime) {
   //
   switch (mode) {
