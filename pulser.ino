@@ -1,6 +1,19 @@
 //
 //  (c) Bernhard Schupp, Frankfurt (2024)
 //
+#if defined(ARDUINO_AVR_NANO_EVERY)
+//
+#include "megaAVR_PWM.h"
+// Pins tested OK in Nano Every ATmega4809
+#define pinToUse      3              // TimerB1, for higher frequencies, up to 100KHz
+//#define pinToUse      6            // TimerB0, for higher frequencies, up to 100KHz
+//
+megaAVR_PWM* PWM_Instance;
+//
+float frequency {1000.0} ;
+float dutyCycle {.0} ;
+#endif
+//
 #include "global.h"
 #include "pulser.h"
 #include "logger.h"
@@ -94,8 +107,12 @@ template <rpacPin_t p> bool rpac::Pulser <p>::autox (bool b) {
 //
 template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
   //
+#if defined(ARDUINO_AVR_NANO_EVERY)
+  PWM_Instance = new megaAVR_PWM (static_cast <uint8_t> (p), 20000, 0) ;
+#else
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   digitalWrite (static_cast <uint8_t> (p), LOW) ;
+#endif
   //
   String label = String ("Pulse PIN") + String (static_cast<int> (p), DEC) ;
   //
