@@ -22,9 +22,9 @@ const unsigned long loopMaxDura {12} ;
 using Time = rpac::Time <RTC_PCF8523> ;
 using Flow = rpac::Flow <rpacPin_t::flow> ;
 //
-#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
+#if defined(ARDUINO_SEEED_XIAO_RP2040) 
 using Data = rpac::FlashLogger ;
-#elif defined(ARDUINO_AVR_NANO_EVERY) 
+#elif defined(ARDUINO_AVR_NANO_EVERY) || defined(ARDUINO_ARCH_RP2040)
 using Data = rpac::OpenLogSerialLogger ;
 #else
 using Data = rpac::SerialLogger <decltype (Serial)> ;
@@ -113,7 +113,7 @@ void setup () {
 #ifdef __DEBUG__RPAC__
   //
   {
-      Debug::setup (callBacks, Serial, 5000, 4) ;
+      Debug::setup (callBacks, Serial, 1000, 4) ;
   }
   //
   Serial.println ("[INFO] Setup completed.") ;

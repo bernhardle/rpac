@@ -106,6 +106,12 @@ rpac::FlashLogger::FlashLogger (loggerCBs_t & c, unsigned int a, unsigned int b)
     //
     // for (int i = 0 ; i < 64 ; EEPROM.write (i++, 0x0)) ;
     //
+    if (0x0 == EEPROM.read (0x0)) {
+      //
+      Serial.println (LittleFS.format() ? (EEPROM.write (0x0,0x1), "[INFO] Flash memory formatted.") : "[ERROR] Flash memory format failed.") ;
+      //
+    }
+    //
     enable = LittleFS.begin () ;
     //
     if (enable) {
@@ -150,9 +156,11 @@ void rpac::FlashLogger::setup (loggerCBs_t & c, unsigned int a, unsigned int b) 
       //
       initialized = true ;
       //
+      Serial.println ("[INFO] Data logging to flash memory started.") ;
+      //
     } else {
       //
-      Serial.println ("[ERROR] FlashLogger initialization failed.") ;
+      Serial.println ("[ERROR] FlashLogger::setup() failed.") ;
       //
     }
     //

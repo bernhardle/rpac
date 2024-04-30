@@ -24,7 +24,6 @@ namespace rpac {
         public :
             //
             static void setup (loggerCBs_t &) ;
-            // inline static const char * start (void) { return stamp ; }
     } ;
     //
 } ;

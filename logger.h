@@ -52,7 +52,7 @@ namespace rpac {
       virtual bool loop (unsigned long int) = 0 ;
       inline const char * headLine () { return callbacks.head () ; }
       inline const char * dataLine () { return callbacks.data () ; }
-      virtual void shutdown () {}
+      virtual void shutdown () = 0 ;
       //
   } ;
   //
@@ -67,8 +67,8 @@ namespace rpac {
       //
       typedef A serial_t ;
       //
-      static void setup (loggerCBs_t &, serial_t &, unsigned int = 100, unsigned int = 4) ;
-      static void stop (void) { if (instance != nullptr) instance->shutdown () ; }
+      static void setup (loggerCBs_t &, serial_t & = Serial, unsigned int = 100, unsigned int = 4) ;
+      static void stop (void) ;
       //
     private : // non-static
       //
@@ -84,11 +84,13 @@ namespace rpac {
       SerialLogger (loggerCBs_t &, serial_t &, unsigned int = 100, unsigned int = 4) ;
       bool loop (unsigned long int) ;
       void shutdown (void) ;
+      bool terminated (void) const { return mode == 5u ; }
       operator bool () const { return mode == 0u ; }
       //
+      friend class OpenLogSerialLogger ;
   } ;
   //
-  class OpenLogSerialLogger {
+  class OpenLogSerialLogger : public Logger {
       //
     private :
       //
@@ -100,21 +102,20 @@ namespace rpac {
       //
       typedef typename SerialLogger <HardwareSerial>::serial_t serial_t ;
       //
-      static void setup (loggerCBs_t &, serial_t &, rpacPin_t = rpac::Pin::logger, unsigned int = 100, unsigned int = 4) ;
+      static void setup (loggerCBs_t &, serial_t & = Serial1, rpacPin_t = rpac::Pin::logger, unsigned int = 100, unsigned int = 4) ;
       static void stop (void) ;
       //
     private : // non-static
       //
       uint8_t pin {static_cast <uint8_t> (rpac::Pin::none)} ;
       SerialLogger <HardwareSerial> * serial {nullptr} ;
-      uint8_t mode {5u} ;
       //
-      operator bool () { return mode == 0u ; } 
+      operator bool () const { return serial == nullptr ? false : serial->operator bool() ; } 
       //
     protected : // non-static
       //
       OpenLogSerialLogger (loggerCBs_t &, serial_t &, rpacPin_t, unsigned int, unsigned int) ;
-      bool loop (unsigned long int) ;
+      bool loop (unsigned long int t) ;
       void shutdown (void) ;
       //
   } ;
