@@ -42,7 +42,7 @@ namespace rpac {
       //
     private :
       //
-      static void switchLED (bool) ;
+      static void __switchLED (bool) ;
       //
       static unsigned long end, timeOut, counter, head, tail ;
       static status modus ;

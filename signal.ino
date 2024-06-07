@@ -4,10 +4,9 @@
 #include "global.h"
 #include "signal.h"
 //
-#if defined(ARDUINO_SEEED_XIAO_RP2040)
+#ifdef ARDUINO_SEEED_XIAO_RP2040
 #include <Adafruit_NeoPixel.h>
-int Power = 11;
-Adafruit_NeoPixel pixels(1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels (1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800) ;
 #endif
 //
 template <rpacPin_t p> const uint16_t rpac::Signal <p>::__sigseq [4]{__pack(0U,100U), __pack (100U,0U), __pack(50U, 50U), __pack (255U,255U)} ;
@@ -20,7 +19,7 @@ template <rpacPin_t p> unsigned long rpac::Signal <p>::head{0} ;
 template <rpacPin_t p> unsigned long rpac::Signal <p>::tail{0} ;
 template <rpacPin_t p> bool rpac::Signal <p>::led{false} ;
 //
-template <rpacPin_t p> void rpac::Signal <p>::switchLED (bool s) {
+template <rpacPin_t p> void rpac::Signal <p>::__switchLED (bool s) {
     //
     if (led != s) {
       //
@@ -30,24 +29,11 @@ template <rpacPin_t p> void rpac::Signal <p>::switchLED (bool s) {
       digitalWrite (static_cast <uint8_t> (p), (led = s)) ;
 #endif
       //
-
-      if (led) {
-        //
 #if defined(ARDUINO_SEEED_XIAO_RP2040)
-        pixels.setPixelColor (0, pixels.Color (245, 185, 0)) ;
-        pixels.show () ;
-        pixels.clear () ;
+      pixels.setPixelColor (0, led ? pixels.Color (245, 185, 0) : pixels.Color (5, 5, 5)) ;
+      pixels.show () ;
+      pixels.clear () ;
 #endif
-        //
-      } else {
-        //
-#if defined(ARDUINO_SEEED_XIAO_RP2040)
-        pixels.setPixelColor (0, pixels.Color (5, 5, 5)) ;
-        pixels.show () ;
-        pixels.clear () ;
-#endif
-        //
-      }
       //
     }
     //
@@ -121,7 +107,7 @@ template <rpacPin_t p> bool rpac::Signal <p>::loop (bool ext) {
       counter = 0 ;
       timeOut = myTime + head ;
       modus = status::bright ;
-      if (head > 0) switchLED (true) ;
+      if (head > 0) __switchLED (true) ;
       break ;
       //
     case status::bright :
@@ -130,7 +116,7 @@ template <rpacPin_t p> bool rpac::Signal <p>::loop (bool ext) {
         //
         timeOut = myTime + tail ;
         modus = status::cycle ;
-        if (tail > 0) switchLED (false) ;
+        if (tail > 0) __switchLED (false) ;
         //
         if (timeOut > end) {
           //
@@ -147,14 +133,14 @@ template <rpacPin_t p> bool rpac::Signal <p>::loop (bool ext) {
         //
         timeOut = myTime + head ;
         modus = status::bright ;
-        if (head > 0) switchLED (true) ;
+        if (head > 0) __switchLED (true) ;
         //
       }
       break ;
       //
     case status::idle :
       //
-      switchLED (ext) ;
+      __switchLED (ext) ;
       //
       break ;
       //
