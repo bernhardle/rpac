@@ -63,7 +63,11 @@ template <rpacPin_t p> bool rpac::Flow <p>::resox (void) {
 //
 template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   //
-  pinMode (static_cast <uint8_t> (p), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter
+#ifdef ARDUINO_SEEED_XIAO_RP2040
+  pinMode (static_cast <uint8_t> (p), INPUT_PULLUP) ; 
+#else
+  pinMode (static_cast <uint8_t> (p), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter for the Nano Every
+#endif
   //
   attachInterrupt(digitalPinToInterrupt(static_cast <uint8_t> (p)), & handler, FALLING) ;
   //
@@ -96,3 +100,12 @@ template <rpacPin_t p> bool rpac::Flow <p>::loop (void) {
   return false ;
   //
 }
+//
+#ifdef ARDUINO_SEEED_XIAO_RP2040
+//
+template <rpacPin_t p> void rpac::Flow <p>::loop1 (void) {
+  //
+  handler () ;
+  //
+}
+#endif

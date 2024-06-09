@@ -19,7 +19,7 @@ namespace rpac {
     //
     template <rpacPin_t p> class Pulser {
         //
-        enum struct Mode : uint8_t { hand = 0u, run = 1u, set = 2u, dose = 3u} ;
+        enum struct Mode : uint8_t { mBase = 0u, mAuto = 1u, mTune = 2u, mDose = 3u} ;
         //
         const static unsigned long __on [] ;
         const static unsigned long __off [] ;
@@ -43,10 +43,11 @@ namespace rpac {
         //
         public :
             //
+            typedef Mode mode_t ;
+            //
             static void setup (loggerCBs_t &) ;
             static bool loop (bool) ;
-            static bool autox (void) ;
-            static bool autox (bool) ;
+            static bool toggle (mode_t) ;
     } ;
 } ;
 //

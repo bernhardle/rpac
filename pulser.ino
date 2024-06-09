@@ -11,11 +11,11 @@ template <rpacPin_t p> unsigned short rpac::Pulser<p>::stage {0} ;
 template <rpacPin_t p> unsigned short rpac::Pulser<p>::cycle {0} ;
 //
 template <rpacPin_t p> bool rpac::Pulser<p>::pulse {false} ;
-template <rpacPin_t p> typename rpac::Pulser <p>::Mode rpac::Pulser<p>::mode {rpac::Pulser <p>::Mode::hand} ;
+template <rpacPin_t p> typename rpac::Pulser <p>::Mode rpac::Pulser<p>::mode {rpac::Pulser <p>::Mode::mBase} ;
 #if defined(ARDUINO_SEEED_XIAO_RP2040)
 template <rpacPin_t p> RP2040_PWM * rpac::Pulser <p>::_PWM_Instance {nullptr} ;
 template <rpacPin_t p> float rpac::Pulser<p>::_PWM_freq {7000.0f} ;
-template <rpacPin_t p> float rpac::Pulser<p>::_PWM_full {100.0f} ;
+template <rpacPin_t p> float rpac::Pulser<p>::_PWM_full {32.5f} ; // 100 % duty cycle gives 2.0 Volts input to PIN3 of OP-Amp IC3A means 0.2 MPa (Voltage - 0.2)/9 
 template <rpacPin_t p> float rpac::Pulser<p>::_PWM_zero {0.0f} ;
 #endif
 //
@@ -80,7 +80,7 @@ template <rpacPin_t p> inline void rpac::Pulser <p>::__nextCycle (void) {
       //
     } else {
       //
-      mode = Mode::hand ;
+      mode = Mode::mBase ;
       stage = 0 ;
       //
 #ifdef __DEBUG__PULSER__
@@ -93,58 +93,33 @@ template <rpacPin_t p> inline void rpac::Pulser <p>::__nextCycle (void) {
   //
 }
 //
-template <rpacPin_t p> bool rpac::Pulser <p>::autox (void) {
+template <rpacPin_t p> bool rpac::Pulser <p>::toggle (mode_t m) {
   //
-  switch (mode) {
+  if (mode == m) {
     //
-    case Mode::run :
-      //
-      mode = Mode::hand ;
+    mode = Mode::mBase ;
 #ifdef __DEBUG__PULSER__
-      Serial.println ("[INFO] rpac::Pulser::autox () disabled autopulse") ;
+    Serial.println ("[INFO] rpac::Pulser::toggle () switched to base mode.") ;
 #endif
-      //
-      return false ;
-      //
-    case Mode::hand :
-      //
-      mode = Mode::run ;
-#ifdef __DEBUG__PULSER__
-      Serial.println ("[INFO] rpac::Pulser::autox () enabled autopulse") ;
-#endif
-      //
-      return true ;
-      //
-    default :
-      //
-      return false ;
-      //
+    //
+    return true ;
+    //
   }
   //
-}
-//
-template <rpacPin_t p> bool rpac::Pulser <p>::autox (bool b) {
-  //
-  switch (mode) {
+  if (mode == Mode::mBase) {
     //
-    case Mode::run :
-      //
-      if (!b) mode = Mode::hand ;
-      //
-      break ;
-      //
-    case Mode::hand :
-      //
-      if (b) mode = Mode::run ;
-      //
-      break ;
-      //
-    default :
-      //
-      break ;
+    mode = m ;
+#ifdef __DEBUG__PULSER__
+    Serial.print ("[INFO] rpac::Pulser::toggle () switched to mode ") ;
+    Serial.print (static_cast <uint8_t> (m)) ;
+    Serial.println (".") ;
+#endif
+    //
+    return true ;
+    //
   }
   //
-  return b ;
+  return false ;
   //
 }
 //
@@ -172,6 +147,7 @@ template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
   for (int i = 0 ; i < vars ; i++) {
     //
     Serial.print ("\tSTAGE ") ;
+    Serial.print (i + 1, DEC) ;
     Serial.print (", OFF = ") ;
     Serial.print (String (__off [i], DEC)) ;
     Serial.print (String (i, DEC)) ;
@@ -182,6 +158,15 @@ template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
     Serial.println (".") ;
     //
   }
+  //
+#ifdef ARDUINO_SEEED_XIAO_RP2040
+  Serial.print ("\n[INFO] Pulse duty factor ") ;
+  Serial.print (_PWM_full, 1) ;
+  Serial.print (" % corresponding to ") ;
+  Serial.print ((2.0f * 0.01 * _PWM_full - 0.2f)/9.0f, 2) ;
+  Serial.println (" MPa pulse pressure offset to inflow.\n") ;
+#endif
+  //
 #endif
 }
 //
@@ -189,7 +174,7 @@ template <rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
   //
   switch (mode) {
     //
-    case Mode::run :
+    case Mode::mAuto :
       //
       {
         //
@@ -235,7 +220,7 @@ template <rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
         //
       }
       //
-    case Mode::hand :
+    case Mode::mBase :
       //
       {
         //
@@ -243,9 +228,9 @@ template <rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
           //
           (pulse = trigger) ? __pulseOn () : __pulseOff () ;
           //
-    #ifdef __DEBUG__PULSER__
+#ifdef __DEBUG__PULSER__
           Serial.println (trigger ? "[INFO] Pulse manually started." : "[INFO] Pulse manually stopped.") ;
-    #endif
+#endif
           change = millis () ;
           //
         }
@@ -253,6 +238,14 @@ template <rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
         break ;
         //
       }
+      //
+    case Mode::mTune :  // to be implemented
+      //
+      break ;
+      //
+    case Mode::mDose :  // to be implemented
+      //
+      break ;
       //
     default :
       //

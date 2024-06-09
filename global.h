@@ -27,11 +27,11 @@ namespace rpac {
 #if defined(ARDUINO_UBLOX_NINA_W10) 
     enum struct Pin {none = 0, logger = 15, button = 27, flow = 33, pressure = A0, pulser = 10, relais = LED_RED, signal = LED_BLUE} ;
 #elif defined(ARDUINO_SEEED_XIAO_RP2040)
-    enum struct Pin {none = 0u, logger = 2u, button = 4u, flow = 3u, pressure = A0, pulser = 2u, relais = PIN_LED_G, signal = LED_BUILTIN} ;
+    enum struct Pin {none = 0u, logger = 2u, button = 4u, flow = D2, pressure = A0, pulser = 2u, relais = PIN_LED_G, signal = LED_BUILTIN} ;
 #elif defined(ARDUINO_ARCH_RP2040)
     enum struct Pin {none = 0u, logger = D2, button = D12, flow = D20, pressure = A0, pulser = D11, relais = D8, signal = LED_BUILTIN} ;
 #else 
-    enum struct Pin {none = 0u, logger = D15, button= D16 flow = D7, pressure = A0, pulser = D10, relais = D2, signal = LED_BUILTIN} ;
+    enum struct Pin {none = 0u, logger = 15u, button= 16u, flow = 7u, pressure = A0, pulser = 10u, relais = 2u, signal = LED_BUILTIN} ;
 #endif
     //
 } ;

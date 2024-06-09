@@ -1,8 +1,6 @@
 //
 //  (c) Bernhard Schupp, Frankfurt (2024)
 //
-#include <RTClib.h>
-//
 #include "global.h"
 #include "button.h"
 #include "control.h"
@@ -13,7 +11,7 @@
 #include "logger.h"
 #include "fslogger.h"
 #include "signal.h"
-#include "time.h"
+#include "rtc.h"
 //
 #ifdef __DEBUG__RPAC__
 const unsigned long loopMaxDura {12} ;
@@ -136,21 +134,27 @@ void loop () {
     //
     case 1 :
       //
-      Pulser::autox () ;
-      //
-      Signal::async (Signal::scheme::blinkfast, 100) ;
+      if (Pulser::toggle (Pulser::mode_t::mAuto)) {
+        //
+        Signal::async (Signal::scheme::blinkfast, 100) ;
+        //
+      }
       //
       break ;
       //
     case 2 :
       //
-      Flow::resox () ;
-      //
-      Signal::async (Signal::scheme::blinkfast, 200) ;
+      if (Pulser::toggle (Pulser::mode_t::mTune)) {
+        //
+        Signal::async (Signal::scheme::blinkfast, 200) ;
+        //
+      }
       //
       break ;
       //
     case 3 :
+      //
+      Flow::resox () ;
       //
       Signal::async (Signal::scheme::blinkfast, 300) ;
       //
@@ -187,3 +191,18 @@ void loop () {
 #endif
 }
 //
+#ifdef ARDUINO_SEEED_XIAO_RP2040
+//
+void setup1 () {
+  while (!Serial) { }
+  Serial.printf("core1: Starting ...\n");
+}
+//
+void loop1 () {
+  //
+  Flow::loop1 () ;
+  //
+  delay (500) ;
+}
+//
+#endif

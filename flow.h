@@ -30,6 +30,9 @@ namespace rpac {
         public :
             static void setup (loggerCBs_t &) ;
             static bool loop (void) ;
+#ifdef ARDUINO_SEEED_XIAO_RP2040
+            static void loop1 (void) ;
+#endif
             static bool resox (void) ;
     } ;
 //
