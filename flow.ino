@@ -104,13 +104,13 @@ template <rpacPin_t p> bool rpac::Flow <p>::loop (void) {
   //
   unsigned long int myTime {millis()} ;
   //
-  while (_smv_posUpd < myTime) {
+  /* while (_smv_posUpd < myTime) {
     //
     _smv_hBuf [++ _smv_pos] = 0 ;
     //
     _smv_posUpd += _smv_interval ;
     //
-  }
+  } */
   //
   if (trigger) {
     //

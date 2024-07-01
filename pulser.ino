@@ -58,10 +58,6 @@ template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOff (void) {
 //
 template <rpacPin_t p> inline void rpac::Pulser <p>::__nextCycle (void) {
   //
-  Serial.print (static_cast <int> (mode), DEC) ;
-  Serial.print ("\t") ;
-  Serial.println (cycle, DEC) ;
-  //
   if (++ cycle > __cycles [stage]) {
     //
     if (stage < vars - 1) {
