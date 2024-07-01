@@ -127,7 +127,7 @@ rpac::Control::ctrl_t rpac::Control::loop (const bool button, unsigned int maxi)
           //
           timeLow = myTime ;
           //
-          return 0x0 ;
+          return static_cast <ctrl_t> (0x00U) ;
           //
         } else {
           //
@@ -143,13 +143,13 @@ rpac::Control::ctrl_t rpac::Control::loop (const bool button, unsigned int maxi)
           //
           return static_cast <ctrl_t> (count > 1 ? 0x00U : 0x01U) ;
           //
-        } else if (! button && myTime > timeLow + recover) {
+        } else if (myTime > timeLow + recover) {
           //
           __switchControlMode(0) ;
           //
-          return static_cast <ctrl_t> (0x00U) ;
-          //
         }
+        //
+        return static_cast <ctrl_t> (0x00U) ;
         //
       default :
         //

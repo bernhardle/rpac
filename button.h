@@ -20,8 +20,7 @@ namespace rpac {
         //
         static inline bool BUTTONSTATE(const unsigned short & i) { return i > 7 ? true : false ; }
         //
-        static void handler (void) ;
-        static unsigned long data (void) ;
+        static void _handler (void) ;
         //
         public :
             static void setup (loggerCBs_t &) ;

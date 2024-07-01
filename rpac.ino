@@ -10,7 +10,7 @@
 #include "relais.h"
 #include "logger.h"
 #include "fslogger.h"
-#include "signal.h"
+#include "signaling.h"
 #include "rtc.h"
 //
 #ifdef __DEBUG__RPAC__
@@ -20,9 +20,9 @@ const unsigned long loopMaxDura {12} ;
 using Time = rpac::Time <RTC_PCF8523> ;
 using Flow = rpac::Flow <rpacPin_t::flow> ;
 //
-#if defined(ARDUINO_SEEED_XIAO_RP2040) 
+#if defined(ARDUINO_SEEED_XIAO_RP2040)
 using Data = rpac::FlashLogger ;
-#elif defined(ARDUINO_AVR_NANO_EVERY) || defined(ARDUINO_ARCH_RP2040)
+#elif defined(ARDUINO_AVR_NANO_EVERY) 
 using Data = rpac::OpenLogSerialLogger ;
 #else
 using Data = rpac::SerialLogger <decltype (Serial)> ;
@@ -39,7 +39,7 @@ using Relais = rpac::Relais <rpacPin_t::relais> ;
 using Control = rpac::Control ;
 using Pressure = rpac::Pressure <rpacPin_t::pressure> ;
 //
-loggerCBs_t callBacks ;
+static loggerCBs_t callBacks ;
 //
 // the setup function runs once when you press reset or power the board
 //
@@ -193,16 +193,18 @@ void loop () {
 //
 #ifdef ARDUINO_SEEED_XIAO_RP2040
 //
-void setup1 () {
+void setup1 (void) {
+  //
   while (!Serial) { }
+  //
   Serial.printf("core1: Starting ...\n");
+  //
 }
 //
-void loop1 () {
+void loop1 (void) {
   //
   Flow::loop1 () ;
   //
-  delay (500) ;
 }
 //
 #endif

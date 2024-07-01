@@ -2,7 +2,7 @@
 //  (c) Bernhard Schupp, Frankfurt (2024)
 //
 #include "global.h"
-#include "signal.h"
+#include "signaling.h"
 //
 #ifdef ARDUINO_SEEED_XIAO_RP2040
 #include <Adafruit_NeoPixel.h>

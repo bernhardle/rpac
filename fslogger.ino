@@ -1,7 +1,7 @@
 //
 //  (c) Bernhard Schupp, Frankfurt (2024)
 //
-#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || (defined(ARDUINO_ARCH_RP2040) && ! defined(ARDUINO_ARCH_MBED))
 //
 /*
 struct FSInfo {

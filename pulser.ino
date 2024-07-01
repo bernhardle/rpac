@@ -7,10 +7,11 @@
 #include "logger.h"
 //
 template <rpacPin_t p> unsigned long rpac::Pulser<p>::change {0} ;
-template <rpacPin_t p> unsigned short rpac::Pulser<p>::stage {0} ;
-template <rpacPin_t p> unsigned short rpac::Pulser<p>::cycle {0} ;
+template <rpacPin_t p> int rpac::Pulser<p>::stage {0} ;
+template <rpacPin_t p> int rpac::Pulser<p>::cycle {0} ;
 //
 template <rpacPin_t p> bool rpac::Pulser<p>::pulse {false} ;
+template <rpacPin_t p> unsigned long rpac::Pulser<p>::dummy {12345678} ;
 template <rpacPin_t p> typename rpac::Pulser <p>::Mode rpac::Pulser<p>::mode {rpac::Pulser <p>::Mode::mBase} ;
 #if defined(ARDUINO_SEEED_XIAO_RP2040)
 template <rpacPin_t p> RP2040_PWM * rpac::Pulser <p>::_PWM_Instance {nullptr} ;
@@ -19,16 +20,16 @@ template <rpacPin_t p> float rpac::Pulser<p>::_PWM_full {32.5f} ; // 100 % duty 
 template <rpacPin_t p> float rpac::Pulser<p>::_PWM_zero {0.0f} ;
 #endif
 //
-#if 0
+#if false
 constexpr int vars{1} ;
 template <rpacPin_t p, rpac::rpacPin_t s> const unsigned long __on [vars]{0} ;
 template <rpacPin_t p, rpac::rpacPin_t s> const unsigned long __off [vars]{10000} ;
-template <rpacPin_t p, rpac::rpacPin_t s> const unsigned int __cycles [vars]{1} ;
+template <rpacPin_t p, rpac::rpacPin_t s> const int __cycles [vars]{1} ;
 #else
 constexpr int vars{6} ;
 template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__on [vars]{0, 2000, 3000, 4000, 5000, 6000} ;
 template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__off [vars]{10000, 6000, 5000, 4000, 3000, 2500} ;
-template <rpacPin_t p> const unsigned int rpac::Pulser <p>::__cycles [vars]{1, 8, 12, 16, 20, 30} ;
+template <rpacPin_t p> const int rpac::Pulser <p>::__cycles [vars]{1, 8, 12, 16, 20, 30} ;
 #endif
 //
 template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOn (void) {
@@ -57,6 +58,10 @@ template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOff (void) {
 //
 template <rpacPin_t p> inline void rpac::Pulser <p>::__nextCycle (void) {
   //
+  Serial.print (static_cast <int> (mode), DEC) ;
+  Serial.print ("\t") ;
+  Serial.println (cycle, DEC) ;
+  //
   if (++ cycle > __cycles [stage]) {
     //
     if (stage < vars - 1) {
@@ -66,13 +71,13 @@ template <rpacPin_t p> inline void rpac::Pulser <p>::__nextCycle (void) {
       //
 #ifdef __DEBUG__PULSER__
       Serial.print ("[INFO] Switching auto pulse to mode ") ;
-      Serial.print (String(stage, DEC)) ;
+      Serial.print (String (stage, DEC)) ;
       Serial.print ("/") ;
-      Serial.print (String(vars - 1, DEC)) ;
+      Serial.print (String (vars - 1, DEC)) ;
       Serial.print (" ... ON = ") ;
-      Serial.print (String(__on [stage], DEC)) ;
+      Serial.print (String (__on [stage], DEC)) ;
       Serial.print ("ms, OFF = ") ;
-      Serial.print (String(__off [stage], DEC)) ;
+      Serial.print (String (__off [stage], DEC)) ;
       Serial.print ("ms.") ;
       Serial.print (", CYCLES = ") ;
       Serial.println (String (__cycles [stage], DEC)) ;
@@ -98,6 +103,7 @@ template <rpacPin_t p> bool rpac::Pulser <p>::toggle (mode_t m) {
   if (mode == m) {
     //
     mode = Mode::mBase ;
+    //
 #ifdef __DEBUG__PULSER__
     Serial.println ("[INFO] rpac::Pulser::toggle () switched to base mode.") ;
 #endif
@@ -109,9 +115,10 @@ template <rpacPin_t p> bool rpac::Pulser <p>::toggle (mode_t m) {
   if (mode == Mode::mBase) {
     //
     mode = m ;
+    //
 #ifdef __DEBUG__PULSER__
     Serial.print ("[INFO] rpac::Pulser::toggle () switched to mode ") ;
-    Serial.print (static_cast <uint8_t> (m)) ;
+    Serial.print (static_cast <int> (m)) ;
     Serial.println (".") ;
 #endif
     //
@@ -150,7 +157,6 @@ template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
     Serial.print (i + 1, DEC) ;
     Serial.print (", OFF = ") ;
     Serial.print (String (__off [i], DEC)) ;
-    Serial.print (String (i, DEC)) ;
     Serial.print (", ON = ") ;
     Serial.print (String (__on [i], DEC)) ;
     Serial.print (", CYCLES = ") ;

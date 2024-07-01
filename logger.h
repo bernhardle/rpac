@@ -72,7 +72,7 @@ namespace rpac {
       //
     private : // non-static
       //
-      unsigned int loggerSampleInterval {100}, loggerSampleAdjust {3} ;
+      unsigned long int loggerSampleInterval {100}, loggerSampleAdjust {8} ;
       unsigned long int loggerNextSampleTime {0} ;
       uint8_t mode {5u} ;
       //
@@ -82,6 +82,7 @@ namespace rpac {
       unsigned long flushTime {500} ;
       //
       SerialLogger (loggerCBs_t &, serial_t &, unsigned int = 100, unsigned int = 4) ;
+      virtual ~SerialLogger () { }
       bool loop (unsigned long int) ;
       void shutdown (void) ;
       bool terminated (void) const { return mode == 5u ; }

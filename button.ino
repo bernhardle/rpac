@@ -14,7 +14,7 @@ template <rpacPin_t p> bool rpac::Button <p>::check {false} ;
 //
 //  Handles the falling edge interrupt caused by switch closing contacts
 //
-template <rpacPin_t p> void rpac::Button <p>::handler (void) {
+template <rpacPin_t p> void rpac::Button <p>::_handler (void) {
   //
   time = millis () ;
   //
@@ -24,7 +24,7 @@ template <rpacPin_t p> void rpac::Button <p>::setup (loggerCBs_t & lcbs) {
   //
   pinMode (static_cast<int> (p), INPUT_PULLUP) ;
   //
-  attachInterrupt(digitalPinToInterrupt(static_cast<int>(p)), & handler, FALLING) ;
+  attachInterrupt(digitalPinToInterrupt(static_cast<int>(p)), & _handler, FALLING) ;
   //
   String label = String ("Button PIN") + String(static_cast<int>(p), DEC) ;
   //

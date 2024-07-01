@@ -19,15 +19,16 @@ namespace rpac {
     //
     template <rpacPin_t p> class Pulser {
         //
-        enum struct Mode : uint8_t { mBase = 0u, mAuto = 1u, mTune = 2u, mDose = 3u} ;
+        enum struct Mode : int { mBase = 0u, mAuto = 1u, mTune = 2u, mDose = 3u} ;
         //
         const static unsigned long __on [] ;
         const static unsigned long __off [] ;
-        const static unsigned int __cycles [] ;
+        const static int __cycles [] ;
         //
         static unsigned long change ;
-        static unsigned short stage, cycle ;
+        static int stage, cycle ;
         static bool pulse ;
+        static unsigned long dummy ;
         static Mode mode ;
         //
 #ifdef ARDUINO_SEEED_XIAO_RP2040
