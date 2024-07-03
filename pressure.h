@@ -12,6 +12,8 @@ namespace rpac {
     //
     template <rpacPin_t> class Pressure {
         //
+        static bool _izd ;
+        // 
         Pressure () ;
         //
         public :

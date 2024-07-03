@@ -17,9 +17,9 @@ template <rpacPin_t p> volatile unsigned short rpac::Flow <p>::_hrc_lap {0} ;
 template <rpacPin_t p> bool rpac::Flow <p>::_hrc_high {false} ;
 template <rpacPin_t p> unsigned int rpac::Flow <p>::_hrc_pos {0} ;
 //
-template <rpacPin_t p> const uint8_t rpac::Flow <p>::_smv_mult [_smv_size]{22u, 21u, 21u, 20u, 19u, 18u, 17u, 16u, 15u, 14u, 12u, 11u, 10u, 8u, 6u, 2u} ;
-template <rpacPin_t p> uint8_t rpac::Flow <p>::_smv_hBuf [_smv_size + 1] {0} ;
-template <rpacPin_t p> uint8_t rpac::Flow <p>::_smv_pos {0} ;
+template <rpacPin_t p> const short int rpac::Flow <p>::_smv_mult [_smv_sampleSize] {22u, 21u, 21u, 20u, 19u, 18u, 17u, 16u, 15u, 14u, 12u, 11u, 10u, 8u, 6u, 2u} ;
+template <rpacPin_t p> short int rpac::Flow <p>::_smv_hBuf [_smv_hBufSize] {0} ;
+template <rpacPin_t p> short int rpac::Flow <p>::_smv_pos {0} ;
 template <rpacPin_t p> unsigned long int rpac::Flow <p>::_smv_posUpd {0} ;
 //
 template <rpacPin_t p> void rpac::Flow <p>::_handler (void) {
@@ -70,22 +70,22 @@ template <rpacPin_t p> bool rpac::Flow <p>::resox (void) {
 //
 template <rpacPin_t p> unsigned short int rpac::Flow <p>::mean (void) {
   //
-  unsigned short int ret {0u} ;
+  long int ret {0} ;
   //
-  for (int i = 0, pos = _smv_pos + _smv_size ; i < _smv_size ; i ++ ) {
+  for (int i = 0, j = _smv_pos + _smv_sampleSize ; i < _smv_sampleSize ; i ++ ) {
     //
-    ret += _smv_hBuf [pos -- % _smv_size] * _smv_mult [i] ;
+    ret += _smv_hBuf [j -- % _smv_sampleSize] * _smv_mult [i] ;
     //
   }
   //
-  return ret ;
+  return static_cast <short int> ((1000u * ret) / _smv_div ()) ;
   //
 }
 //
 template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   //
-#ifdef ARDUINO_SEEED_XIAO_RP2040
-  pinMode (static_cast <uint8_t> (p), INPUT_PULLUP) ; 
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(NANO_RP2040_CONNECT)
+  pinMode (static_cast <uint8_t> (p), INPUT_PULLUP) ;
 #else
   pinMode (static_cast <uint8_t> (p), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter for the Nano Every
 #endif
@@ -93,6 +93,7 @@ template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   attachInterrupt(digitalPinToInterrupt(static_cast <uint8_t> (p)), & _handler, FALLING) ;
   //
   lcbs.add ([]() -> unsigned long { return total ; }, "Flow PIN" + String (static_cast <int> (p), DEC)) ;
+  lcbs.add ([]() -> unsigned long { return static_cast <unsigned long int> (mean ()) ; }, "SWMV") ;
   //
   _smv_pos = 0 ;
   //
@@ -104,13 +105,15 @@ template <rpacPin_t p> bool rpac::Flow <p>::loop (void) {
   //
   unsigned long int myTime {millis()} ;
   //
-  /* while (_smv_posUpd < myTime) {
+  while (_smv_posUpd < myTime) {
     //
-    _smv_hBuf [++ _smv_pos] = 0 ;
+    _smv_pos = (_smv_pos + 1) % _smv_hBufSize ;
     //
-    _smv_posUpd += _smv_interval ;
+    _smv_hBuf [_smv_pos] = 0 ;
     //
-  } */
+    _smv_posUpd += _smv_sampleInterval ;
+    //
+  }
   //
   if (trigger) {
     //

@@ -8,7 +8,7 @@
 //
 class loggerCBs {
     //  
-    static const int mcbs{8} ;             //  mcbs: max. number of callback functions
+    static const int mcbs{16} ;            //  mcbs: max. number of callback functions
     static const int mhdl{64} ;            //  mhdl: max. length of header string
     static const int rowl{mhdl * mcbs} ;   //  rowl: lenght of buffer used by sprintft
     //
@@ -67,7 +67,7 @@ namespace rpac {
       //
       typedef A serial_t ;
       //
-      static void setup (loggerCBs_t &, serial_t & = Serial, unsigned int = 100, unsigned int = 4) ;
+      static void setup (loggerCBs_t &, serial_t & = Serial, unsigned int = 200, unsigned int = 4) ;
       static void stop (void) ;
       //
     private : // non-static

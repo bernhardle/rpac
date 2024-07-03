@@ -31,10 +31,10 @@ namespace rpac {
 #elif defined(ARDUINO_ARCH_RP2040)
 #if defined(ARDUINO_ARCH_MBED)
 #warning "RP2040 based arduino with MBED architecture"
-    enum struct Pin {none = 0u, logger = 2u, button = 12u, flow = 20u, pressure = A0, pulser = 11u, relais = 8u, signal = LED_BUILTIN} ;
+    enum struct Pin {none = 0u, logger = 2u, button = 12u, flow = 9u, pressure = A0, pulser = 10u, relais = 8u, signal = LED_BUILTIN} ;
 #else
 #warning "RP2040 based arduino with PICO architecture"
-    enum struct Pin {none = 0u, logger = D2, button = D12, flow = D20, pressure = A0, pulser = D11, relais = D8, signal = LED_BUILTIN} ;
+    enum struct Pin {none = 0u, logger = D2, button = D12, flow = D9, pressure = A0, pulser = D10, relais = D8, signal = LED_BUILTIN} ;
 #endif
 #else 
     enum struct Pin {none = 0u, logger = 15u, button= 16u, flow = 7u, pressure = A0, pulser = 10u, relais = 2u, signal = LED_BUILTIN} ;

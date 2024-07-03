@@ -27,12 +27,14 @@ namespace rpac {
         //
         //      Member variables for sliding mean value (smw) calculation
         //
-        const static uint8_t _smv_size {16} ;
-        const static uint8_t _smv_mult [_smv_size] ;
-        const static unsigned long int _smv_interval {250} ;
+        constexpr static short int _smv_sampleSize {16} ;
+        constexpr static short int _smv_hBufSize {_smv_sampleSize + 1} ;
+        constexpr static short int _smv_sampleInterval {500} ;      // ms
+        const static short int _smv_mult [_smv_sampleSize] ;
+        constexpr static long int _smv_div () { long int sum = 0; for (int i = 0; i < _smv_sampleSize ; sum += _smv_mult [i++]) ; return _smv_sampleInterval * sum ; }
         //
-        static uint8_t _smv_hBuf [_smv_size + 1] ;
-        static uint8_t _smv_pos ;
+        static short int _smv_hBuf [_smv_hBufSize] ;
+        static short int _smv_pos ;
         static unsigned long int _smv_posUpd ;
         //
 #ifdef __DEBUG__FLOW__
