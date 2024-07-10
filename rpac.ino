@@ -172,7 +172,9 @@ void loop () {
   //
   Pressure::loop () ;
   //
-  Relais::loop (Flow::loop ()) ;
+  Flow::flow_t flow = Flow::loop () ;
+  //
+  Relais::loop (Flow::trigger (flow)) ;
   //
   Logger::loop () ;
   //

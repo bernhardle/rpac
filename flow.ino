@@ -6,12 +6,12 @@
 #include "logger.h"
 //
 template <rpacPin_t p> volatile unsigned long rpac::Flow <p>::total {0} ;
-template <rpacPin_t p> volatile bool rpac::Flow <p>::trigger {false} ;
 //
 #ifdef __DEBUG__FLOW__
-template <rpacPin_t p> volatile bool rpac::Flow <p>::error {false} ;
+template <rpacPin_t p> volatile bool rpac::Flow <p>::_hrc_error {false} ;
 #endif
 //
+template <rpacPin_t p> volatile bool rpac::Flow <p>::_hrc_trigger {false} ;
 template <rpacPin_t p> const uint8_t rpac::Flow <p>::_hrc_countsPerUnit [_hrc_countsPerUnitSize]{12U, 11U, 12U, 11U, 12U, 11U, 12U, 11U, 12U, 12U} ;
 template <rpacPin_t p> volatile unsigned short rpac::Flow <p>::_hrc_lap {0} ; 
 template <rpacPin_t p> bool rpac::Flow <p>::_hrc_high {false} ;
@@ -20,6 +20,7 @@ template <rpacPin_t p> unsigned int rpac::Flow <p>::_hrc_pos {0} ;
 template <rpacPin_t p> const short int rpac::Flow <p>::_smv_mult [_smv_sampleSize] {22u, 21u, 21u, 20u, 19u, 18u, 17u, 16u, 15u, 14u, 12u, 11u, 10u, 8u, 6u, 2u} ;
 template <rpacPin_t p> short int rpac::Flow <p>::_smv_hBuf [_smv_hBufSize] {0} ;
 template <rpacPin_t p> short int rpac::Flow <p>::_smv_pos {0} ;
+template <rpacPin_t p> unsigned short int rpac::Flow <p>::_smv_ret {0} ;
 template <rpacPin_t p> unsigned long int rpac::Flow <p>::_smv_posUpd {0} ;
 //
 template <rpacPin_t p> void rpac::Flow <p>::_handler (void) {
@@ -31,10 +32,10 @@ template <rpacPin_t p> void rpac::Flow <p>::_handler (void) {
   if (++ _hrc_lap == _hrc_countsPerUnit [_hrc_pos]) {
     //
 #ifdef __DEBUG__FLOW__
-    error = trigger ;  // 'trigger' should be cleared at this time otherwise flag error condition
+    _hrc_error = trigger ;  // 'trigger' should be cleared at this time otherwise flag error condition
 #endif
     //
-    trigger = _hrc_high ? true : _hrc_pos == 0 ;
+    _hrc_trigger = _hrc_high ? true : _hrc_pos == 0 ;
     //
     _hrc_lap = 0 ;
     //
@@ -68,20 +69,6 @@ template <rpacPin_t p> bool rpac::Flow <p>::resox (void) {
   //
 }
 //
-template <rpacPin_t p> unsigned short int rpac::Flow <p>::mean (void) {
-  //
-  long int ret {0} ;
-  //
-  for (int i = 0, j = _smv_pos + _smv_sampleSize ; i < _smv_sampleSize ; i ++ ) {
-    //
-    ret += _smv_hBuf [j -- % _smv_sampleSize] * _smv_mult [i] ;
-    //
-  }
-  //
-  return static_cast <short int> ((1000u * ret) / _smv_div ()) ;
-  //
-}
-//
 template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   //
 #if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(NANO_RP2040_CONNECT)
@@ -93,7 +80,7 @@ template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   attachInterrupt(digitalPinToInterrupt(static_cast <uint8_t> (p)), & _handler, FALLING) ;
   //
   lcbs.add ([]() -> unsigned long { return total ; }, "Flow PIN" + String (static_cast <int> (p), DEC)) ;
-  lcbs.add ([]() -> unsigned long { return static_cast <unsigned long int> (mean ()) ; }, "SWMV") ;
+  lcbs.add ([]() -> unsigned long { return static_cast <unsigned long int> (_smv_ret) ; }, "SWMV") ;
   //
   _smv_pos = 0 ;
   //
@@ -101,11 +88,13 @@ template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   //
 }
 //
-template <rpacPin_t p> bool rpac::Flow <p>::loop (void) {
+template <rpacPin_t p> typename rpac::Flow <p>::flow_t rpac::Flow <p>::loop (void) {
   //
   unsigned long int myTime {millis()} ;
   //
   while (_smv_posUpd < myTime) {
+    //
+    long int ret {0} ;
     //
     _smv_pos = (_smv_pos + 1) % _smv_hBufSize ;
     //
@@ -113,11 +102,19 @@ template <rpacPin_t p> bool rpac::Flow <p>::loop (void) {
     //
     _smv_posUpd += _smv_sampleInterval ;
     //
+    for (int i = 0, j = _smv_pos + _smv_sampleSize ; i < _smv_sampleSize ; i ++ ) {
+      //
+      ret += _smv_hBuf [j -- % _smv_sampleSize] * _smv_mult [i] ;
+      //
+    }
+    //
+    _smv_ret = static_cast <short int> ((1000u * ret) / _smv_div ()) ;
+    //
   }
   //
-  if (trigger) {
+  if (_hrc_trigger) {
     //
-    trigger = false ;
+    _hrc_trigger = false ;
     //
 #ifdef __DEBUG__FLOW__
     Serial.println ("[INFO] Flow meter pulsed.") ;
@@ -128,7 +125,7 @@ template <rpacPin_t p> bool rpac::Flow <p>::loop (void) {
   }
   //
 #ifdef __DEBUG__FLOW__
-  if (error) {
+  if (_hrc_error) {
     //
     Serial.println ("[WARNING] Flow trigger error flag set.") ;
     //

@@ -11,31 +11,28 @@ template <rpacPin_t p> int rpac::Pulser<p>::stage {0} ;
 template <rpacPin_t p> int rpac::Pulser<p>::cycle {0} ;
 //
 template <rpacPin_t p> bool rpac::Pulser<p>::pulse {false} ;
-template <rpacPin_t p> unsigned long rpac::Pulser<p>::dummy {12345678} ;
 template <rpacPin_t p> typename rpac::Pulser <p>::Mode rpac::Pulser<p>::mode {rpac::Pulser <p>::Mode::mBase} ;
-#if defined(ARDUINO_SEEED_XIAO_RP2040)
-template <rpacPin_t p> RP2040_PWM * rpac::Pulser <p>::_PWM_Instance {nullptr} ;
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
+template <rpacPin_t p> typename rpac::Pulser <p>::_PWM_instance_t * rpac::Pulser <p>::_PWM_Instance {nullptr} ;
 template <rpacPin_t p> float rpac::Pulser<p>::_PWM_freq {7000.0f} ;
 template <rpacPin_t p> float rpac::Pulser<p>::_PWM_full {32.5f} ; // 100 % duty cycle gives 2.0 Volts input to PIN3 of OP-Amp IC3A means 0.2 MPa (Voltage - 0.2)/9 
 template <rpacPin_t p> float rpac::Pulser<p>::_PWM_zero {0.0f} ;
+#elif defined(ARDUINO_UBLOX_NINA_W10)
+template <rpacPin_t p> int rpac::Pulser<p>::_PWM_full {85} ;
+template <rpacPin_t p> int rpac::Pulser<p>::_PWM_zero {0} ;
 #endif
 //
-#if false
-constexpr int vars{1} ;
-template <rpacPin_t p, rpac::rpacPin_t s> const unsigned long __on [vars]{0} ;
-template <rpacPin_t p, rpac::rpacPin_t s> const unsigned long __off [vars]{10000} ;
-template <rpacPin_t p, rpac::rpacPin_t s> const int __cycles [vars]{1} ;
-#else
-constexpr int vars{6} ;
-template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__on [vars]{0, 2000, 3000, 4000, 5000, 6000} ;
-template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__off [vars]{10000, 6000, 5000, 4000, 3000, 2500} ;
-template <rpacPin_t p> const int rpac::Pulser <p>::__cycles [vars]{1, 8, 12, 16, 20, 30} ;
-#endif
+constexpr int vars{5} ;
+template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__on [vars]{0, 2000, 3000, 4000, 5000} ;
+template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__off [vars]{10000, 6000, 5000, 4000, 3000} ;
+template <rpacPin_t p> const int rpac::Pulser <p>::__cycles [vars]{1, 10, 15, 20, 25} ;
 //
 template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOn (void) {
   //
-#ifdef ARDUINO_SEEED_XIAO_RP2040
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
   _PWM_Instance->setPWM (static_cast <uint8_t> (p), _PWM_freq, _PWM_full) ;
+#elif defined(ARDUINO_UBLOX_NINA_W10)
+  analogWrite (static_cast <uint8_t> (p), _PWM_full) ;
 #else
   digitalWrite (static_cast <uint8_t> (p), HIGH) ;
 #endif
@@ -46,8 +43,10 @@ template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOn (void) {
 //
 template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOff (void) {
   //
-#ifdef ARDUINO_SEEED_XIAO_RP2040
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040) 
   _PWM_Instance->setPWM (static_cast <uint8_t> (p), _PWM_freq, _PWM_zero) ;
+#elif defined(ARDUINO_UBLOX_NINA_W10)
+  analogWrite (static_cast <uint8_t> (p), _PWM_zero) ;
 #else
   digitalWrite (static_cast <uint8_t> (p), LOW) ;
 #endif
@@ -128,8 +127,11 @@ template <rpacPin_t p> bool rpac::Pulser <p>::toggle (mode_t m) {
 //
 template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
   //
-#ifdef ARDUINO_SEEED_XIAO_RP2040
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
   _PWM_Instance = new RP2040_PWM (static_cast <uint8_t> (p), _PWM_freq, _PWM_zero) ;
+#elif defined(ARDUINO_UBLOX_NINA_W10)
+  pinMode (static_cast <uint8_t> (p), OUTPUT) ;
+  analogWrite (static_cast <uint8_t> (p), _PWM_zero) ;
 #else
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   digitalWrite (static_cast <uint8_t> (p), LOW) ;

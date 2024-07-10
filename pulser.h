@@ -6,7 +6,7 @@
 //
 #include <String.h>
 //
-#ifdef ARDUINO_SEEED_XIAO_RP2040
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
 #ifdef __DEBUG__PULSER__
 #define _PWM_LOGLEVEL_        3
 #endif
@@ -28,12 +28,14 @@ namespace rpac {
         static unsigned long change ;
         static int stage, cycle ;
         static bool pulse ;
-        static unsigned long dummy ;
         static Mode mode ;
         //
-#ifdef ARDUINO_SEEED_XIAO_RP2040
-        static RP2040_PWM * _PWM_Instance ;
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
+        typedef RP2040_PWM _PWM_instance_t ;
+        static  _PWM_instance_t * _PWM_Instance ;
         static float _PWM_freq, _PWM_full, _PWM_zero ;
+#elif defined(ARDUINO_UBLOX_NINA_W10)
+        static int _PWM_full, _PWM_zero ;
 #endif
         //
         inline static void __pulseOn (void) ;
