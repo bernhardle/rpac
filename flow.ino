@@ -146,7 +146,7 @@ template <rpacPin_t p> void rpac::Flow <p>::loop1 (void) {
   //
   if (myTime > next) {
     //
-    handler () ;
+    _handler () ;
     //
     next = myTime + 300 ;
     //

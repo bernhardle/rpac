@@ -4,7 +4,7 @@
 #include "global.h"
 #include "signaling.h"
 //
-#ifdef ARDUINO_SEEED_XIAO_RP2040
+#if defined(ARDUINO_SEEED_XIAO_RP2040)
 #include <Adafruit_NeoPixel.h>
 Adafruit_NeoPixel pixels (1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800) ;
 #endif
@@ -23,7 +23,7 @@ template <rpacPin_t p> void rpac::Signal <p>::__switchLED (bool s) {
     //
     if (led != s) {
       //
-#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040)
+#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_Seeed_XIAO_nRF52840)
       digitalWrite (static_cast <uint8_t> (p), ! (led = s)) ;
 #else
       digitalWrite (static_cast <uint8_t> (p), (led = s)) ;
@@ -55,7 +55,7 @@ template <rpacPin_t p> void rpac::Signal <p>::setup (void) {
   //
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   //
-#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040)
+#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_Seeed_XIAO_nRF52840)
   digitalWrite (static_cast <uint8_t> (p), ! (led = false)) ;
 #else
   digitalWrite (static_cast <uint8_t> (p), (led = false)) ;

@@ -32,7 +32,7 @@ namespace rpac {
         constexpr static short int _smv_hBufSize {_smv_sampleSize + 1} ;
         constexpr static short int _smv_sampleInterval {500} ;      // ms
         const static short int _smv_mult [_smv_sampleSize] ;
-        constexpr static long int _smv_div () { long int sum = 0; for (int i = 0; i < _smv_sampleSize ; sum += _smv_mult [i++]) ; return _smv_sampleInterval * sum ; }
+        inline static long int _smv_div () { long int sum = 0; for (int i = 0; i < _smv_sampleSize ; sum += _smv_mult [i++]) ; return _smv_sampleInterval * sum ; }
         //
         static short int _smv_hBuf [_smv_hBufSize] ;
         static short int _smv_pos ;

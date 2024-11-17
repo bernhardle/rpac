@@ -24,10 +24,14 @@ typedef class loggerCBs loggerCBs_t ;
 //
 namespace rpac {
     //
-#if defined(ARDUINO_UBLOX_NINA_W10) 
-    enum struct Pin {none = 0, logger = 15, button = 27, flow = 33, pressure = A0, pulser = 10, relais = LED_RED, signal = LED_BLUE} ;
+#if defined(ARDUINO_CALLIOPE_MINI)
+    enum struct Pin {none = 0u, logger = 15, button = PIN_BUTTON_A, flow = PIN_BUTTON_B, pressure = A0, pulser = 9, relais = 10, signal = 22} ;
+#elif defined(ARDUINO_UBLOX_NINA_W10) 
+    enum struct Pin {none = 0u, logger = 15, button = 27, flow = 33, pressure = A0, pulser = 10, relais = LED_RED, signal = LED_BLUE} ;
 #elif defined(ARDUINO_SEEED_XIAO_RP2040)
     enum struct Pin {none = 0u, logger = 2u, button = 4u, flow = D2, pressure = A0, pulser = 2u, relais = PIN_LED_G, signal = LED_BUILTIN} ;
+#elif defined(ARDUINO_Seeed_XIAO_nRF52840)
+    enum struct Pin {none = 0u, logger = 2u, button = 4u, flow = D2, pressure = A0, pulser = 2u, relais = LED_GREEN, signal = LED_BLUE} ;
 #elif defined(ARDUINO_ARCH_RP2040)
 #if defined(ARDUINO_ARCH_MBED)
 #warning "RP2040 based arduino with MBED architecture"

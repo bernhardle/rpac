@@ -15,7 +15,7 @@ class loggerCBs {
     char row [rowl]{0} ;
     unsigned int num{0} ;
     unsigned long (*cb[mcbs])(void){nullptr} ;
-    char hd [mcbs][mhdl + 1]{0} ;
+    char hd [mcbs][mhdl + 1]{{0,0}} ;
     //
   public :
     loggerCBs () : num {0} {}
@@ -103,7 +103,7 @@ namespace rpac {
       //
       typedef typename SerialLogger <HardwareSerial>::serial_t serial_t ;
       //
-      static void setup (loggerCBs_t &, serial_t & = Serial1, rpacPin_t = rpac::Pin::logger, unsigned int = 100, unsigned int = 4) ;
+      static void setup (loggerCBs_t &, serial_t &, rpacPin_t = rpac::Pin::logger, unsigned int = 100, unsigned int = 4) ;
       static void stop (void) ;
       //
     private : // non-static

@@ -4,7 +4,7 @@
 #include "relais.h"
 #include "logger.h"
 //
-#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040)
+#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_Seeed_XIAO_nRF52840)
 inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r == HIGH ? LOW : HIGH) ; }
 #else
 inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r) ; }
