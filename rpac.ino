@@ -7,9 +7,20 @@
 #include "flow.h"
 #include "pulser.h"
 #include "pressure.h"
-#include "relais.h"
 #include "logger.h"
+//
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_NANO_RP2040) 
 #include "fslogger.h"
+using Data = rpac::FlashLogger ;
+#elif defined(ARDUINO_Seeed_XIAO_nRF52840)
+#include "btlogger.h"
+using Data = rpac::BTLogger ;
+#elif defined(ARDUINO_AVR_NANO_EVERY)
+using Data = rpac::OpenLogSerialLogger ;
+#else 
+using Data = rpac::SerialLogger <decltype (Serial)> ;
+#endif
+//
 #include "signaling.h"
 #include "rtc.h"
 //
@@ -20,14 +31,6 @@ const unsigned long loopMaxDura {12} ;
 using Time = rpac::Time <RTC_PCF8523> ;
 using Flow = rpac::Flow <rpacPin_t::flow> ;
 //
-#if defined(ARDUINO_SEEED_XIAO_RP2040) 
-using Data = rpac::FlashLogger ;
-#elif defined(ARDUINO_AVR_NANO_EVERY)
-using Data = rpac::OpenLogSerialLogger ;
-#else
-using Data = rpac::SerialLogger <decltype (Serial)> ;
-#endif
-//
 #ifdef __DEBUG__RPAC__
 using Debug = rpac::SerialLogger <decltype (Serial)> ;
 #endif
@@ -35,7 +38,6 @@ using Logger = rpac::Logger ;
 using Button = rpac::Button <rpacPin_t::button> ;
 using Pulser = rpac::Pulser <rpacPin_t::pulser> ;
 using Signal = rpac::Signal <rpacPin_t::signal> ;
-using Relais = rpac::Relais <rpacPin_t::relais> ;
 using Control = rpac::Control ;
 using Pressure = rpac::Pressure <rpacPin_t::pressure> ;
 //
@@ -47,7 +49,7 @@ void setup () {
   //
   Serial.begin (115200) ;
   //
-#if defined(__DEBUG__RPAC__) && (defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040))
+#if defined(__DEBUG__RPAC__) && (defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_Seeed_XIAO_nRF52840) || defined(ARDUINO_ARCH_RP2040))
   for (unsigned long mytime = millis () ; mytime + 10000u > millis () ; delay (100)) {
     if (Serial) break ;
   }
@@ -65,7 +67,7 @@ void setup () {
   //
   Pulser::setup (callBacks) ;
   //
-  Relais::setup (callBacks) ;
+  // Relais::setup (callBacks) ;
   //
   Flow::setup (callBacks) ;
   //
@@ -173,8 +175,6 @@ void loop () {
   Pressure::loop () ;
   //
   Flow::flow_t flow = Flow::loop () ;
-  //
-  Relais::loop (Flow::trigger (flow)) ;
   //
   Logger::loop () ;
   //

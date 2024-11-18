@@ -123,9 +123,9 @@ rpac::FlashLogger::FlashLogger (loggerCBs_t & c, unsigned int a, unsigned int b)
           Serial.print ("\t----------------------------------------------\n\n") ;
           Serial.print ("\tFSInfo:\n") ;
           Serial.print ("\t\ttotal: ... ") ;
-          Serial.print (String (info.totalBytes / 1024, DEC)) ;
+          Serial.print (String (static_cast <unsigned long int> (info.totalBytes / 1024), DEC)) ;
           Serial.print (" kb\n\t\tused: .... ") ;
-          Serial.print (String (info.usedBytes / 1024, DEC)) ;
+          Serial.print (String (static_cast <unsigned long int> (info.usedBytes / 1024), DEC)) ;
           Serial.print (" kb (") ;
           Serial.print (String (static_cast <float> (info.usedBytes) / static_cast <float> (info.totalBytes + 1),2)) ;
           Serial.println ("%)\n\n\t----------------------------------------------") ;
