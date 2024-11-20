@@ -19,7 +19,7 @@ namespace rpac {
           //
         protected:
           //
-          BTLogger (loggerCBs_t &cbs) : Logger (cbs) { } ;
+          BTLogger (loggerCBs_t &cbs) ;
           bool loop (unsigned long int) ;
           void shutdown () { } 
           //

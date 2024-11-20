@@ -18,7 +18,7 @@
 #define __DEBUG__SIGNAL__
 #endif
 //
-constexpr bool __LOG_BY_DEFAULT__ {false} ;
+constexpr bool __LOG_BY_DEFAULT__ {true} ;
 //
 typedef class loggerCBs loggerCBs_t ;
 //
