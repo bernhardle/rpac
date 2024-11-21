@@ -10,10 +10,16 @@ namespace rpac {
     //
     class BTLogger : public Logger {
         //
-        private :
+        private : // static
           //
           static BTLogger * instance ;
           static bool initialized ;
+          //
+        private : // non-static
+          //
+          unsigned long int loggerSampleInterval {500}, loggerSampleAdjust {8} ;
+          unsigned long int loggerNextSampleTime {0} ;
+          uint8_t mode {5u} ;
           //
           operator bool () const { return true ; }
           //

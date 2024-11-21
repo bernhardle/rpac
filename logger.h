@@ -8,14 +8,14 @@
 //
 class loggerCBs {
     //  
-    static const int mcbs{16} ;            //  mcbs: max. number of callback functions
-    static const int mhdl{64} ;            //  mhdl: max. length of header string
-    static const int rowl{mhdl * mcbs} ;   //  rowl: lenght of buffer used by sprintft
+    static const int mcbs {16} ;            //  mcbs: max. number of callback functions
+    static const int mhdl {64} ;            //  mhdl: max. length of header string
+    static const int rowl {mhdl * mcbs} ;   //  rowl: lenght of buffer used by sprintft
     //
-    char row [rowl]{0} ;
-    unsigned int num{0} ;
-    unsigned long (*cb[mcbs])(void){nullptr} ;
-    char hd [mcbs][mhdl + 1]{{0,0}} ;
+    char row [rowl] {0} ;
+    unsigned int num {0} ;
+    unsigned long (*cb[mcbs])(void) {nullptr} ;
+    char hd [mcbs][mhdl + 1] {{0,0}} ;
     //
   public :
     loggerCBs () : num {0} {}
