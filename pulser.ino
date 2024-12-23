@@ -15,11 +15,11 @@ template <rpacPin_t p> typename rpac::Pulser <p>::Mode rpac::Pulser<p>::mode {rp
 #if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
 template <rpacPin_t p> typename rpac::Pulser <p>::_PWM_instance_t * rpac::Pulser <p>::_PWM_Instance {nullptr} ;
 template <rpacPin_t p> float rpac::Pulser<p>::_PWM_freq {7000.0f} ;
-template <rpacPin_t p> float rpac::Pulser<p>::_PWM_full {32.5f} ; // 100 % duty cycle gives 2.0 Volts input to PIN3 of OP-Amp IC3A means 0.2 MPa (Voltage - 0.2)/9 
+template <rpacPin_t p> float rpac::Pulser<p>::_PWM_full {43.33f} ; // 100 % duty cycle gives 1.5 Volts input to PIN3 of OP-Amp IC3A means 0.2 MPa (Voltage - 0.2)/9 
 template <rpacPin_t p> float rpac::Pulser<p>::_PWM_zero {0.0f} ;
 #elif defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_Seeed_XIAO_nRF52840)
-template <rpacPin_t p> int rpac::Pulser<p>::_PWM_full {85} ;
-template <rpacPin_t p> int rpac::Pulser<p>::_PWM_zero {0} ;
+template <rpacPin_t p> float rpac::Pulser<p>::_PWM_full {43.33f} ;
+template <rpacPin_t p> float rpac::Pulser<p>::_PWM_zero {0.0f} ;
 #endif
 //
 constexpr int vars{5} ;
@@ -32,7 +32,7 @@ template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOn (void) {
 #if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
   _PWM_Instance->setPWM (static_cast <uint8_t> (p), _PWM_freq, _PWM_full) ;
 #elif defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_Seeed_XIAO_nRF52840)
-  analogWrite (static_cast <uint8_t> (p), _PWM_full) ;
+  analogWrite (static_cast <uint8_t> (p), static_cast <uint32_t> (2.5499f * _PWM_full)) ;
 #else
   digitalWrite (static_cast <uint8_t> (p), HIGH) ;
 #endif
@@ -163,11 +163,11 @@ template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
     //
   }
   //
-#ifdef ARDUINO_SEEED_XIAO_RP2040
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_Seeed_XIAO_nRF52840)
   Serial.print ("\n[INFO] Pulse duty factor ") ;
   Serial.print (_PWM_full, 1) ;
   Serial.print (" % corresponding to ") ;
-  Serial.print ((2.0f * 0.01 * _PWM_full - 0.2f)/9.0f, 2) ;
+  Serial.print ((1.5f * 0.01 * _PWM_full - 0.2f)/9.0f, 2) ;
   Serial.println (" MPa pulse pressure offset to inflow.\n") ;
 #endif
   //

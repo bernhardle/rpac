@@ -129,6 +129,7 @@ template <rpacPin_t p> typename rpac::Flow <p>::flow_t rpac::Flow <p>::loop (voi
     //
     Serial.println ("[WARNING] Flow trigger error flag set.") ;
     //
+    _hrc_error = false ;
   }
 #endif
   //

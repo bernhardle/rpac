@@ -179,9 +179,12 @@ void loop () {
   Logger::loop () ;
   //
 #ifdef __DEBUG__RPAC__
-  //
-  if (millis () - loopBegin > loopMaxDura) Serial.println ("[WARNING] Loop exceeded " + String (loopMaxDura) + " ms.") ;
-  //
+  {
+    unsigned long int diff = millis () - loopBegin ;
+    //
+    if (diff > loopMaxDura) Serial.println ("[WARNING] Loop cycle " + String (diff) + " exceeded " + String (loopMaxDura) + " ms.") ;
+    //
+  }
 #endif
   //
   Signal::loop (Pulser::loop (Control::trigger (control))) ;

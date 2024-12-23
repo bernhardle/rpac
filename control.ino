@@ -24,13 +24,13 @@ void rpac::Control::setup (loggerCBs_t & lcbs, unsigned int max, unsigned int mi
     mode = 0 ;
     timeHigh = 0 ;
     timeLow = 0 ;
-    lcbs.add ([]() -> unsigned long {
+    /* lcbs.add ([]() -> unsigned long {
       //
       auto r = lastCmd ;
       lastCmd = 0x0UL ;
       return static_cast <unsigned short> (r) ;
       //
-    }, String ("Control")) ;
+    }, String ("Control")) ; */
     //
 }
 //

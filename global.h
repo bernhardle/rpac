@@ -31,7 +31,7 @@ namespace rpac {
 #elif defined(ARDUINO_SEEED_XIAO_RP2040)
     enum struct Pin {none = 0u, logger = 2u, button = 4u, flow = D2, pressure = A0, pulser = 2u, relais = PIN_LED_G, signal = LED_BUILTIN} ;
 #elif defined(ARDUINO_Seeed_XIAO_nRF52840)
-    enum struct Pin {none = 0u, logger = 2u, button = 4u, flow = D2, pressure = A0, pulser = 2u, relais = LED_GREEN, signal = LED_BLUE} ;
+    enum struct Pin {none = 0u, logger = D7, button = D9, flow = D2, pressure = A0, pulser = D8, relais = D6, signal = LED_GREEN} ;
 #elif defined(ARDUINO_ARCH_RP2040)
 #if defined(ARDUINO_ARCH_MBED)
 #warning "RP2040 based arduino with MBED architecture"

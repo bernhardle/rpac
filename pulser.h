@@ -35,7 +35,7 @@ namespace rpac {
         static  _PWM_instance_t * _PWM_Instance ;
         static float _PWM_freq, _PWM_full, _PWM_zero ;
 #elif defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_Seeed_XIAO_nRF52840)
-        static int _PWM_full, _PWM_zero ;
+        static float _PWM_full, _PWM_zero ;
 #endif
         //
         inline static void __pulseOn (void) ;
