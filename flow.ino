@@ -32,7 +32,7 @@ template <rpacPin_t p> void rpac::Flow <p>::_handler (void) {
   if (++ _hrc_lap == _hrc_countsPerUnit [_hrc_pos]) {
     //
 #ifdef __DEBUG__FLOW__
-    _hrc_error = trigger ;  // 'trigger' should be cleared at this time otherwise flag error condition
+    _hrc_error = trigger ;  // 'trigger' should have been cleared at this time - otherwise flag error condition
 #endif
     //
     _hrc_trigger = _hrc_high ? true : _hrc_pos == 0 ;
