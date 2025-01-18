@@ -72,16 +72,17 @@ namespace rpac {
       //
     private : // non-static
       //
-      unsigned long int loggerSampleInterval {100}, loggerSampleAdjust {8} ;
+      unsigned long int loggerSampleInterval, loggerSampleAdjust ;
       unsigned long int loggerNextSampleTime {0} ;
       uint8_t mode {5u} ;
       //
     protected : // non-static
       //
       A & log ;
-      unsigned long flushTime {500} ;
+      unsigned long int flushTime {500} ;
       //
-      SerialLogger (loggerCBs_t &, serial_t &, unsigned int = 100, unsigned int = 4) ;
+      SerialLogger () = delete ;
+      SerialLogger (loggerCBs_t &, serial_t &, unsigned int = 100u, unsigned int = 4u) ;
       virtual ~SerialLogger () { }
       bool loop (unsigned long int) ;
       void shutdown (void) ;
@@ -103,7 +104,7 @@ namespace rpac {
       //
       typedef typename SerialLogger <HardwareSerial>::serial_t serial_t ;
       //
-      static void setup (loggerCBs_t &, serial_t &, rpacPin_t = rpac::Pin::logger, unsigned int = 100, unsigned int = 4) ;
+      static void setup (loggerCBs_t &, serial_t & = Serial1, rpacPin_t = rpac::Pin::logger, unsigned int = 100, unsigned int = 4) ;
       static void stop (void) ;
       //
     private : // non-static

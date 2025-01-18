@@ -32,7 +32,7 @@ template <rpacPin_t p> void rpac::Flow <p>::_handler (void) {
   if (++ _hrc_lap == _hrc_countsPerUnit [_hrc_pos]) {
     //
 #ifdef __DEBUG__FLOW__
-    _hrc_error = trigger ;  // 'trigger' should have been cleared at this time - otherwise flag error condition
+    _hrc_error = _hrc_trigger ;  // '_hrc_trigger' should have been cleared at this time - otherwise flag error condition
 #endif
     //
     _hrc_trigger = _hrc_high ? true : _hrc_pos == 0 ;
@@ -77,7 +77,7 @@ template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   pinMode (static_cast <uint8_t> (p), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter for the Nano Every
 #endif
   //
-  attachInterrupt(digitalPinToInterrupt(static_cast <uint8_t> (p)), & _handler, FALLING) ;
+  attachInterrupt (digitalPinToInterrupt(static_cast <uint8_t> (p)), & _handler, FALLING) ;
   //
   lcbs.add ([]() -> unsigned long { return total ; }, "Flow PIN" + String (static_cast <int> (p), DEC)) ;
   lcbs.add ([]() -> unsigned long { return static_cast <unsigned long int> (_smv_ret) ; }, "SWMV") ;

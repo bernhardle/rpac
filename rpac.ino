@@ -174,7 +174,7 @@ void loop () {
   //
   Pressure::loop () ;
   //
-  Flow::flow_t flow = Flow::loop () ;
+  Flow::loop () ;
   //
   Logger::loop () ;
   //

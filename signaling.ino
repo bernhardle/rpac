@@ -23,7 +23,7 @@ template <rpacPin_t p> void rpac::Signal <p>::__switchLED (bool s) {
     //
     if (led != s) {
       //
-#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_Seeed_XIAO_nRF52840)
+#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_SEEED_XIAO_NRF52840) || defined(ARDUINO_Seeed_XIAO_nRF52840)
       digitalWrite (static_cast <uint8_t> (p), ! (led = s)) ;
 #else
       digitalWrite (static_cast <uint8_t> (p), (led = s)) ;
@@ -55,7 +55,7 @@ template <rpacPin_t p> void rpac::Signal <p>::setup (void) {
   //
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   //
-#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_Seeed_XIAO_nRF52840)
+#if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_SEEED_XIAO_NRF52840)
   digitalWrite (static_cast <uint8_t> (p), ! (led = false)) ;
 #else
   digitalWrite (static_cast <uint8_t> (p), (led = false)) ;

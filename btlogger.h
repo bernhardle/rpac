@@ -17,6 +17,8 @@ namespace rpac {
           //
         private : // non-static
           //
+          const static uint16_t maxLoggerLineLength {64}, maxUserProgramsNumber {3} ;
+          //
           unsigned long int sampleInterval {500}, sampleAdjust {8} ;
           unsigned long int nextSampleTime {0} ;
           uint8_t mode {5u} ;
@@ -31,8 +33,6 @@ namespace rpac {
           void shutdown () { } 
           //
         public:
-          //
-          const static uint16_t characteristicLength {64} ;
           //
           static void setup (loggerCBs_t &, unsigned int = 250, unsigned int = 4) ;
           static bool loop () { return Logger::loop () ; }

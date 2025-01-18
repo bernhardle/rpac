@@ -6,11 +6,32 @@
 //
 #include <String.h>
 //
-#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
+#if (defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)) && ! defined(ARDUINO_ARCH_MBED)
 #ifdef __DEBUG__PULSER__
 #define _PWM_LOGLEVEL_        3
 #endif
 #include "RP2040_PWM.h"
+#define __RPAC__RP2040__PWM__
+//
+#elif defined(ARDUINO_Seeed_XIAO_nRF52840)
+#ifdef __DEBUG__PULSER__
+#define _PWM_LOGLEVEL_        3
+#endif
+#include "nRF52_PWM.h"
+#define __RPAC__NRF52__PWM__
+//
+#elif defined(ARDUINO_SEEED_XIAO_NRF52840)
+#warning "nRF52840 MBED PWM"
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
+#include "nRF52_MBED_PWM.h"      //https://github.com/khoih-prog/nRF52_MBED_PWM
+#define __RPAC__NRF52__MBED__PWM__
+//
+#elif defined(ARDUINO_ARCH_MBED)
+#define __RPAC__MBED__PWM__
+#endif
+//
+#if defined(__RPAC__RP2040__PWM__) || defined(__RPAC__NRF52__PWM__) || defined(__RPAC__MBED__PWM__) || defined(__RPAC__NRF52__MBED__PWM__)
+#define __RPAC__ANALOG__PULSE__
 #endif
 //
 #include "global.h"
@@ -30,12 +51,18 @@ namespace rpac {
         static bool pulse ;
         static Mode mode ;
         //
-#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_ARCH_RP2040)
-        typedef RP2040_PWM _PWM_instance_t ;
-        static  _PWM_instance_t * _PWM_Instance ;
+#if defined(__RPAC__ANALOG__PULSE__)
         static float _PWM_freq, _PWM_full, _PWM_zero ;
-#elif defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_Seeed_XIAO_nRF52840)
-        static float _PWM_full, _PWM_zero ;
+#if defined(__RPAC__RP2040__PWM__)
+        typedef RP2040_PWM _PWM_instance_t ;
+        static _PWM_instance_t * _PWM_Instance ;
+#elif defined(__RPAC__NRF52__PWM__)
+        typedef nRF52_PWM _PWM_instance_t ;
+        static _PWM_instance_t * _PWM_Instance ;
+#elif defined(__RPAC__NRF52__MBED__PWM__)
+        typedef mbed::PwmOut _PWM_instance_t ;
+        static _PWM_instance_t * _PWM_Instance ;
+#endif
 #endif
         //
         inline static void __pulseOn (void) ;
