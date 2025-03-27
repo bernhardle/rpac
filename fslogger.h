@@ -1,5 +1,5 @@
 //
-//  (c) Bernhard Schupp, Frankfurt (2024)
+//  (c) Bernhard Schupp, Frankfurt (2024-2025)
 //
 #ifndef __fslogger_h_included__
 #define __fslogger_h_included__

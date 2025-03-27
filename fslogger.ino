@@ -1,5 +1,5 @@
 //
-//  (c) Bernhard Schupp, Frankfurt (2024)
+//  (c) Bernhard Schupp, Frankfurt (2024-2025)
 //
 #if defined(ARDUINO_SEEED_XIAO_RP2040) || (defined(ARDUINO_ARCH_RP2040) && ! defined(ARDUINO_ARCH_MBED))
 //
