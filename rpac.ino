@@ -1,5 +1,5 @@
 //
-//  (c) Bernhard Schupp, Frankfurt (2024)
+//  (c) Bernhard Schupp, Frankfurt (2024-2025)
 //
 #include "global.h"
 #include "button.h"
@@ -146,7 +146,7 @@ void loop () {
       //
     case 2 :
       //
-      if (Pulser::toggle (Pulser::mode_t::mTune)) {
+      if (Pulser::toggle (Pulser::mode_t::mBLE)) {
         //
         Signal::async (Signal::scheme::blinkfast, 200) ;
         //

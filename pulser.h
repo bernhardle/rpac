@@ -1,5 +1,5 @@
 //
-//  (c) Bernhard Schupp, Frankfurt (2024)
+//  (c) Bernhard Schupp, Frankfurt (2024-2025)
 //
 #ifndef __pulser_h_included__
 #define __pulser_h_included__
@@ -40,14 +40,14 @@ namespace rpac {
     //
     template <rpacPin_t p> class Pulser {
         //
-        enum struct Mode : int { mBase = 0u, mAuto = 1u, mTune = 2u, mDose = 3u} ;
+        enum struct Mode : int { mBase = 0u, mAuto = 1u, mTune = 2u, mDose = 3u, mBLE = 4u} ;
         //
-        const static unsigned long __on [] ;
-        const static unsigned long __off [] ;
-        const static int __cycles [] ;
+        const static uint32_t __on [] ;
+        const static uint32_t __off [] ;
+        const static uint16_t __cycles [] ;
         //
-        static unsigned long change ;
-        static int stage, cycle ;
+        static uint32_t change, endTime ;
+        static uint16_t stage, cycle ;
         static bool pulse ;
         static Mode mode ;
         //
@@ -78,6 +78,7 @@ namespace rpac {
             static void setup (loggerCBs_t &) ;
             static bool loop (bool) ;
             static bool toggle (mode_t) ;
+            static bool remote (uint16_t) ;
     } ;
 } ;
 //

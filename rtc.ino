@@ -1,5 +1,5 @@
 //
-//  (c) Bernhard Schupp, Frankfurt (2024)
+//  (c) Bernhard Schupp, Frankfurt (2024-2025)
 //
 #include "global.h"
 #include "rtc.h"
@@ -14,7 +14,7 @@ template <class T> char rpac::Time <T>::stamp [64]{"Time"} ;
 //
 template <class T> void rpac::Time <T>::setup (loggerCBs_t & lcbs) {
   //
-#ifndef ARDUINO_UBLOX_NINA_W10
+#if ! defined(ARDUINO_UBLOX_NINA_W10)
   Wire.begin() ;
   //
   {
@@ -44,7 +44,7 @@ template <class T> void rpac::Time <T>::setup (loggerCBs_t & lcbs) {
   //
   sprintf (stamp, "%04hu-%02hu-%02hu %02hu:%02hu:%02hu [%08lu]", static_cast <unsigned short> (now.year()), static_cast <unsigned short> (now.month()), static_cast <unsigned short> (now.day()), static_cast <unsigned short> (now.hour()), static_cast <unsigned short> (now.minute ()), static_cast <unsigned short> (now.second ()), bias) ;
   //
-  lcbs.add ([]() -> unsigned long { return millis () - bias ; }, String (stamp)) ;
+  lcbs.add ([]() -> unsigned long { return (millis () - bias)/100 ; }, String (stamp)) ;
   //
 }
 //

@@ -4,17 +4,13 @@
 #if defined(ARDUINO_Seeed_XIAO_nRF52840)
 //
 #include <bluefruit.h>
+#include "global.h"
 #include "btlogger.h"
+#include "pulser.h"
 //
 BLEService pService (BLEUuid ("cc133984-dc6c-444c-8b50-b2434eb7592f")) ;
 BLECharacteristic pLineUpd (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f45")) ;
-// BLECharacteristic pFlowUpd (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f46"), 4, true) ;
-// BLECharacteristic pCntlUpd (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f47"), 1, true) ;
-BLECharacteristic pPrgNum (BLEUuid ("5203b040-4076-472c-8949-d3039bd3b370")) ;
-BLECharacteristic pPrgDef (BLEUuid ("5203b040-4076-472c-8949-d3039bd3b371")) ;
-//
-//BLEService rpacs = BLEService ({0xcc, 0x13, 0x39, 0x84,/**/0xdc, 0x6c, /**/0x44, 0x4c, /**/ 0x8b, 0x50, /**/0xb2, 0x43, 0x4e, 0xb7, 0x59, 0x2f}) ;
-//BLECharacteristic rpacp = BLECharacteristic(UUID16_CHR_HEART_RATE_MEASUREMENT);
+BLECharacteristic pPulse (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f46"), 4, true) ;
 //
 bool rpac::BTLogger::initialized {false} ;
 rpac::BTLogger * rpac::BTLogger::instance {nullptr} ;
@@ -102,7 +98,7 @@ void rpac::BTLogger::setup (loggerCBs_t & cbs, unsigned int cyc, unsigned int ad
       //
       Bluefruit.Advertising.setStopCallback ([](void) -> void {}) ;
       Bluefruit.Advertising.restartOnDisconnect (true) ;
-      Bluefruit.Advertising.setInterval (32, 244) ;       // in units of 0.625 ms
+      Bluefruit.Advertising.setInterval (800, 800) ;      // in units of 0.625 ms
       Bluefruit.Advertising.setFastTimeout (30) ;         // number of seconds in fast mode
       Bluefruit.Advertising.start (0) ;                   // Infinitely run advertising
       //
@@ -120,26 +116,25 @@ void rpac::BTLogger::setup (loggerCBs_t & cbs, unsigned int cyc, unsigned int ad
 #endif
       pLineUpd.begin () ;
       //
-      pPrgNum.setProperties (CHR_PROPS_READ) ;
-      pPrgNum.setPermission (SECMODE_OPEN, SECMODE_NO_ACCESS) ;
-      pPrgNum.setMaxLen (sizeof (uint8_t)) ;
-      pPrgNum.write8 (static_cast <uint8_t> (maxUserProgramsNumber)) ;
-      //
-      pPrgNum.begin () ;
-      //
-      pPrgDef.setProperties (CHR_PROPS_READ || CHR_PROPS_WRITE) ;
-      pPrgDef.setPermission (SECMODE_OPEN, SECMODE_OPEN) ;
-      pPrgDef.setMaxLen (512) ;
-      pPrgDef.setWriteCallback([](uint16_t con, BLECharacteristic* chr, uint8_t * dat, uint16_t len) -> void {
+      pPulse.setProperties (CHR_PROPS_WRITE) ;
+      pPulse.setPermission (SECMODE_OPEN, SECMODE_OPEN) ;
+      pPulse.setMaxLen (sizeof (uint16_t)) ;
+      pPulse.setWriteCallback([](uint16_t con, BLECharacteristic* chr, uint8_t * dat, uint16_t len) -> void {
+        uint16_t duration {0} ;
+        duration |= dat [0] << 8 ;
+        duration |= dat [1] ;
         (void) con ;
         (void) chr ;
 #ifdef __DEBUG__LOGGER__
-      Serial.println ("[INFO] Program definition write callback.") ;
-#endif        
+      Serial.print ("[INFO] Pulse definition write callback with duration = ") ;
+      Serial.println (duration) ;
+#endif  
+        rpac::Pulser <rpacPin_t::pulser>::remote (duration) ;
+        //
         return ;
       }) ;
       //
-      pPrgDef.begin () ;
+      pPulse.begin () ;
       //
       initialized = true ;
       //

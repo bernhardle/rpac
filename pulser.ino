@@ -6,9 +6,10 @@
 #include "pulser.h"
 #include "logger.h"
 //
-template <rpacPin_t p> unsigned long rpac::Pulser<p>::change {0} ;
-template <rpacPin_t p> int rpac::Pulser<p>::stage {0} ;
-template <rpacPin_t p> int rpac::Pulser<p>::cycle {0} ;
+template <rpacPin_t p> uint32_t rpac::Pulser<p>::change {0} ;
+template <rpacPin_t p> uint32_t rpac::Pulser<p>::endTime {0} ;
+template <rpacPin_t p> uint16_t rpac::Pulser<p>::stage {0} ;
+template <rpacPin_t p> uint16_t rpac::Pulser<p>::cycle {0} ;
 //
 template <rpacPin_t p> bool rpac::Pulser<p>::pulse {false} ;
 template <rpacPin_t p> typename rpac::Pulser <p>::Mode rpac::Pulser<p>::mode {rpac::Pulser <p>::Mode::mBase} ;
@@ -26,15 +27,15 @@ template <rpacPin_t p> float rpac::Pulser<p>::_PWM_freq {7000.0f} ;
 #endif
 /*
 constexpr int vars{5} ;
-template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__on [vars]{0, 2000, 3000, 4000, 5000} ;
-template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__off [vars]{10000, 6000, 5000, 4000, 3000} ;
-template <rpacPin_t p> const int rpac::Pulser <p>::__cycles [vars]{1, 10, 15, 20, 25} ;
+template <rpacPin_t p> const uint32_t rpac::Pulser <p>::__on [vars]{0, 2000, 3000, 4000, 5000} ;
+template <rpacPin_t p> const uint32_t rpac::Pulser <p>::__off [vars]{10000, 6000, 5000, 4000, 3000} ;
+template <rpacPin_t p> const uint16_t rpac::Pulser <p>::__cycles [vars]{1, 10, 15, 20, 25} ;
 */
 //
 constexpr int vars{1} ;
-template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__on [vars] {3000} ;
-template <rpacPin_t p> const unsigned long rpac::Pulser <p>::__off [vars] {2000} ;
-template <rpacPin_t p> const int rpac::Pulser <p>::__cycles [vars] {32} ;
+template <rpacPin_t p> const uint32_t rpac::Pulser <p>::__on [vars] {3000} ;
+template <rpacPin_t p> const uint32_t rpac::Pulser <p>::__off [vars] {2000} ;
+template <rpacPin_t p> const uint16_t rpac::Pulser <p>::__cycles [vars] {32} ;
 //
 template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOn (void) {
   //
@@ -144,15 +145,6 @@ template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
   _PWM_Instance = new _PWM_instance_t (static_cast <uint8_t> (p), _PWM_freq, _PWM_zero) ;
 #elif defined(__RPAC__NRF52__MBED__PWM__)
   setPWM (_PWM_Instance, static_cast <uint8_t> (p), _PWM_freq, _PWM_zero) ;
-  //
-  if (_PWM_Instance) {
-    Serial.print ("\n[INFO] ") ;
-    Serial.print (getPulseWidth_uS (_PWM_Instance)) ;
-    Serial.print (F("\t\t")) ;
-    Serial.print (getDutyCycle (_PWM_Instance)) ;
-    Serial.print (F("\t\t")) ;
-    Serial.println (getPeriod_uS (_PWM_Instance)) ;
-  }
 #elif defined(__RPAC__MBED__PWM__)
   pinMode (static_cast <uint8_t> (p), OUTPUT) ;
   analogWrite (static_cast <uint8_t> (p), _PWM_zero) ;
@@ -161,14 +153,19 @@ template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
   digitalWrite (static_cast <uint8_t> (p), LOW) ;
 #endif
   //
-  String label = String ("Pulse PIN") + String (static_cast<int> (p), DEC) ;
-  //
-  lcbs.add ([](void) -> unsigned long { return static_cast <unsigned long> (pulse) ; }, label) ;
+  lcbs.add ([](void) -> unsigned long {
+#if defined(__RPAC__ANALOG__PULSE__)
+    return static_cast <unsigned long> (pulse ? _PWM_full : _PWM_zero) ;
+#else
+    return static_cast <unsigned long> (pulse) ;
+#endif
+    }, String ("Pulse PIN") + String (static_cast<int> (p), DEC)) ;
   //
   stage = 0 ;
   pulse = false ;
   cycle = 0 ;
   change = millis () ;
+  endTime = change ;
   //
 #ifdef __DEBUG__PULSER__
   Serial.println ("[INFO] Pulse pattern variants:") ;
@@ -200,13 +197,13 @@ template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
 //
 template <rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
   //
+  uint32_t myTime = millis () ;
+  //
   switch (mode) {
     //
     case Mode::mAuto :
       //
       {
-        //
-        unsigned long myTime = millis () ;
         //
         if (pulse) {
           //
@@ -267,6 +264,23 @@ template <rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
         //
       }
       //
+    case Mode::mBLE :
+      //
+      if (pulse && myTime > endTime) {
+        //
+        __pulseOff () ;
+        //
+        break ;
+      }
+      // 
+      if (!pulse && myTime < endTime) {
+        //
+        __pulseOn () ;
+        //
+        break ;
+        //
+      }
+      //
     case Mode::mTune :  // to be implemented
       //
       break ;
@@ -284,3 +298,14 @@ template <rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
   return pulse ;
   //
 }
+//
+template <rpacPin_t p> bool rpac::Pulser <p>::remote (uint16_t duration) {
+  //
+  if (mode != Mode::mBLE) return false ;
+    //
+  endTime = duration + millis () ;
+    //
+  return true ;
+  //
+}
+//

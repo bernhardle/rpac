@@ -1,5 +1,5 @@
 //
-//  (c) Bernhard Schupp, Frankfurt (2024)
+//  (c) Bernhard Schupp, Frankfurt (2024-2025)
 //
 #ifndef __control_h_included__
 #define __control_h_included__
