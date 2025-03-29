@@ -4,6 +4,10 @@
 #include "relais.h"
 #include "logger.h"
 //
+#if defined(ARDUINO_Seeed_XIAO_nRF52840)
+#include "Adafruit_TinyUSB.h"
+#endif
+//
 #if defined(ARDUINO_UBLOX_NINA_W10) || defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_Seeed_XIAO_nRF52840)
 inline void __digitalWrite (uint8_t p, int r) { digitalWrite (p, r == HIGH ? LOW : HIGH) ; }
 #else
@@ -20,7 +24,7 @@ template <rpacPin_t p> void rpac::Relais <p>::setup (loggerCBs_t & lcbs) {
   //
   __digitalWrite (static_cast <uint8_t> (p), (relais = LOW)) ;
   //
-  lcbs.add ([]() -> unsigned long { return static_cast <unsigned long> (relais) ; }, "Relais PIN" + String (static_cast <int> (p), DEC)) ;
+  // lcbs.add ([]() -> unsigned long { return static_cast <unsigned long> (relais) ; }, "Relais PIN" + String (static_cast <int> (p), DEC)) ;
   //
 }
 //

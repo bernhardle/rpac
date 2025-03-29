@@ -7,6 +7,10 @@
 #include "global.h"
 #include "logger.h"
 //
+#if defined(ARDUINO_Seeed_XIAO_nRF52840)
+#include "Adafruit_TinyUSB.h"
+#endif
+//
 namespace rpac {
     //
     template <rpacPin_t p> class Flow {

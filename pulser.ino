@@ -299,12 +299,20 @@ template <rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
   //
 }
 //
-template <rpacPin_t p> bool rpac::Pulser <p>::remote (uint16_t duration) {
+template <rpacPin_t p> bool rpac::Pulser <p>::remote (uint16_t duration, uint8_t dutyCycle) {
   //
+#ifdef __DEBUG__PULSER__
+  Serial.print ("[INFO] Remote pulse definition with duration = ") ;
+  Serial.print (duration) ;
+  Serial.print ("ms and duty cycle = ") ;
+  Serial.print (dutyCycle) ;
+  Serial.println ("%") ;
+#endif  
   if (mode != Mode::mBLE) return false ;
-    //
+  //
+  _PWM_full = static_cast <float> (dutyCycle) ;
   endTime = duration + millis () ;
-    //
+  //
   return true ;
   //
 }

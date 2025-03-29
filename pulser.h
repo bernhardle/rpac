@@ -78,7 +78,7 @@ namespace rpac {
             static void setup (loggerCBs_t &) ;
             static bool loop (bool) ;
             static bool toggle (mode_t) ;
-            static bool remote (uint16_t) ;
+            static bool remote (uint16_t, uint8_t) ;
     } ;
 } ;
 //

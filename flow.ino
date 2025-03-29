@@ -5,6 +5,10 @@
 #include "flow.h"
 #include "logger.h"
 //
+#if defined(ARDUINO_Seeed_XIAO_nRF52840)
+#include "Adafruit_TinyUSB.h"
+#endif
+//
 template <rpacPin_t p> volatile unsigned long rpac::Flow <p>::total {0} ;
 //
 #ifdef __DEBUG__FLOW__
@@ -79,8 +83,8 @@ template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   //
   attachInterrupt (digitalPinToInterrupt(static_cast <uint8_t> (p)), & _handler, FALLING) ;
   //
-  lcbs.add ([]() -> unsigned long { return total ; }, "Flow PIN" + String (static_cast <int> (p), DEC)) ;
-  lcbs.add ([]() -> unsigned long { return static_cast <unsigned long int> (_smv_ret) ; }, "SWMV") ;
+  // lcbs.add ([]() -> unsigned long { return total ; }, "Flow PIN" + String (static_cast <int> (p), DEC)) ;
+  // lcbs.add ([]() -> unsigned long { return static_cast <unsigned long int> (_smv_ret) ; }, "SWMV") ;
   //
   _smv_pos = 0 ;
   //

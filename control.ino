@@ -4,6 +4,10 @@
 #include "logger.h"
 #include "control.h"
 //
+#if defined(ARDUINO_Seeed_XIAO_nRF52840)
+#include "Adafruit_TinyUSB.h"
+#endif
+//
 #ifdef __DEBUG_CONTROL__
 #define __switchControlMode(a)  (Serial.println ("[Debug] Control " + String (mode, DEC) + " -> " + String (a, DEC)), mode = a)
 #else

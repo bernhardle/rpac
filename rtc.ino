@@ -7,6 +7,10 @@
 //
 #include <Wire.h>
 //
+#if defined(ARDUINO_Seeed_XIAO_nRF52840)
+#include "Adafruit_TinyUSB.h"
+#endif
+//
 template <class T> T rpac::Time <T>::rtc ;
 template <class T> DateTime rpac::Time <T>::now ;
 template <class T> unsigned long rpac::Time <T>::bias{0} ;
@@ -44,7 +48,7 @@ template <class T> void rpac::Time <T>::setup (loggerCBs_t & lcbs) {
   //
   sprintf (stamp, "%04hu-%02hu-%02hu %02hu:%02hu:%02hu [%08lu]", static_cast <unsigned short> (now.year()), static_cast <unsigned short> (now.month()), static_cast <unsigned short> (now.day()), static_cast <unsigned short> (now.hour()), static_cast <unsigned short> (now.minute ()), static_cast <unsigned short> (now.second ()), bias) ;
   //
-  lcbs.add ([]() -> unsigned long { return (millis () - bias)/100 ; }, String (stamp)) ;
+  // lcbs.add ([]() -> unsigned long { return (millis () - bias)/100 ; }, String (stamp)) ;
   //
 }
 //

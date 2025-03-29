@@ -14,6 +14,7 @@
 using Data = rpac::FlashLogger ;
 #elif defined(ARDUINO_Seeed_XIAO_nRF52840)
 #include "btlogger.h"
+#include "Adafruit_TinyUSB.h"
 using Data = rpac::BTLogger ;
 #elif defined(ARDUINO_AVR_NANO_EVERY)
 using Data = rpac::OpenLogSerialLogger ;
