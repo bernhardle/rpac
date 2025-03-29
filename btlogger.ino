@@ -4,6 +4,7 @@
 #if defined(ARDUINO_Seeed_XIAO_nRF52840)
 //
 #include <bluefruit.h>
+#include "Adafruit_TinyUSB.h"
 #include "global.h"
 #include "btlogger.h"
 #include "pulser.h"
@@ -118,18 +119,18 @@ void rpac::BTLogger::setup (loggerCBs_t & cbs, unsigned int cyc, unsigned int ad
       //
       pPulse.setProperties (CHR_PROPS_WRITE) ;
       pPulse.setPermission (SECMODE_OPEN, SECMODE_OPEN) ;
-      pPulse.setMaxLen (sizeof (uint16_t)) ;
+      pPulse.setMaxLen (sizeof (uint8_t [8])) ;
       pPulse.setWriteCallback([](uint16_t con, BLECharacteristic* chr, uint8_t * dat, uint16_t len) -> void {
         uint16_t duration {0} ;
-        duration |= dat [0] << 8 ;
-        duration |= dat [1] ;
+        uint8_t dutyCycle {80} ;  // integral percentage %
+        //
+        duration += static_cast <uint16_t> (dat [0]) << 8 ;
+        duration += static_cast <uint16_t> (dat [1]) ;
+        dutyCycle = dat [2] ;
+        //
         (void) con ;
         (void) chr ;
-#ifdef __DEBUG__LOGGER__
-      Serial.print ("[INFO] Pulse definition write callback with duration = ") ;
-      Serial.println (duration) ;
-#endif  
-        rpac::Pulser <rpacPin_t::pulser>::remote (duration) ;
+        rpac::Pulser <rpacPin_t::pulser>::remote (duration, dutyCycle) ;
         //
         return ;
       }) ;
