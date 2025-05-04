@@ -12,12 +12,14 @@ namespace rpac {
         //
         private : // static
           //
+          static constexpr uint8_t maxConnectionsBLE {2} ;
+          //
           static BTLogger * instance ;
           static bool initialized ;
           //
         private : // non-static
           //
-          const static uint16_t maxLoggerLineLength {64}, maxUserProgramsNumber {3} ;
+          const static uint16_t maxLoggerLineLength {64} ;
           //
           unsigned long int sampleInterval {500}, sampleAdjust {8} ;
           unsigned long int nextSampleTime {0} ;

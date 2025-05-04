@@ -26,6 +26,7 @@ namespace rpac {
         public :
             //
             static void setup (loggerCBs_t &) ;
+            static void adjust (DateTime &&) ;
     } ;
     //
 } ;

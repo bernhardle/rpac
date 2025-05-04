@@ -52,3 +52,8 @@ template <class T> void rpac::Time <T>::setup (loggerCBs_t & lcbs) {
   //
 }
 //
+template <class T> void rpac::Time <T>::adjust (DateTime && date) {
+  //
+  rtc.adjust (date) ;
+  //
+}

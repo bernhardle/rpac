@@ -21,7 +21,6 @@ template <rpacPin_t p> volatile unsigned short rpac::Flow <p>::_hrc_lap {0} ;
 template <rpacPin_t p> bool rpac::Flow <p>::_hrc_high {false} ;
 template <rpacPin_t p> unsigned int rpac::Flow <p>::_hrc_pos {0} ;
 //
-template <rpacPin_t p> const short int rpac::Flow <p>::_smv_mult [_smv_sampleSize] {22u, 21u, 21u, 20u, 19u, 18u, 17u, 16u, 15u, 14u, 12u, 11u, 10u, 8u, 6u, 2u} ;
 template <rpacPin_t p> short int rpac::Flow <p>::_smv_hBuf [_smv_hBufSize] {0} ;
 template <rpacPin_t p> short int rpac::Flow <p>::_smv_pos {0} ;
 template <rpacPin_t p> unsigned short int rpac::Flow <p>::_smv_ret {0} ;
@@ -49,11 +48,18 @@ template <rpacPin_t p> void rpac::Flow <p>::_handler (void) {
   //
 }
 //
+template <rpacPin_t p> void rpac::Flow <p>::zero (void) {
+  //
+  total = 0 ;
+  //
+}
+//
 template <rpacPin_t p> bool rpac::Flow <p>::resox (void) {
   //
   if (_hrc_high) {
     //
     _hrc_high = false ;
+    _hrc_pos = 0 ;
     //
 #ifdef __DEBUG__FLOW__
     Serial.println ("[INFO] flowControlCB () switched to low resolution 1:1") ;
@@ -63,6 +69,7 @@ template <rpacPin_t p> bool rpac::Flow <p>::resox (void) {
   } else {
     //
     _hrc_high = true ;
+    _hrc_pos = 0 ;
     //
 #ifdef __DEBUG__FLOW__
     Serial.println ("[INFO] flowControlCB () switched to high resolution 1:10") ;
@@ -75,7 +82,7 @@ template <rpacPin_t p> bool rpac::Flow <p>::resox (void) {
 //
 template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   //
-#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(NANO_RP2040_CONNECT)
+#if defined(ARDUINO_SEEED_XIAO_RP2040) || defined(NANO_RP2040_CONNECT) || defined(ARDUINO_Seeed_XIAO_nRF52840)
   pinMode (static_cast <uint8_t> (p), INPUT_PULLUP) ;
 #else
   pinMode (static_cast <uint8_t> (p), INPUT) ;  // Pin is allowed to float as there is a 4.7k pullup in the flow counter for the Nano Every
@@ -83,8 +90,8 @@ template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
   //
   attachInterrupt (digitalPinToInterrupt(static_cast <uint8_t> (p)), & _handler, FALLING) ;
   //
-  // lcbs.add ([]() -> unsigned long { return total ; }, "Flow PIN" + String (static_cast <int> (p), DEC)) ;
-  // lcbs.add ([]() -> unsigned long { return static_cast <unsigned long int> (_smv_ret) ; }, "SWMV") ;
+  lcbs.add ([]() -> unsigned long { return static_cast <uint16_t> (total) ; }, "Flow PIN" + String (static_cast <uint8_t> (p), DEC)) ;
+  lcbs.add ([]() -> unsigned long { return static_cast <uint16_t> (_smv_ret) ; }, "Flow SWMV") ;
   //
   _smv_pos = 0 ;
   //
@@ -94,11 +101,11 @@ template <rpacPin_t p> void rpac::Flow <p>::setup (loggerCBs_t & lcbs) {
 //
 template <rpacPin_t p> typename rpac::Flow <p>::flow_t rpac::Flow <p>::loop (void) {
   //
-  unsigned long int myTime {millis()} ;
+  uint32_t myTime {millis()} ;
   //
   while (_smv_posUpd < myTime) {
     //
-    long int ret {0} ;
+    uint32_t ret {0} ;
     //
     _smv_pos = (_smv_pos + 1) % _smv_hBufSize ;
     //
@@ -112,9 +119,18 @@ template <rpacPin_t p> typename rpac::Flow <p>::flow_t rpac::Flow <p>::loop (voi
       //
     }
     //
-    _smv_ret = static_cast <short int> ((1000u * ret) / _smv_div ()) ;
+    _smv_ret = static_cast <uint16_t> ((1000u * ret) / _smv_div ()) ;
     //
   }
+  //
+#ifdef __DEBUG__FLOW__
+  if (_hrc_error) {
+    //
+    Serial.println ("[WARNING] Flow trigger error flag set.") ;
+    //
+    _hrc_error = false ;
+  }
+#endif
   //
   if (_hrc_trigger) {
     //
@@ -128,15 +144,6 @@ template <rpacPin_t p> typename rpac::Flow <p>::flow_t rpac::Flow <p>::loop (voi
     //
   }
   //
-#ifdef __DEBUG__FLOW__
-  if (_hrc_error) {
-    //
-    Serial.println ("[WARNING] Flow trigger error flag set.") ;
-    //
-    _hrc_error = false ;
-  }
-#endif
-  //
   return false ;
   //
 }
@@ -145,15 +152,15 @@ template <rpacPin_t p> typename rpac::Flow <p>::flow_t rpac::Flow <p>::loop (voi
 //
 template <rpacPin_t p> void rpac::Flow <p>::loop1 (void) {
   //
-  static unsigned long int next {0} ;
+  static uint32_t next {0} ;
   //
-  unsigned long int myTime = millis () ;
+  uint32_t myTime = millis () ;
   //
   if (myTime > next) {
     //
     _handler () ;
     //
-    next = myTime + 300 ;
+    next = myTime + 300u ;
     //
   }
   //

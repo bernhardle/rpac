@@ -73,12 +73,17 @@ namespace rpac {
         //
         public :
             //
+            static constexpr uint16_t maxRemotePulseDurationMS {1000} ;
+            //
             typedef Mode mode_t ;
             //
             static void setup (loggerCBs_t &) ;
             static bool loop (bool) ;
             static bool toggle (mode_t) ;
-            static bool remote (uint16_t, uint8_t) ;
+            //
+            static bool remotePulse (uint16_t) ;
+            static uint8_t remoteDuty (uint8_t) ;
+            //
     } ;
 } ;
 //

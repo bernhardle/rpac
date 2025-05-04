@@ -157,7 +157,7 @@ void loop () {
       //
     case 3 :
       //
-      Flow::resox () ;
+      Flow::zero () ;
       //
       Signal::async (Signal::scheme::blinkfast, 300) ;
       //
@@ -165,7 +165,7 @@ void loop () {
       //
     case 4 :
       //
-      Data::stop () ;
+      Flow::resox () ; // Data::stop () ;
       //
       Signal::async (Signal::scheme::blinkfast, 400) ;
       //

@@ -32,16 +32,17 @@ namespace rpac {
         //
         //      variables for sliding mean value (smw) calculation
         //
-        constexpr static short int _smv_sampleSize {16} ;
-        constexpr static short int _smv_hBufSize {_smv_sampleSize + 1} ;
-        constexpr static short int _smv_sampleInterval {500} ;      // ms
-        const static short int _smv_mult [_smv_sampleSize] ;
-        inline static long int _smv_div () { long int sum = 0; for (int i = 0; i < _smv_sampleSize ; sum += _smv_mult [i++]) ; return _smv_sampleInterval * sum ; }
+        constexpr static uint16_t _smv_sampleSize {10} ;                       //
+        constexpr static uint16_t _smv_hBufSize {_smv_sampleSize + 1} ;        //
+        constexpr static uint16_t _smv_sampleInterval {150} ;                  // ms
+        // constexpr static short int _smv_mult [16] {22u, 21u, 21u, 20u, 19u, 18u, 17u, 16u, 15u, 14u, 12u, 11u, 10u, 8u, 6u, 2u} ;
+        constexpr static uint16_t _smv_mult [_smv_sampleSize]{22u, 22u, 21u, 20u, 18u, 16u, 14u, 7u, 4u, 1u} ;
+        inline static uint32_t _smv_div () { uint32_t sum = 0; for (uint8_t i = 0; i < _smv_sampleSize ; sum += _smv_mult [i++]) ; return _smv_sampleInterval * sum ; }
         //
-        static short int _smv_hBuf [_smv_hBufSize] ;
-        static short int _smv_pos ;
-        static unsigned short int _smv_ret ;
-        static unsigned long int _smv_posUpd ;
+        static int16_t _smv_hBuf [_smv_hBufSize] ;
+        static int16_t _smv_pos ;
+        static uint16_t _smv_ret ;
+        static uint32_t _smv_posUpd ;
         //
         Flow () ;
         //
@@ -55,6 +56,7 @@ namespace rpac {
 #ifdef ARDUINO_SEEED_XIAO_RP2040
             static void loop1 (void) ;
 #endif
+            static void zero (void) ;
             static bool resox (void) ;
             // inline static unsigned short int mean (void) { return _smv_ret ; }
             inline static bool trigger (flow_t c) { return c & 0x1 ; }

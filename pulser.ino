@@ -6,10 +6,10 @@
 #include "pulser.h"
 #include "logger.h"
 //
-template <rpacPin_t p> uint32_t rpac::Pulser<p>::change {0} ;
-template <rpacPin_t p> uint32_t rpac::Pulser<p>::endTime {0} ;
-template <rpacPin_t p> uint16_t rpac::Pulser<p>::stage {0} ;
-template <rpacPin_t p> uint16_t rpac::Pulser<p>::cycle {0} ;
+template <rpacPin_t p> uint32_t rpac::Pulser<p>::change {0u} ;
+template <rpacPin_t p> uint32_t rpac::Pulser<p>::endTime {0u} ;
+template <rpacPin_t p> uint16_t rpac::Pulser<p>::stage {0u} ;
+template <rpacPin_t p> uint16_t rpac::Pulser<p>::cycle {0u} ;
 //
 template <rpacPin_t p> bool rpac::Pulser<p>::pulse {false} ;
 template <rpacPin_t p> typename rpac::Pulser <p>::Mode rpac::Pulser<p>::mode {rpac::Pulser <p>::Mode::mBase} ;
@@ -33,9 +33,9 @@ template <rpacPin_t p> const uint16_t rpac::Pulser <p>::__cycles [vars]{1, 10, 1
 */
 //
 constexpr int vars{1} ;
-template <rpacPin_t p> const uint32_t rpac::Pulser <p>::__on [vars] {3000} ;
-template <rpacPin_t p> const uint32_t rpac::Pulser <p>::__off [vars] {2000} ;
-template <rpacPin_t p> const uint16_t rpac::Pulser <p>::__cycles [vars] {32} ;
+template <rpacPin_t p> const uint32_t rpac::Pulser <p>::__on [vars] {3000u} ;
+template <rpacPin_t p> const uint32_t rpac::Pulser <p>::__off [vars] {2000u} ;
+template <rpacPin_t p> const uint16_t rpac::Pulser <p>::__cycles [vars] {32u} ;
 //
 template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOn (void) {
   //
@@ -127,7 +127,7 @@ template <rpacPin_t p> bool rpac::Pulser <p>::toggle (mode_t m) {
     //
 #ifdef __DEBUG__PULSER__
     Serial.print ("[INFO] rpac::Pulser::toggle () switched to mode ") ;
-    Serial.print (static_cast <int> (m)) ;
+    Serial.print (static_cast <uint8_t> (m)) ;
     Serial.println (".") ;
 #endif
     //
@@ -155,11 +155,11 @@ template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
   //
   lcbs.add ([](void) -> unsigned long {
 #if defined(__RPAC__ANALOG__PULSE__)
-    return static_cast <unsigned long> (pulse ? _PWM_full : _PWM_zero) ;
+    return static_cast <uint16_t> (pulse ? _PWM_full : _PWM_zero) ;
 #else
-    return static_cast <unsigned long> (pulse) ;
+    return static_cast <uint16_t> (pulse) ;
 #endif
-    }, String ("Pulse PIN") + String (static_cast<int> (p), DEC)) ;
+  }, String ("Pulse PIN") + String (static_cast <uint8_t> (p), DEC)) ;
   //
   stage = 0 ;
   pulse = false ;
@@ -299,21 +299,36 @@ template <rpacPin_t p> bool rpac::Pulser <p>::loop (bool trigger) {
   //
 }
 //
-template <rpacPin_t p> bool rpac::Pulser <p>::remote (uint16_t duration, uint8_t dutyCycle) {
+template <rpacPin_t p> bool rpac::Pulser <p>::remotePulse (uint16_t duration) {
   //
 #ifdef __DEBUG__PULSER__
-  Serial.print ("[INFO] Remote pulse definition with duration = ") ;
+  Serial.print ("[INFO] Remote pulse trigger for ") ;
   Serial.print (duration) ;
-  Serial.print ("ms and duty cycle = ") ;
-  Serial.print (dutyCycle) ;
-  Serial.println ("%") ;
+  Serial.println (" ms.") ;
 #endif  
   if (mode != Mode::mBLE) return false ;
   //
-  _PWM_full = static_cast <float> (dutyCycle) ;
-  endTime = duration + millis () ;
+  endTime = (duration > maxRemotePulseDurationMS ? maxRemotePulseDurationMS : duration) + millis () ;
   //
   return true ;
   //
 }
 //
+template <rpacPin_t p> uint8_t rpac::Pulser <p>::remoteDuty (uint8_t nValue) {
+  //
+  uint8_t oValue {_PWM_full} ;
+  //
+#ifdef __DEBUG__PULSER__
+  Serial.print ("[INFO] Remote change of duty cycle from ") ;
+  Serial.print (oValue) ;
+  Serial.print (" to ") ;
+  Serial.print (nValue) ;
+  Serial.println (" %.") ;
+#endif  
+  if (mode != Mode::mBLE) return false ;
+  //
+  _PWM_full = static_cast <float> (nValue) ;
+  //
+  return oValue ;
+  //
+}

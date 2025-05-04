@@ -7,10 +7,10 @@
 #include "button.h"
 //
 class loggerCBs {
-    //  
-    static const int mcbs {16} ;            //  mcbs: max. number of callback functions
-    static const int mhdl {64} ;            //  mhdl: max. length of header string
-    static const int rowl {mhdl * mcbs} ;   //  rowl: lenght of buffer used by sprintft
+    //
+    static constexpr int mcbs {16} ;            //  mcbs: max. number of callback functions
+    static constexpr int mhdl {64} ;            //  mhdl: max. length of header string
+    static constexpr int rowl {mhdl * mcbs} ;   //  rowl: lenght of buffer used by sprintft
     //
     char row [rowl] {0} ;
     unsigned int num {0} ;
