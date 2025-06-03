@@ -11,9 +11,9 @@
 //
 static BLEService pService (BLEUuid ("cc133984-dc6c-444c-8b50-b2434eb7592f")) ;               // cc133984dc6c444c8b50b2434eb7592f
 static BLECharacteristic pLineUpd (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f45")) ;        // 380157bffc564440a5be34a660d16f45
-static BLECharacteristic pPulse (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f46"), 2, true) ; // 
-static BLECharacteristic pDuty (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f47"), 1, true) ;  //
-static BLECharacteristic pClock (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f48"), 1, true) ; //
+static BLECharacteristic pPulse (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f46")) ;          //
+static BLECharacteristic pDuty (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f47")) ;           //
+static BLECharacteristic pClock (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f48")) ;          //
 //
 bool rpac::BTLogger::initialized {false} ;
 rpac::BTLogger * rpac::BTLogger::instance {nullptr} ;
@@ -127,6 +127,7 @@ void rpac::BTLogger::setup (loggerCBs_t & cbs, unsigned int cyc, unsigned int ad
       //
       pPulse.setProperties (CHR_PROPS_WRITE) ;
       pPulse.setPermission (SECMODE_OPEN, SECMODE_OPEN) ;
+      pPulse.setFixedLen (sizeof (uint16_t)) ;
       pPulse.setWriteCallback([](uint16_t con, BLECharacteristic* chr, uint8_t * dat, uint16_t len) -> void {
         //
         uint16_t duration {0} ;
@@ -145,14 +146,18 @@ void rpac::BTLogger::setup (loggerCBs_t & cbs, unsigned int cyc, unsigned int ad
       //
       pPulse.begin () ;
       //
-      pDuty.setProperties (CHR_PROPS_WRITE) ;
+      pDuty.setProperties (CHR_PROPS_READ | CHR_PROPS_WRITE) ;
       pDuty.setPermission (SECMODE_OPEN, SECMODE_OPEN) ;
+      pDuty.setFixedLen (sizeof (uint8_t)) ;
+      pDuty.write16 (80) ;
       pDuty.setUserDescriptor ("Pulse duty factor: 1...100% (write only)") ;
-      pDuty.setWriteCallback([](uint16_t con, BLECharacteristic* chr, uint8_t * dat, uint16_t len) -> void {
+      pDuty.setWriteCallback ([](uint16_t con, BLECharacteristic* chr, uint8_t * dat, uint16_t len) -> void {
         //
         uint8_t dutyCycle {80} ;  // integral percentage %
         //
         dutyCycle = static_cast <uint8_t> (dat [0]) < 101 ? static_cast <uint8_t> (dat [0]) : 100 ;
+        //
+        rpac::Pulser <rpacPin_t::pulser>::remoteDuty (dutyCycle) ;
         //
         return ;
         //
@@ -162,11 +167,15 @@ void rpac::BTLogger::setup (loggerCBs_t & cbs, unsigned int cyc, unsigned int ad
       //
       pClock.setProperties (CHR_PROPS_READ | CHR_PROPS_WRITE) ;
       pClock.setPermission (SECMODE_OPEN, SECMODE_OPEN) ;
+      pClock.setMaxLen (sizeof (uint8_t)) ;
+      pClock.write8 (42) ;
       pClock.setWriteCallback([](uint16_t con, BLECharacteristic* chr, uint8_t * dat, uint16_t len) -> void {
         //
         (void) chr ;
         //
       });
+      //
+      pClock.begin () ;
       //
       initialized = true ;
       //

@@ -321,7 +321,7 @@ template <rpacPin_t p> uint8_t rpac::Pulser <p>::remoteDuty (uint8_t nValue) {
 #ifdef __DEBUG__PULSER__
   Serial.print ("[INFO] Remote change of duty cycle from ") ;
   Serial.print (oValue) ;
-  Serial.print (" to ") ;
+  Serial.print (" % to ") ;
   Serial.print (nValue) ;
   Serial.println (" %.") ;
 #endif  
