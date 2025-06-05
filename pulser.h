@@ -73,7 +73,7 @@ namespace rpac {
         //
         public :
             //
-            static constexpr uint16_t maxRemotePulseDurationMS {1000} ;
+            static constexpr uint16_t maxRemotePulseDurationMS {0x1000} ;        // ~ 4 sec.
             //
             typedef Mode mode_t ;
             //

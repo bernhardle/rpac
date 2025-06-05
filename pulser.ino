@@ -6,6 +6,8 @@
 #include "pulser.h"
 #include "logger.h"
 //
+using Data = rpac::BTLogger ;
+//
 template <rpacPin_t p> uint32_t rpac::Pulser<p>::change {0u} ;
 template <rpacPin_t p> uint32_t rpac::Pulser<p>::endTime {0u} ;
 template <rpacPin_t p> uint16_t rpac::Pulser<p>::stage {0u} ;
@@ -130,6 +132,8 @@ template <rpacPin_t p> bool rpac::Pulser <p>::toggle (mode_t m) {
     Serial.print (static_cast <uint8_t> (m)) ;
     Serial.println (".") ;
 #endif
+    //
+    if (mode == Mode::mBLE) Data::advertise () ;
     //
     return true ;
     //
@@ -318,17 +322,23 @@ template <rpacPin_t p> uint8_t rpac::Pulser <p>::remoteDuty (uint8_t nValue) {
   //
   uint8_t oValue {_PWM_full} ;
   //
+  if (nValue > 100) {
+    Serial.print ("[WARNING] Invalid remote request for duty cycle change '") ;
+    Serial.print (nValue) ;
+    Serial.println ("'. Ignored") ;
+  } else {
 #ifdef __DEBUG__PULSER__
-  Serial.print ("[INFO] Remote change of duty cycle from ") ;
-  Serial.print (oValue) ;
-  Serial.print (" % to ") ;
-  Serial.print (nValue) ;
-  Serial.println (" %.") ;
+    Serial.print ("[INFO] Remote request for duty cycle change ") ;
+    Serial.print (oValue) ;
+    Serial.print (" % -> ") ;
+    Serial.print (nValue) ;
+    Serial.println (" %.") ;
 #endif  
-  if (mode != Mode::mBLE) return false ;
-  //
-  _PWM_full = static_cast <float> (nValue) ;
-  //
+    if (mode != Mode::mBLE) return false ;
+    //
+    _PWM_full = static_cast <float> (nValue) ;
+    //
+  }
   return oValue ;
   //
 }
