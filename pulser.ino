@@ -20,8 +20,8 @@ template <rpacPin_t p> typename rpac::Pulser <p>::Mode rpac::Pulser<p>::mode {rp
 //  
 //  100 % duty cycle gives 1.5 Volts input to PIN3 of OP-Amp IC3A means 0.2 MPa (Voltage - 0.2)/9
 //
-template <rpacPin_t p> float rpac::Pulser<p>::_PWM_full {80.0f} ;
-template <rpacPin_t p> float rpac::Pulser<p>::_PWM_zero {0.0f} ;
+template <rpacPin_t p> uint8_t rpac::Pulser<p>::_PWM_full {80u} ;
+template <rpacPin_t p> uint8_t rpac::Pulser<p>::_PWM_zero {0u} ;
 #if defined(__RPAC__RP2040__PWM__) || defined(__RPAC__NRF52__PWM__) || defined(__RPAC__NRF52__MBED__PWM__)
 template <rpacPin_t p> typename rpac::Pulser <p>::_PWM_instance_t * rpac::Pulser <p>::_PWM_Instance {nullptr} ;
 template <rpacPin_t p> float rpac::Pulser<p>::_PWM_freq {7000.0f} ;
@@ -42,11 +42,11 @@ template <rpacPin_t p> const uint16_t rpac::Pulser <p>::__cycles [vars] {32u} ;
 template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOn (void) {
   //
 #if defined(__RPAC__RP2040__PWM__) || defined(__RPAC__NRF52__PWM__)
-  _PWM_Instance->setPWM (static_cast <uint8_t> (p), _PWM_freq, _PWM_full) ;
+  _PWM_Instance->setPWM (static_cast <uint8_t> (p), _PWM_freq, static_cast <float> (_PWM_full)) ;
 #elif defined(__RPAC__NRF52__MBED__PWM__)
-  setPWM (_PWM_Instance, static_cast <uint8_t> (p), _PWM_freq, _PWM_full) ;
+  setPWM (_PWM_Instance, static_cast <uint8_t> (p), _PWM_freq, static_cast <float> (_PWM_full)) ;
 #elif defined(__RPAC__MBED__PWM__)
-  analogWrite (static_cast <uint8_t> (p), static_cast <uint32_t> (2.5499f * _PWM_full)) ;
+  analogWrite (static_cast <uint8_t> (p), static_cast <uint32_t> (2.5499f * static_cast <float> (_PWM_full))) ;
 #else
   digitalWrite (static_cast <uint8_t> (p), HIGH) ;
 #endif
@@ -58,11 +58,11 @@ template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOn (void) {
 template <rpacPin_t p> inline void rpac::Pulser <p>::__pulseOff (void) {
   //
 #if defined(__RPAC__RP2040__PWM__) || defined(__RPAC__NRF52__PWM__)
-  _PWM_Instance->setPWM (static_cast <uint8_t> (p), _PWM_freq, _PWM_zero) ;
+  _PWM_Instance->setPWM (static_cast <uint8_t> (p), _PWM_freq, static_cast <float> (_PWM_zero)) ;
 #elif defined(__RPAC__NRF52__MBED__PWM__)
-  setPWM (_PWM_Instance, static_cast <uint8_t> (p), _PWM_freq, _PWM_zero) ;
+  setPWM (_PWM_Instance, static_cast <uint8_t> (p), _PWM_freq, static_cast <float> (_PWM_zero)) ;
 #elif defined(__RPAC__MBED__PWM__)
-  analogWrite (static_cast <uint8_t> (p), (2.5499f * _PWM_zero)) ;
+  analogWrite (static_cast <uint8_t> (p), (2.5499f * static_cast <float> (_PWM_zero))) ;
 #else
   digitalWrite (static_cast <uint8_t> (p), LOW) ;
 #endif
@@ -133,7 +133,7 @@ template <rpacPin_t p> bool rpac::Pulser <p>::toggle (mode_t m) {
     Serial.println (".") ;
 #endif
     //
-    if (mode == Mode::mBLE) Data::advertise () ;
+    if (mode == Mode::mBLE) Data::start () ;
     //
     return true ;
     //
@@ -145,17 +145,7 @@ template <rpacPin_t p> bool rpac::Pulser <p>::toggle (mode_t m) {
 //
 template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
   //
-#if defined(__RPAC__RP2040__PWM__) || defined(__RPAC__NRF52__PWM__)
-  _PWM_Instance = new _PWM_instance_t (static_cast <uint8_t> (p), _PWM_freq, _PWM_zero) ;
-#elif defined(__RPAC__NRF52__MBED__PWM__)
-  setPWM (_PWM_Instance, static_cast <uint8_t> (p), _PWM_freq, _PWM_zero) ;
-#elif defined(__RPAC__MBED__PWM__)
-  pinMode (static_cast <uint8_t> (p), OUTPUT) ;
-  analogWrite (static_cast <uint8_t> (p), _PWM_zero) ;
-#else
-  pinMode (static_cast <uint8_t> (p), OUTPUT) ;
-  digitalWrite (static_cast <uint8_t> (p), LOW) ;
-#endif
+  __pulseOff () ;
   //
   lcbs.add ([](void) -> unsigned long {
 #if defined(__RPAC__ANALOG__PULSE__)
@@ -190,9 +180,9 @@ template <rpacPin_t p> void rpac::Pulser <p>::setup (loggerCBs_t & lcbs) {
   //
 #if defined(__RPAC__ANALOG__PULSE__)
   Serial.print ("\n[INFO] Pulse duty factor ") ;
-  Serial.print (_PWM_full, 1) ;
+  Serial.print (_PWM_full, DEC) ;
   Serial.print (" % corresponding to ") ;
-  Serial.print ((1.5f * 0.01 * _PWM_full - 0.2f)/9.0f, 2) ;
+  Serial.print ((1.5f * 0.01 * static_cast <float> (_PWM_full) - 0.2f)/9.0f, 2) ;
   Serial.println (" MPa pulse pressure offset to inflow.\n") ;
 #endif
   //
@@ -323,20 +313,22 @@ template <rpacPin_t p> uint8_t rpac::Pulser <p>::remoteDuty (uint8_t nValue) {
   uint8_t oValue {_PWM_full} ;
   //
   if (nValue > 100) {
+    //
     Serial.print ("[WARNING] Invalid remote request for duty cycle change '") ;
     Serial.print (nValue) ;
     Serial.println ("'. Ignored") ;
+    //
   } else {
-#ifdef __DEBUG__PULSER__
+    //
+#if defined(__INFO__PULSER__) || defined(__DEBUG__PULSER__)
     Serial.print ("[INFO] Remote request for duty cycle change ") ;
     Serial.print (oValue) ;
     Serial.print (" % -> ") ;
     Serial.print (nValue) ;
     Serial.println (" %.") ;
-#endif  
-    if (mode != Mode::mBLE) return false ;
+#endif
     //
-    _PWM_full = static_cast <float> (nValue) ;
+    _PWM_full = nValue ;
     //
   }
   return oValue ;

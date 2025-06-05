@@ -52,6 +52,7 @@ void setup () {
   //
 #if defined(__DEBUG__RPAC__) && (defined(ARDUINO_SEEED_XIAO_RP2040) || defined(ARDUINO_Seeed_XIAO_nRF52840) || defined(ARDUINO_ARCH_RP2040))
   for (unsigned long mytime = millis () ; mytime + 10000u > millis () ; delay (100)) {
+/* Hier ist was eingesetzt */ break ;
     if (Serial) break ;
   }
 #endif

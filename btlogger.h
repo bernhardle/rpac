@@ -12,12 +12,25 @@ namespace rpac {
     //
     class BTLogger : public Logger {
         //
+        enum struct Mode {
+          ADV_LOG   = 01u,
+          LOG       = 02u,
+          ADV_ONLY  = 03u,
+          SHUTDOWN  = 04u,
+          INVENTORY = 05u,
+          IDLE = 06u
+        } ;
+        //
+        public :
+          //
+          using mode_t = Mode ;
+          //
         private : // static
           //
           static constexpr uint8_t maxConnectionsBLE {2u} ;
           static constexpr uint8_t maxLoggerLineLength {64u} ;
           //
-          static struct hx { bool valid ; uint16_t value; } handles [maxConnectionsBLE] ;
+          static uint16_t handles [maxConnectionsBLE] ;
           //
           static BTLogger * instance ;
           static bool initialized ;
@@ -26,28 +39,52 @@ namespace rpac {
           //
         private : // non-static
           //
-          uint32_t sampleInterval {500u}, sampleAdjust {8u} ;
-          uint32_t nextSampleTime {0} ;
-          uint8_t mode {5u} ;
+          uint16_t sampleInterval {500u} ;
+          uint16_t sampleAdjust {8u} ;
+          uint32_t nextSampleTime {0} ;   //
+          uint8_t underSample {1u} ;      // divider: logger period = sampleInterval * underSample
+          mode_t mode {mode_t::IDLE} ;
           //
-          void wrmode (uint8_t m) { mode = m ; }
+          void wrmode (mode_t) ;
+          void divide (uint8_t) ;
           operator bool () const { return true ; }
           //
         protected:
           //
-          BTLogger (loggerCBs_t &, unsigned int, unsigned int) ;
-          bool loop (unsigned long int) ;
-          void shutdown () { mode = 3u ; }
+          BTLogger (loggerCBs_t &, uint16_t, uint16_t) ;
+          bool loop (uint32_t) ;
+          void advertise (void) { mode = mode == mode_t::LOG ? mode_t::ADV_LOG : mode_t::ADV_ONLY ; }
+          void shutdown (void) { mode = mode_t::SHUTDOWN ; }
           //
         public:
           //
-          static void setup (loggerCBs_t &, unsigned int = 250, unsigned int = 4) ;
-          static bool loop () { return Logger::loop () ; }
-          static void stop () { if (instance != nullptr) instance->shutdown () ; }
-          static void advertise () { if (instance != nullptr) instance->wrmode (1u) ; }
+          static void setup (loggerCBs_t &, uint16_t = 250u, uint16_t = 4u) ;
+          static bool loop (void) { return Logger::loop () ; }
+          static void stop (void) { if (instance != nullptr) instance->shutdown () ; }
+          static void start (void) { if (instance != nullptr) instance->advertise () ; }
           //
     } ;
     //
 } ;
+//
+inline void rpac::BTLogger::wrmode (mode_t m) {
+  //
+  mode = m ;
+#if defined(__INFO__LOGGER__) || defined(__DEBUG__LOGGER__)
+  Serial.print ("BTLogger::wrmode () Mode = ") ;
+  Serial.print (static_cast <uint8_t> (mode)) ;
+  Serial.println (".") ;
+#endif
+}
+//
+inline void rpac::BTLogger::divide (uint8_t d) {
+  //
+  underSample = d ;
+#if defined(__INFO__LOGGER__) || defined(__DEBUG__LOGGER__)
+  Serial.print ("BTLogger::divide () Undersample = ") ;
+  Serial.print (underSample) ;
+  Serial.println (".") ;
+#endif
+}
 //
 #endif
