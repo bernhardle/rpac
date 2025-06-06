@@ -1,7 +1,7 @@
 //
 //  (c) Bernhard Schupp, Frankfurt (2024-2025)
 //
-#if 1 || defined(ARDUINO_Seeed_XIAO_nRF52840)
+#if defined(ARDUINO_Seeed_XIAO_nRF52840)
 //
 #include <bluefruit.h>
 #include "Adafruit_TinyUSB.h"
@@ -16,7 +16,7 @@ static BLECharacteristic pPulse (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f46"
 static BLECharacteristic pDuty (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f47")) ;           // 380157BF-FC56-4440-A5BE-34A660D16F47
 static BLECharacteristic pClock (BLEUuid ("380157bf-fc56-4440-a5be-34a660d16f48")) ;          // 380157BF-FC56-4440-A5BE-34A660D16F48
 //
-uint16_t rpac::BTLogger::handles [] {0x0000} ;
+uint16_t rpac::BTLogger::connections {0x0000} ;
 //
 bool rpac::BTLogger::initialized {false} ;
 rpac::BTLogger * rpac::BTLogger::instance {nullptr} ;
@@ -73,17 +73,7 @@ void rpac::BTLogger::setup (loggerCBs_t & cbs, uint16_t cyc, uint16_t adj) {
       //
       Bluefruit.Periph.setConnectCallback ([](uint16_t con) -> void {
         //
-        for (auto i = 0 ; i < maxConnectionsBLE ; i++) {
-          //
-          if (handles [i] != 0x0000) {
-            //
-            handles [i] = con ;
-            //
-            break ;
-            //
-          }
-          //
-        }
+        connections ++ ;
         //
 #ifdef __DEBUG__LOGGER__
         char deviceName [32] {0x0} ;
@@ -102,17 +92,7 @@ void rpac::BTLogger::setup (loggerCBs_t & cbs, uint16_t cyc, uint16_t adj) {
         //
         (void) rea ;
         //
-        for (auto i = 0 ; i < maxConnectionsBLE ; i++) {
-          //
-          if (handles [i] == con) {
-            //
-            handles [i] = 0x0 ;
-            //
-            break ;
-            //
-          }
-          //
-        }
+        connections -- ;
         //
 #if defined(__INFO__LOGGER__) || defined(__DEBUG__LOGGER__)
         Serial.print ("[INFO] Connection 0x") ;
@@ -173,13 +153,7 @@ void rpac::BTLogger::setup (loggerCBs_t & cbs, uint16_t cyc, uint16_t adj) {
       pDuty.setUserDescriptor ("Pulse duty factor: 1...100% (write only)") ;
       pDuty.setWriteCallback ([](uint16_t, BLECharacteristic *, uint8_t * dat, uint16_t) -> void {
         //
-        uint8_t dc {80} ;  // integral percentage %
-        //
-        dc = static_cast <uint8_t> (dat [0]) < 101 ? static_cast <uint8_t> (dat [0]) : 100 ;
-        //
-        rpac::Pulser <rpacPin_t::pulser>::remoteDuty (dc) ;
-        //
-        return ;
+        rpac::Pulser <rpacPin_t::pulser>::remoteDuty (static_cast <float> (dat [0]) < 101 ? static_cast <uint8_t> (dat [0]) : 100) ;
         //
       }) ;
       //
@@ -224,11 +198,15 @@ bool rpac::BTLogger::loop (uint32_t mytime) {
     //
     case mode_t::ADV_LOG :
       //
+      if (connections < maxConnectionsBLE) {
+        Bluefruit.autoConnLed (true) ;
+        Bluefruit.Advertising.start (30) ;  // 30 seconds advertising
 #if defined(__INFO__LOGGER__) || defined(__DEBUG__LOGGER__)
-      Serial.print ("[INFO] BTLogger::loop () Advertising & logging.") ;
+        Serial.print ("[INFO] BTLogger::loop () Advertising while logging started.") ;
+      } else {
+        Serial.print ("[INFO] BTLogger::loop () Advertising skipped.") ;
 #endif
-      Bluefruit.Advertising.start (30) ;  // 30 seconds advertising
-      //
+      }      //
       mode = mode_t::LOG ;
       //
       [[fallthrough]];
@@ -246,13 +224,22 @@ bool rpac::BTLogger::loop (uint32_t mytime) {
       {
         //
         const char * const line {Logger::dataLine ()} ;
+        uint16_t notified {0u} ;
         //
-        if (pLineUpd.notify (line)) {
+        for (auto i = 0 ; i < maxConnectionsBLE ; i ++) {
+          //
+          if (Bluefruit.connected(i) && pLineUpd.notifyEnabled(i)) notified += pLineUpd.notify (i, line) ? 1 : 0 ;
+          //
+        }
+        //
+        if (notified) {
           //
   #ifdef __DEBUG__LOGGER__
           Serial.print ("[DEBUG] BTLogger::loop () Notified '") ;
           Serial.print (line) ;
-          Serial.println ("'") ;
+          Serial.print ("' to ") ;
+          Serial.print (notified) ;
+          Serial.println (" clients.") ;
   #endif
           return true ;
           //
@@ -264,10 +251,15 @@ bool rpac::BTLogger::loop (uint32_t mytime) {
       //
     case mode_t::ADV_ONLY :
       //
+      if (connections < maxConnectionsBLE) {
+        Bluefruit.autoConnLed (true) ;
+        Bluefruit.Advertising.start (30) ;  // 30 seconds advertising
 #if defined(__INFO__LOGGER__) || defined(__DEBUG__LOGGER__)
-    Serial.print ("[INFO] BTLogger::loop () Advertising only.") ;
+        Serial.print ("[INFO] BTLogger::loop () Advertising only started.") ;
+      } else {
+        Serial.print ("[INFO] BTLogger::loop () Advertising skipped.") ;
 #endif
-      Bluefruit.Advertising.start (30) ;  // 30 seconds advertising
+      }
       //
       mode = mode_t::IDLE;
       //
@@ -280,13 +272,7 @@ bool rpac::BTLogger::loop (uint32_t mytime) {
 #endif
       for (auto i = 0 ; i < maxConnectionsBLE ; i++) {
         //
-        if (handles [i] != 0x0000) {
-          //
-          Bluefruit.disconnect (handles [i]) ;
-          //
-          handles [i] = 0x0000 ;
-          //
-        }
+        if (Bluefruit.connected (i)) Bluefruit.disconnect (i) ;
         //
       }
       //
@@ -300,18 +286,19 @@ bool rpac::BTLogger::loop (uint32_t mytime) {
       {
         //
         uint8_t cons {0}, logs {0} ;
+        const char * const line {instance->Logger::headLine ()} ;
         //
-        for (auto i = 0 ; i < maxConnectionsBLE ; i++) {
+        for (auto i = 0 ; i < maxConnectionsBLE ; i ++) {
           //
-          if (handles [i] != 0x0000) {
+          if (Bluefruit.connected (i)) {
             //
             cons ++ ;
             //
-            if (pLineUpd.notifyEnabled (handles [i])) {
-              //
-              pLineUpd.notify (instance->Logger::headLine ()) ;
+            if (pLineUpd.notifyEnabled (i)) {
               //
               logs ++ ;
+              //
+              pLineUpd.notify (i, line) ? 1 : 0 ;
               //
             }
             //
@@ -326,10 +313,9 @@ bool rpac::BTLogger::loop (uint32_t mytime) {
         Serial.print (logs) ;
         Serial.println (".") ;
 #endif
-        rpac::Pulser <rpacPin_t::pulser>::toggle (cons ? rpac::Pulser <rpacPin_t::pulser>::mode_t::mBLE : rpac::Pulser <rpacPin_t::pulser>::mode_t::mBase) ;
+        rpac::Pulser <rpacPin_t::pulser>::remoteOperation (cons > 0) ;
         //
         instance->wrmode (logs > 0 ? mode_t::LOG : mode_t::IDLE) ;
-        instance->divide (logs) ;
         //
       }
       //

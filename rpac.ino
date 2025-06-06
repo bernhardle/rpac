@@ -148,7 +148,7 @@ void loop () {
       //
     case 2 :
       //
-      if (Pulser::toggle (Pulser::mode_t::mBLE)) {
+      if (Data::start ()) {
         //
         Signal::async (Signal::scheme::blinkfast, 200) ;
         //

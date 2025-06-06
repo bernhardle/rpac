@@ -52,8 +52,7 @@ namespace rpac {
         static Mode mode ;
         //
 #if defined(__RPAC__ANALOG__PULSE__)
-        static uint8_t _PWM_full, _PWM_zero ;
-        static float _PWM_freq ;
+        static float _PWM_full, _PWM_zero, _PWM_freq ;
 #if defined(__RPAC__RP2040__PWM__)
         typedef RP2040_PWM _PWM_instance_t ;
         static _PWM_instance_t * _PWM_Instance ;
@@ -82,8 +81,11 @@ namespace rpac {
             static bool loop (bool) ;
             static bool toggle (mode_t) ;
             //
+#if defined(ARDUINO_Seeed_XIAO_nRF52840)
+            static void remoteOperation (bool) ;
             static bool remotePulse (uint16_t) ;
-            static uint8_t remoteDuty (uint8_t) ;
+            static float remoteDuty (float) ;
+#endif
             //
     } ;
 } ;

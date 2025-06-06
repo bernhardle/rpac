@@ -30,8 +30,7 @@ namespace rpac {
           static constexpr uint8_t maxConnectionsBLE {2u} ;
           static constexpr uint8_t maxLoggerLineLength {64u} ;
           //
-          static uint16_t handles [maxConnectionsBLE] ;
-          //
+          static uint16_t connections ;
           static BTLogger * instance ;
           static bool initialized ;
           //
@@ -53,7 +52,7 @@ namespace rpac {
           //
           BTLogger (loggerCBs_t &, uint16_t, uint16_t) ;
           bool loop (uint32_t) ;
-          void advertise (void) { mode = mode == mode_t::LOG ? mode_t::ADV_LOG : mode_t::ADV_ONLY ; }
+          bool advertise (void) { mode = mode == mode_t::LOG ? mode_t::ADV_LOG : mode_t::ADV_ONLY ; return true ; }
           void shutdown (void) { mode = mode_t::SHUTDOWN ; }
           //
         public:
@@ -61,7 +60,7 @@ namespace rpac {
           static void setup (loggerCBs_t &, uint16_t = 250u, uint16_t = 4u) ;
           static bool loop (void) { return Logger::loop () ; }
           static void stop (void) { if (instance != nullptr) instance->shutdown () ; }
-          static void start (void) { if (instance != nullptr) instance->advertise () ; }
+          static bool start (void) { return instance != nullptr ? instance->advertise () : false ; }
           //
     } ;
     //
@@ -79,7 +78,7 @@ inline void rpac::BTLogger::wrmode (mode_t m) {
 //
 inline void rpac::BTLogger::divide (uint8_t d) {
   //
-  underSample = d ;
+  underSample = d < 1 ? 1u : d ;
 #if defined(__INFO__LOGGER__) || defined(__DEBUG__LOGGER__)
   Serial.print ("BTLogger::divide () Undersample = ") ;
   Serial.print (underSample) ;
